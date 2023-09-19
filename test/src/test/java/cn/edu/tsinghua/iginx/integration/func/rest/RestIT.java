@@ -23,11 +23,18 @@ public class RestIT {
 
   private boolean isAbleToDelete = true;
 
+  private static String resourceDir = "./src/test/resources";
+
   public RestIT() {
     ConfLoader conf = new ConfLoader(Controller.CONFIG_FILE);
     DBConf dbConf = conf.loadDBConf(conf.getStorageType());
     this.isAbleToClearData = dbConf.getEnumValue(DBConf.DBConfType.isAbleToClearData);
     this.isAbleToDelete = dbConf.getEnumValue(DBConf.DBConfType.isAbleToDelete);
+    String iginxHomePath = System.getenv().getOrDefault(Controller.IGINX_HOME_NAME, "");
+    if (!iginxHomePath.isEmpty()) {
+      iginxHomePath = iginxHomePath.substring(0, iginxHomePath.indexOf("/core")) + "/test";
+      resourceDir = String.join(File.separator, iginxHomePath, resourceDir.substring(2));
+    }
   }
 
   @BeforeClass

@@ -1,7 +1,9 @@
 package cn.edu.tsinghua.iginx.integration.tool;
 
+import cn.edu.tsinghua.iginx.integration.controller.Controller;
 import cn.edu.tsinghua.iginx.thrift.StorageEngineType;
 import cn.edu.tsinghua.iginx.utils.FileReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -20,9 +22,9 @@ public class ConfLoader {
 
   private static final String DBCONF = "%s-config";
 
-  private static final String RUNNING_STORAGE = "./src/test/resources/DBName.txt";
+  private static String RUNNING_STORAGE = "./src/test/resources/DBName.txt";
 
-  private static final String IS_SCALING = "./src/test/resources/isScaling.txt";
+  private static String IS_SCALING = "./src/test/resources/isScaling.txt";
 
   private static List<String> storageEngines = new ArrayList<>();
 
@@ -52,6 +54,12 @@ public class ConfLoader {
 
   public ConfLoader(String confPath) {
     this.confPath = confPath;
+    String iginxHomePath = System.getenv().getOrDefault(Controller.IGINX_HOME_NAME, "");
+    if (!iginxHomePath.isEmpty()) {
+      iginxHomePath = iginxHomePath.substring(0, iginxHomePath.indexOf("/core")) + "/test";
+      RUNNING_STORAGE = String.join(File.separator, iginxHomePath, RUNNING_STORAGE.substring(2));
+      IS_SCALING = String.join(File.separator, iginxHomePath, IS_SCALING.substring(2));
+    }
   }
 
   public void loadTestConf() throws IOException {

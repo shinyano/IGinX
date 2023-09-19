@@ -11,6 +11,7 @@ import cn.edu.tsinghua.iginx.session.Session;
 import cn.edu.tsinghua.iginx.session.SessionExecuteSqlResult;
 import cn.edu.tsinghua.iginx.thrift.StorageEngineType;
 import cn.edu.tsinghua.iginx.utils.ShellRunner;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -30,13 +31,25 @@ public class Controller {
 
   public static final String CLEAR_DATA_ERROR = "Statement: \"{}\" execute fail. Caused by: {}";
 
-  public static final String CONFIG_FILE = "./src/test/resources/testConfig.properties";
+  public static final String IGINX_HOME_NAME = "IGINX_HOME";
 
-  private static final String TEST_TASK_FILE = "./src/test/resources/testTask.txt";
+  public static String CONFIG_FILE = "./src/test/resources/testConfig.properties";
 
-  private static final String MVN_RUN_TEST = "../.github/scripts/test/test_union.sh";
+  private static String TEST_TASK_FILE = "./src/test/resources/testTask.txt";
+
+  private static String MVN_RUN_TEST = "../.github/scripts/test/test_union.sh";
 
   private List<StorageEngineMeta> storageEngineMetas = new ArrayList<>();
+
+  public Controller() {
+    String iginxHomePath = System.getenv().getOrDefault(IGINX_HOME_NAME, "");
+    if (!iginxHomePath.isEmpty()) {
+      iginxHomePath = iginxHomePath.substring(0, iginxHomePath.indexOf("/core")) + "/test";
+      CONFIG_FILE = String.join(File.separator, iginxHomePath, CONFIG_FILE.substring(2));
+      TEST_TASK_FILE = String.join(File.separator, iginxHomePath, TEST_TASK_FILE.substring(2));
+      MVN_RUN_TEST = String.join(File.separator, iginxHomePath, MVN_RUN_TEST);
+    }
+  }
 
   public static void clearData(Session session) {
     clearData(new MultiConnection(session));

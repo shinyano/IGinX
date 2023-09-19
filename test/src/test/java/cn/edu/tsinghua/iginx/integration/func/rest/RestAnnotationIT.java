@@ -50,7 +50,14 @@ public class RestAnnotationIT {
 
   protected boolean isAbleToDelete;
 
+  private static String testDir = "./src/test/resources/restAnnotation";
+
   public RestAnnotationIT() {
+    String iginxHomePath = System.getenv().getOrDefault(Controller.IGINX_HOME_NAME, "");
+    if (!iginxHomePath.isEmpty()) {
+      iginxHomePath = iginxHomePath.substring(0, iginxHomePath.indexOf("/core")) + "/test";
+      testDir = String.join(File.separator, iginxHomePath, testDir.substring(2));
+    }
     ConfLoader conf = new ConfLoader(Controller.CONFIG_FILE);
     DBConf dbConf = conf.loadDBConf(conf.getStorageType());
     this.isAbleToDelete = dbConf.getEnumValue(DBConf.DBConfType.isAbleToDelete);
@@ -102,11 +109,9 @@ public class RestAnnotationIT {
       ProcessBuilder processBuilder = new ProcessBuilder(curlArray.split(" "));
       String dir;
       if (type.equals(TYPE.INSERT)) {
-        dir =
-            String.format(
-                "./src/test/resources/restAnnotation/%sType", dataType.toString().toLowerCase());
+        dir = String.format("%s/%sType", testDir, dataType.toString().toLowerCase());
       } else {
-        dir = "./src/test/resources/restAnnotation/common";
+        dir = testDir + "/common";
       }
       processBuilder.directory(new File(dir));
 
@@ -162,13 +167,11 @@ public class RestAnnotationIT {
       case LONG:
       case BINARY:
         if (fileName.endsWith("Anno")) {
-          fileName =
-              String.format("./src/test/resources/restAnnotation/common/ans/%s.json", fileName);
+          fileName = String.format("%s/common/ans/%s.json", testDir, fileName);
         } else {
           fileName =
               String.format(
-                  "./src/test/resources/restAnnotation/%sType/ans/%s.json",
-                  dataType.toString().toLowerCase(), fileName);
+                  "%s/%sType/ans/%s.json", testDir, dataType.toString().toLowerCase(), fileName);
         }
         break;
       default:
