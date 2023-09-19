@@ -198,6 +198,7 @@ public class TransformIT {
         && !jobState.equals(JobState.JOB_FAILED)
         && !jobState.equals(JobState.JOB_FINISHED)) {
       Thread.sleep(500);
+      logger.info("job status: " + jobState);
       jobState = session.queryTransformJobStatus(jobId);
     }
     logger.info("job {} state is {}", jobId, jobState.toString());
