@@ -63,7 +63,7 @@ public class TransformIT {
 
   private static Session session;
 
-  private static final String OUTPUT_DIR_PREFIX =
+  private static String OUTPUT_DIR_PREFIX =
       System.getProperty("user.dir")
           + File.separator
           + "src"
@@ -102,6 +102,22 @@ public class TransformIT {
         "AddOneTransformer", OUTPUT_DIR_PREFIX + File.separator + "transformer_add_one.py");
     TASK_MAP.put("SumTransformer", OUTPUT_DIR_PREFIX + File.separator + "transformer_sum.py");
     TASK_MAP.put("SleepTransformer", OUTPUT_DIR_PREFIX + File.separator + "transformer_sleep.py");
+  }
+
+  public TransformIT() {
+    String iginxHomePath = System.getenv().getOrDefault(Controller.IGINX_HOME_NAME, "");
+    if (!iginxHomePath.isEmpty()) {
+      iginxHomePath = iginxHomePath.substring(0, iginxHomePath.indexOf("/core")) + "/test";
+      OUTPUT_DIR_PREFIX = iginxHomePath
+              + File.separator
+              + "src"
+              + File.separator
+              + "test"
+              + File.separator
+              + "resources"
+              + File.separator
+              + "transform";
+    }
   }
 
   @BeforeClass
