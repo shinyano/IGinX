@@ -108,7 +108,8 @@ public class TransformIT {
     String iginxHomePath = System.getenv().getOrDefault(Controller.IGINX_HOME_NAME, "");
     if (!iginxHomePath.isEmpty()) {
       iginxHomePath = iginxHomePath.substring(0, iginxHomePath.indexOf("/core")) + "/test";
-      OUTPUT_DIR_PREFIX = iginxHomePath
+      OUTPUT_DIR_PREFIX =
+          iginxHomePath
               + File.separator
               + "src"
               + File.separator
