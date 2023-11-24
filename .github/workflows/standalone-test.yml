@@ -27,7 +27,7 @@ jobs:
             - name: Environment dependence
               uses: ./.github/actions/dependence
               with:
-                  python-version: ${{ matrix.os == 'windows-latest' && python-version-win || python-version-unix }}
+                  python-version: ${{ matrix.os == 'windows-latest' && matrix.python-version-win || matrix.python-version-unix }}
                   java: ${{ matrix.java }}
 
             - name: Run ZooKeeper
