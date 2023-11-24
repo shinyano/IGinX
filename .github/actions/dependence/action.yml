@@ -36,7 +36,8 @@ runs:
           with:
               java-version: ${{ inputs.java }}
 
-        - name: Install Pemja On Windows
+        - if: inputs.os=='windows-latest'
+          name: Install Pemja On Windows
           shell: bash
           run: |
               "${GITHUB_WORKSPACE}/.github/scripts/pemja/pemja.sh"

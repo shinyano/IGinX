@@ -18,7 +18,7 @@ jobs:
             matrix:
                 java: [8]
                 python-version-unix: ["3.7.16"]
-                python-version-win: ["3.7"]
+                python-version-win: ["3.8"]
                 os: [ubuntu-latest, macos-latest, windows-latest]
                 DB-name: ["IoTDB12"]
         runs-on: ${{ matrix.os }}
