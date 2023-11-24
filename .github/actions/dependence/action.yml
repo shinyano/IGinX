@@ -29,7 +29,6 @@ runs:
                 pip install pemja==0.3.0 pandas numpy
               else
                 pip install pandas numpy
-                "${GITHUB_WORKSPACE}/.github/scripts/pemja/pemja.sh"
               fi
 
         - name: Set up JDK ${{ inputs.java }}

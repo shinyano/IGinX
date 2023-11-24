@@ -4,7 +4,7 @@ set -e
 
 sh -c "git clone https://github.com/shinyano/pemja.git"
 
-sh -c "cd pemja"
+cd pemja
 
 sh -c "mvn clean install -DskipTests"
 
