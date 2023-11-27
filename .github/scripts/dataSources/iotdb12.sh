@@ -5,7 +5,7 @@ set -e
 if [ "$1" = "wget" ]; then
     DOWNLOAD_COMMAND="wget -nv"
 else
-    DOWNLOAD_COMMAND="curl -# -O"
+    DOWNLOAD_COMMAND="curl -LJO"
 fi
 
 shift
