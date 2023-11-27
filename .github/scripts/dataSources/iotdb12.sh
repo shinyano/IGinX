@@ -3,9 +3,9 @@
 set -e
 
 if [ "$1" = "wget" ]; then
-    set DOWNLOAD_COMMAND = "wget -nv"
+    DOWNLOAD_COMMAND = "wget -nv"
 else
-    set DOWNLOAD_COMMAND = "curl -# -C - -O"
+    DOWNLOAD_COMMAND = "curl -# -C - -O"
 fi
 
 shift
