@@ -4,8 +4,10 @@ set -e
 
 if [ "$1" = "wget" ]; then
     DOWNLOAD_COMMAND="wget -nv"
+    SUDO_COMMAND="sudo "
 else
     DOWNLOAD_COMMAND="curl -LJO"
+    SUDO_COMMAND=""
 fi
 
 shift
@@ -24,11 +26,11 @@ sh -c "ls apache-iotdb-0.12.6-server-bin"
 
 for port in "$@"
 do
-  sh -c "sudo cp -r apache-iotdb-0.12.6-server-bin/ apache-iotdb-0.12.6-server-bin-$port"
+  sh -c "${SUDO_COMMAND}cp -r apache-iotdb-0.12.6-server-bin/ apache-iotdb-0.12.6-server-bin-$port"
 
-  sh -c "sudo sed -i 's/# wal_buffer_size=16777216/wal_buffer_size=167772160/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
+  sh -c "${SUDO_COMMAND}sed -i 's/# wal_buffer_size=16777216/wal_buffer_size=167772160/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
 
-  sh -c "sudo sed -i 's/6667/$port/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
+  sh -c "${SUDO_COMMAND}sed -i 's/6667/$port/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
 
   sudo sh -c "cd apache-iotdb-0.12.6-server-bin-$port/; nohup sbin/start-server.sh &"
 done
