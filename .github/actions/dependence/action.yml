@@ -4,7 +4,7 @@ inputs:
     python-version:
         description: "python version"
         required: false
-        default: 3.7
+        default: 3.9
     java:
         description: "java version"
         required: false
@@ -30,7 +30,6 @@ runs:
               elif [ "$RUNNER_OS" == "Windows" ]; then
                 pip install pandas numpy
               fi
-              
 
         - name: Set up JDK ${{ inputs.java }}
           uses: actions/setup-java@v1

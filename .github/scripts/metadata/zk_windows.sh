@@ -2,7 +2,7 @@
 
 set -e
 
-sh -c "curl -sS https://dlcdn.apache.org/zookeeper/zookeeper-3.7.2/apache-zookeeper-3.7.2-bin.tar.gz --no-check-certificate"
+sh -c "curl -# -C - -O https://dlcdn.apache.org/zookeeper/zookeeper-3.7.2/apache-zookeeper-3.7.2-bin.tar.gz"
 
 sh -c "tar -zxf apache-zookeeper-3.7.2-bin.tar.gz"
 
