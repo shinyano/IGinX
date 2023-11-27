@@ -8,6 +8,8 @@ else
     set DOWNLOAD_COMMAND = "curl -# -C - -O"
 fi
 
+shift
+
 sh -c "$DOWNLOAD_COMMAND https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip"
 
 sh -c "unzip -qq apache-iotdb-0.12.6-server-bin.zip"
