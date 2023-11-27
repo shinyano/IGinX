@@ -2,7 +2,13 @@
 
 set -e
 
-sh -c "wget -nv https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip"
+if [ "$1" = "wget" ]; then
+    set DOWNLOAD_COMMAND = "wget -nv"
+else
+    set DOWNLOAD_COMMAND = "curl -# -C - -O"
+fi
+
+sh -c "$DOWNLOAD_COMMAND https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip"
 
 sh -c "unzip -qq apache-iotdb-0.12.6-server-bin.zip"
 
