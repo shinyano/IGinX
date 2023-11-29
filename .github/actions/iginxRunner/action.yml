@@ -37,7 +37,7 @@ runs:
           name: Start IGinX
           shell: bash
           run: |
-              if [ "$RUNNER_OS" == "Linux" ]; then
+              if [[ "$RUNNER_OS" == "Linux" || "$RUNNER_OS" == "Windows" ]]; then
                 chmod +x "${GITHUB_WORKSPACE}/.github/scripts/iginx/iginx.sh"
                 "${GITHUB_WORKSPACE}/.github/scripts/iginx/iginx.sh" 6888 6666
               elif [ "$RUNNER_OS" == "macOS" ]; then
