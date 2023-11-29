@@ -125,7 +125,14 @@ goto okClasspath
 @REM set DRIVER=
 @REM setx DRIVER "%IGINX_HOME%\driver"
 
-"%JAVA_HOME%\bin\java" %JAVA_OPTS% %HEAP_OPTS% -cp %CLASSPATH% %MAIN_CLASS%
+if not "%1"=="" (
+    echo "Redirecting output into %1..."
+    set REDIRECT_ARG="> %1 2>&1"
+)
+
+echo "%JAVA_HOME%\bin\java" %JAVA_OPTS% %HEAP_OPTS% -cp %CLASSPATH% %MAIN_CLASS% %REDIRECT_ARG%
+
+"%JAVA_HOME%\bin\java" %JAVA_OPTS% %HEAP_OPTS% -cp %CLASSPATH% %MAIN_CLASS% %REDIRECT_ARG%
 
 @REM reg delete "HKEY_CURRENT_USER\Environment" /v "DRIVER" /f
 @REM set DRIVER=
