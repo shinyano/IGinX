@@ -8,6 +8,10 @@ sed -i "s/#iginx_port=[0-9]\+#/#iginx_port=$1#/g" core/target/iginx-core-*/conf/
 
 sed -i "s/restPort=[0-9]\+/restPort=$2/g" core/target/iginx-core-*/conf/config.properties
 
-sh -c "chmod +x core/target/iginx-core-*/sbin/start_iginx.sh"
+if [ -n "$MSYSTEM" ]; then
+    cmd.exe /c "core/target/iginx-core-*/sbin/start_iginx.bat > iginx-$1.log 2>&1 &"
+else
+    sh -c "chmod +x core/target/iginx-core-*/sbin/start_iginx.sh"
 
-sh -c "nohup core/target/iginx-core-*/sbin/start_iginx.sh > iginx-$1.log 2>&1 &"
+    sh -c "nohup core/target/iginx-core-*/sbin/start_iginx.sh > iginx-$1.log 2>&1 &"
+fi
