@@ -17,7 +17,7 @@ cd ..
 
 if [ -n "$MSYSTEM" ]; then
     echo "$iginx_home_path"
-    windows_path=$(cygpath -m -w "$iginx_home_path")
+    windows_path=$(cygpath -w "$iginx_home_path")
     echo "$windows_path"
     export IGINX_HOME=$windows_path
 #    sh -c "start /min iginx-core-0.6.0-SNAPSHOT/sbin/start_iginx.bat > ../../iginx-udf.log 2>&1"
