@@ -5,9 +5,11 @@ set -e
 if [ "$1" = "wget" ]; then
     DOWNLOAD_COMMAND="wget -nv"
     SUDO_COMMAND="sudo "
+    START_COMMAND="sudo nohup sbin/start-server.sh &"
 else
     DOWNLOAD_COMMAND="curl -LJO"
     SUDO_COMMAND=""
+    START_COMMAND="start /min sbin/start-server.bat"
 fi
 
 shift
@@ -32,5 +34,5 @@ do
 
   sh -c "${SUDO_COMMAND}sed -i 's/6667/$port/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
 
-  sh -c "${SUDO_COMMAND}cd apache-iotdb-0.12.6-server-bin-$port/; ${SUDO_COMMAND}nohup sbin/start-server.sh &"
+  sh -c "cd apache-iotdb-0.12.6-server-bin-$port/; ${START_COMMAND}"
 done
