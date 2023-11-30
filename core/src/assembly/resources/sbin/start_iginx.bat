@@ -17,7 +17,7 @@
 @REM under the License.
 @REM
 
-@echo off
+@REM @echo off
 echo ````````````````````````
 echo Starting IGinX
 echo ````````````````````````
@@ -27,6 +27,8 @@ if "%OS%" == "Windows_NT" setlocal
 pushd %~dp0..
 if NOT DEFINED IGINX_HOME set IGINX_HOME=%CD%
 popd
+
+echo "%IGINX_HOME%"
 
 set PATH="%JAVA_HOME%\bin\";%PATH%
 set "FULL_VERSION="
@@ -59,6 +61,8 @@ IF "%JAVA_VERSION%" == "7" (
 if "%OS%" == "Windows_NT" setlocal
 
 set IGINX_CONF=%IGINX_HOME%\conf\config.properties
+
+echo "%IGINX_CONF%"
 
 @setlocal ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 set is_conf_path=false
