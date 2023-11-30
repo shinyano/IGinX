@@ -23,7 +23,7 @@ if [ -n "$MSYSTEM" ]; then
     echo $IGINX_HOME
 #    sh -c "start /min iginx-core-0.6.0-SNAPSHOT/sbin/start_iginx.bat > ../../iginx-udf.log 2>&1"
 #    cmd.exe /c "iginx-core-0.6.0-SNAPSHOT/sbin/start_iginx.bat > ../../iginx.log 2>&1 &"
-    cmd.exe /c "iginx-core-0.6.0-SNAPSHOT/sbin/start_iginx.bat"
+    sh -c "./iginx-core-0.6.0-SNAPSHOT/sbin/start_iginx.bat > ../../iginx.log 2>&1"
 else
     export IGINX_HOME=$iginx_home_path
 
