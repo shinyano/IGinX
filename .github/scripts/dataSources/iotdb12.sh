@@ -9,7 +9,7 @@ if [ "$1" = "wget" ]; then
 else
     DOWNLOAD_COMMAND="curl -LJO"
     SUDO_COMMAND=""
-    START_COMMAND="start /B sbin/start-server.bat"
+    START_COMMAND="start /B sbin/start-server.bat > redirect.log 2>&1"
 fi
 
 shift
