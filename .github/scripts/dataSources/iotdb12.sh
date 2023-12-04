@@ -35,9 +35,5 @@ do
 
   sh -c "${SUDO_COMMAND}sed -i 's/6667/$port/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
 
-  sh -c "cd apache-iotdb-0.12.6-server-bin-$port/; "
-
-  ${START_COMMAND}
-
-  cd ../
+  sh -c "cd apache-iotdb-0.12.6-server-bin-$port/; ${START_COMMAND}"
 done

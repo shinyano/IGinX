@@ -24,7 +24,7 @@ runs:
                 exit 1
               fi
 
-        - if: ${{ inputs.DB-name == 'IoTDB12' && runner.os == 'Windows' }}
+        - if: inputs.DB-name == 'IoTDB12'
           name: Run DB
           shell: bash
           run: |
