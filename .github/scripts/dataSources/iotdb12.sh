@@ -7,13 +7,13 @@ if [ -n "$MSYSTEM" ]; then
     SUDO_COMMAND=""
 #    powershell -Command "Start-Process -FilePath 'path\to\serviceB.bat' -RedirectStandardOutput 'path\to\serviceB_output.txt' -RedirectStandardError 'path\to\serviceB_error.txt' -NoNewWindow"
 
-    START_COMMAND="powershell -Command \"Start-Process -FilePath 'sbin\start-server.bat' -NoNewWindow\""
+    START_COMMAND="powershell -Command \"Start-Process -FilePath 'sbin\start-server.bat' -NoNewWindow -RedirectStandardOutput 'db.log' -RedirectStandardError 'db-error.log'\""
 else
     DOWNLOAD_COMMAND="wget -nv"
     SUDO_COMMAND="sudo "
     START_COMMAND="sudo nohup sbin/start-server.sh &"
 fi
-#powershell -Command "Start-Process -FilePath 'sbin\start-server.bat' -NoNewWindow"
+#powershell -Command "Start-Process -FilePath 'sbin\start-server.bat' -NoNewWindow -RedirectStandardOutput 'db.log' -RedirectStandardError 'db-error.log'"
 
 sh -c "$DOWNLOAD_COMMAND https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip"
 
