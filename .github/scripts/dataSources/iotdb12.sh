@@ -2,17 +2,18 @@
 
 set -e
 
-if [ "$1" = "wget" ]; then
+if [ -n "$MSYSTEM" ]; then
+    DOWNLOAD_COMMAND="curl -LJO"
+    SUDO_COMMAND=""
+#    powershell -Command "Start-Process -FilePath 'path\to\serviceB.bat' -RedirectStandardOutput 'path\to\serviceB_output.txt' -RedirectStandardError 'path\to\serviceB_error.txt' -NoNewWindow"
+
+    START_COMMAND="powershell -Command \"Start-Process -FilePath 'sbin\start-server.bat' -NoNewWindow\""
+else
     DOWNLOAD_COMMAND="wget -nv"
     SUDO_COMMAND="sudo "
     START_COMMAND="sudo nohup sbin/start-server.sh &"
-else
-    DOWNLOAD_COMMAND="curl -LJO"
-    SUDO_COMMAND=""
-    START_COMMAND="start /B sbin/start-server.bat > redirect.log 2>&1"
 fi
-
-shift
+#powershell -Command "Start-Process -FilePath 'sbin\start-server.bat' -NoNewWindow"
 
 sh -c "$DOWNLOAD_COMMAND https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip"
 
@@ -34,5 +35,9 @@ do
 
   sh -c "${SUDO_COMMAND}sed -i 's/6667/$port/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
 
-  sh -c "cd apache-iotdb-0.12.6-server-bin-$port/; ${START_COMMAND}"
+  sh -c "cd apache-iotdb-0.12.6-server-bin-$port/; "
+
+  ${START_COMMAND}
+
+  cd ../
 done
