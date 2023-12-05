@@ -4,10 +4,19 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 public class ShellRunner {
+
+  // to run .sh script on Windows os in github action tests
+  public static final String BASH_PATH = "C:/Program Files/Git/bin/bash.exe";
+
   public void runShellCommand(String command) throws Exception {
     Process p = null;
     try {
-      ProcessBuilder builder = new ProcessBuilder(command);
+      ProcessBuilder builder = new ProcessBuilder();
+      if (isOnOs("win")) {;
+        builder.command(BASH_PATH, "-c", command);
+      } else {
+        builder.command(command);
+      }
       builder.redirectErrorStream(true);
       p = builder.start();
       BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -26,5 +35,9 @@ public class ShellRunner {
         p.destroy();
       }
     }
+  }
+
+  private boolean isOnOs(String osName) {
+    return System.getProperty("os.name").toLowerCase().contains(osName.toLowerCase());
   }
 }
