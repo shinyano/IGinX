@@ -97,6 +97,7 @@ public class RestAnnotationIT {
   private String execute(String fileName, TYPE type, DataType dataType) throws Exception {
     StringBuilder ret = new StringBuilder();
     String curlArray = orderGen(fileName, type);
+    logger.info(curlArray);
     Process process = null;
     try {
       ProcessBuilder processBuilder = new ProcessBuilder(curlArray.split(" "));
