@@ -33,11 +33,17 @@ runs:
                 exit 1
               fi
 
-        - if: inputs.if-rerun=='true'
+        - if: ${{ inputs.if-rerun=='true' && runner.os != 'Windows' }}
           name: ReRun ZooKeeper
           shell: bash
           run: |
               zookeeper/bin/zkServer.sh start
+
+        - if: ${{ inputs.if-rerun=='true' && runner.os == 'Windows' }}
+          name: ReRun ZooKeeper
+          shell: powershell
+          run: |
+            Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'zookeeper/zookeeper.log' -RedirectStandardError 'zookeeper/zookeeper-error.log'
 
         - if: inputs.if-stop=='true'
           name: Stop ZooKeeper

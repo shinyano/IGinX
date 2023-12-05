@@ -1,8 +1,19 @@
 #!/bin/sh
 
 set -e
+if [ -n "$MSYSTEM" ]; then
+  PORT=2181
 
-sh -c "zookeeper/bin/zkServer.sh stop"
+  PID=$(netstat -ano | grep $PORT | awk '{print $5}' | uniq)
+
+  if [ -z "$PID" ]; then
+      echo "Can't find zookeeper process..."
+  else
+      sh -c "taskkill -f -pid $PID"
+  fi
+else
+  sh -c "zookeeper/bin/zkServer.sh stop"
+fi
 
 sh -c "sleep 2"
 
