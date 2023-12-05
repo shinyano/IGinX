@@ -126,6 +126,8 @@ public class RestAnnotationIT {
       return ret.toString();
     } catch (InterruptedException e) {
       // 强制关闭子进程（如果打开程序，需要额外关闭）
+      logger.error("execution failed: {}", e.getMessage());
+      e.printStackTrace();
       process.destroyForcibly();
       return null;
     }
@@ -221,6 +223,7 @@ public class RestAnnotationIT {
   @Test
   public void testAll() {
     for (DataType dataType : DATA_TYPE_ARRAY) {
+      logger.info("Testing datatype: {}...", dataType);
       testQueryAnno(dataType);
       testQueryAll(dataType);
 
