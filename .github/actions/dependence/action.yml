@@ -16,6 +16,11 @@ inputs:
 runs:
     using: "composite"
     steps:
+        - name: Set Dynamic Timezone
+          shell: bash
+          run: |
+              sudo timedatectl set-timezone "Asia/Shanghai"
+
         - name: Set up Python ${{ inputs.python-version }}
           uses: actions/setup-python@v3
           with:
