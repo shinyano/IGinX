@@ -47,6 +47,7 @@ runs:
           run: |
               pip install local-dependencies/python/pemja/pemja-0.5.dev0.tar.gz
               mvn install:install-file -Dfile=local-dependencies/maven/pemja/pemja-0.5-SNAPSHOT.jar -DgroupId=com.alibaba -DartifactId=pemja -Dversion=0.5-SNAPSHOT -Dpackaging=jar
+
 #              chmod +x "${GITHUB_WORKSPACE}/.github/scripts/pemja/pemja_remote.sh"
 #              "${GITHUB_WORKSPACE}/.github/scripts/pemja/pemja_remote.sh"
 
