@@ -108,6 +108,11 @@ public class RestAnnotationIT {
       } else {
         dir = "./src/test/resources/restAnnotation/common";
       }
+      File file = new File(dir);
+      logger.info("using file: {}",file.getAbsoluteFile());
+      if (!file.exists() || file.isDirectory()) { // 存在但不是目录
+        logger.error("file: {} is unvalid.", file.getCanonicalPath());
+      }
       processBuilder.directory(new File(dir));
 
       // 执行 url 命令
