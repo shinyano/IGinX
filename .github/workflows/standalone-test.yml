@@ -20,15 +20,16 @@ jobs:
                 python-version-unix: ["3.9"]
                 python-version-win: ["3.9"]
                 os: [windows-latest]
-                DB-name: [
-                  "IoTDB12",
-                  "InfluxDB",
-                  "Parquet",
-                  "PostgreSQL",
-                  "FileSystem",
-                  "Redis",
-                  "MongoDB",
-                ]
+                DB-name:
+                    [
+                        "IoTDB12",
+                        "InfluxDB",
+                        "Parquet",
+                        "PostgreSQL",
+                        "FileSystem",
+                        "Redis",
+                        "MongoDB",
+                    ]
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v2

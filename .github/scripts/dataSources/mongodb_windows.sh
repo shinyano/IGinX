@@ -2,6 +2,8 @@
 
 set -e
 
+echo "Downloading zip archive. This may take a few minutes..."
+
 powershell -command "Invoke-WebRequest -Uri https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-6.0.12.zip -OutFile mongodb-windows-x86_64-6.0.12.zip"
 
 powershell -command "Expand-Archive ./mongodb-windows-x86_64-6.0.12.zip -DestinationPath './'"

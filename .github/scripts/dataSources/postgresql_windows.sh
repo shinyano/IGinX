@@ -2,7 +2,7 @@
 
 set -e
 
-echo "Downloading files..."
+echo "Downloading zip archive. This may take a few minutes..."
 
 powershell -command "Invoke-WebRequest -Uri https://get.enterprisedb.com/postgresql/postgresql-15.5-1-windows-x64-binaries.zip -OutFile postgresql-15.5-1-windows-x64-binaries.zip"
 
