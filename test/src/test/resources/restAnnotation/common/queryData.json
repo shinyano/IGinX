@@ -1,7 +1,7 @@
 {
   "metrics": [{
     "annotation": {
-      "category": ["dc"]
+      "title": "title1"
     }
   }]
 }
