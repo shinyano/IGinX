@@ -4,7 +4,7 @@ set -e
 
 powershell -command "Invoke-WebRequest -Uri https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip -OutFile apache-iotdb-0.12.6-server-bin.zip"
 
-powershell -command "Expand-Archive ./apache-iotdb-0.12.6-server-bin.zip -DestinationPath './apache-iotdb-0.12.6-server-bin/'"
+powershell -command "Expand-Archive ./apache-iotdb-0.12.6-server-bin.zip -DestinationPath './'"
 
 sh -c "sleep 10"
 
