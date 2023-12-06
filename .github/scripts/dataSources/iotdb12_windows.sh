@@ -2,9 +2,9 @@
 
 set -e
 
-sh -c "curl -LJO https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip"
+powershell -command "Invoke-WebRequest -Uri https://github.com/thulab/IginX-benchmarks/raw/main/resources/apache-iotdb-0.12.6-server-bin.zip -OutFile apache-iotdb-0.12.6-server-bin.zip"
 
-sh -c "unzip -qq apache-iotdb-0.12.6-server-bin.zip"
+powershell -command "Expand-Archive ./apache-iotdb-0.12.6-server-bin.zip -DestinationPath './apache-iotdb-0.12.6-server-bin/'"
 
 sh -c "sleep 10"
 
@@ -22,7 +22,7 @@ do
 
   sh -c "sed -i 's/6667/$port/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
 
-#  sh -c "cd apache-iotdb-0.12.6-server-bin-$port/; ${START_COMMAND}"
+  sh -c "mkdir -p apache-iotdb-0.12.6-server-bin-$port/logs"
 
   powershell -Command "Start-Process -FilePath 'apache-iotdb-0.12.6-server-bin-$port/sbin/start-server.bat' -NoNewWindow -RedirectStandardOutput 'apache-iotdb-0.12.6-server-bin-$port/logs/db.log' -RedirectStandardError 'apache-iotdb-0.12.6-server-bin-$port/logs/db-error.log'"
 done

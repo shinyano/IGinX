@@ -9,6 +9,7 @@ import cn.edu.tsinghua.iginx.integration.controller.Controller;
 import cn.edu.tsinghua.iginx.integration.tool.ConfLoader;
 import cn.edu.tsinghua.iginx.integration.tool.DBConf;
 import cn.edu.tsinghua.iginx.session.Session;
+import cn.edu.tsinghua.iginx.session.SessionExecuteSqlResult;
 import cn.edu.tsinghua.iginx.thrift.DataType;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
@@ -259,7 +260,8 @@ public class RestAnnotationIT {
   private void testQueryAnno(DataType dataType) {
     insertData(dataType);
     try {
-      session.executeSql("select * from *;");
+      SessionExecuteSqlResult result = session.executeSql("select * from *;");
+      result.print(false, "ms");
     } catch (SessionException | ExecutionException e) {
       logger.error("Query through session failed: {}", e.getMessage());
     }
@@ -272,7 +274,8 @@ public class RestAnnotationIT {
   private void testQueryAll(DataType dataType) {
     insertData(dataType);
     try {
-      session.executeSql("select * from *;");
+      SessionExecuteSqlResult result = session.executeSql("select * from *;");
+      result.print(false, "ms");
     } catch (SessionException | ExecutionException e) {
       logger.error("Query through session failed: {}", e.getMessage());
     }
