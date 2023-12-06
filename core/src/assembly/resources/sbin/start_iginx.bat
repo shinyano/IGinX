@@ -17,7 +17,7 @@
 @REM under the License.
 @REM
 
-@REM @echo off
+@echo off
 echo ````````````````````````
 echo Starting IGinX
 echo ````````````````````````
@@ -27,8 +27,6 @@ if "%OS%" == "Windows_NT" setlocal
 pushd %~dp0..
 if NOT DEFINED IGINX_HOME set IGINX_HOME=%CD%
 popd
-
-echo "%IGINX_HOME%"
 
 set PATH="%JAVA_HOME%\bin\";%PATH%
 set "FULL_VERSION="
@@ -61,8 +59,6 @@ IF "%JAVA_VERSION%" == "7" (
 if "%OS%" == "Windows_NT" setlocal
 
 set IGINX_CONF=%IGINX_HOME%\conf\config.properties
-
-echo "%IGINX_CONF%"
 
 @setlocal ENABLEDELAYEDEXPANSION ENABLEEXTENSIONS
 set is_conf_path=false
@@ -129,14 +125,7 @@ goto okClasspath
 @REM set DRIVER=
 @REM setx DRIVER "%IGINX_HOME%\driver"
 
-if not "%1"=="" (
-    echo "Redirecting output into %1..."
-    set REDIRECT_ARG="> %1 2>&1"
-)
-
-echo "%JAVA_HOME%\bin\java" %JAVA_OPTS% %HEAP_OPTS% -cp %CLASSPATH% %MAIN_CLASS% %REDIRECT_ARG%
-
-"%JAVA_HOME%\bin\java" %JAVA_OPTS% %HEAP_OPTS% -cp %CLASSPATH% %MAIN_CLASS% %REDIRECT_ARG%
+"%JAVA_HOME%\bin\java" %JAVA_OPTS% %HEAP_OPTS% -cp %CLASSPATH% %MAIN_CLASS%
 
 @REM reg delete "HKEY_CURRENT_USER\Environment" /v "DRIVER" /f
 @REM set DRIVER=

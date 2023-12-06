@@ -3,6 +3,7 @@ package cn.edu.tsinghua.iginx.integration.func.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import cn.edu.tsinghua.iginx.exceptions.ExecutionException;
 import cn.edu.tsinghua.iginx.exceptions.SessionException;
 import cn.edu.tsinghua.iginx.integration.controller.Controller;
 import cn.edu.tsinghua.iginx.integration.tool.ConfLoader;
@@ -257,6 +258,11 @@ public class RestAnnotationIT {
   // 查询annotation信息
   private void testQueryAnno(DataType dataType) {
     insertData(dataType);
+    try {
+      session.executeSql("select * from *;");
+    } catch (SessionException | ExecutionException e) {
+      logger.error("Query through session failed: {}", e.getMessage());
+    }
     String ans = getAns(getMethodName(), dataType);
     executeAndCompare("queryAnno.json", ans, TYPE.QUERY_ANNOTATION, dataType);
     clearData();
@@ -265,6 +271,11 @@ public class RestAnnotationIT {
   // 查询数据以及annotation信息
   private void testQueryAll(DataType dataType) {
     insertData(dataType);
+    try {
+      session.executeSql("select * from *;");
+    } catch (SessionException | ExecutionException e) {
+      logger.error("Query through session failed: {}", e.getMessage());
+    }
     String ans = getAns(getMethodName(), dataType);
     executeAndCompare("queryData.json", ans, TYPE.QUERY_ALL, dataType);
     clearData();
