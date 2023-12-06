@@ -353,6 +353,7 @@ public class MetricsResource {
         entity = parser.parseAnnoDataResultToJson(result);
       } else { // 只查询anno信息
         QueryResult result = annoQuery(parser, jsonStr);
+        logger.info("query anno result: {}", result.toString());
         parser.getAnnoCategory(result);
         entity = parser.parseAnnoResultToJson(result);
       }

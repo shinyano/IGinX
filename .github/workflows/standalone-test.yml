@@ -20,8 +20,7 @@ jobs:
                 python-version-unix: ["3.9"]
                 python-version-win: ["3.9"]
                 os: [windows-latest]
-                DB-name:
-                    ["FileSystem"]
+                DB-name: ["FileSystem"]
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v2
