@@ -2,7 +2,7 @@
 
 set -e
 
-powershell -command "Invoke-WebRequest -Uri https://go.dev/dl/go1.21.5.windows-amd64.zip -OutFile go1.21.5.windows-amd64.zip -Progress Continue"
+powershell -command "Invoke-WebRequest -Uri https://go.dev/dl/go1.21.5.windows-amd64.zip -OutFile go1.21.5.windows-amd64.zip"
 
 powershell -command "Expand-Archive ./go1.21.5.windows-amd64.zip -DestinationPath './'"
 

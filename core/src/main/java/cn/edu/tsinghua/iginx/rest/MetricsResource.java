@@ -349,13 +349,13 @@ public class MetricsResource {
         entity = parser.parseResultToJson(result, false);
       } else if (isAnnoData) {
         QueryResult result = annoDataQuery(query, parser);
-        logger.info("query result: {}", result.toString());
         entity = parser.parseAnnoDataResultToJson(result);
+        logger.info("query result: {}", entity);
       } else { // 只查询anno信息
         QueryResult result = annoQuery(parser, jsonStr);
-        logger.info("query anno result: {}", result.toString());
         parser.getAnnoCategory(result);
         entity = parser.parseAnnoResultToJson(result);
+        logger.info("query result: {}", entity);
       }
       return setHeaders(Response.status(Status.OK).entity(entity + "\n")).build();
     } catch (Exception e) {

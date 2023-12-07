@@ -61,6 +61,7 @@ jobs:
                   Test-Way: oriHasDataExpHasData
 
             - name: oriHasDataExpHasData IT
+              shell: bash
               run: |
                   mvn test -q -Dtest=${{ matrix.DB-name }}CapacityExpansionIT#oriHasDataExpHasData -DfailIfNoTests=false -P-format
                   mvn test -q -Dtest=${FUNCTEST} -DfailIfNoTests=false -P-format
@@ -74,6 +75,7 @@ jobs:
                   Test-Way: oriNoDataExpNoData
 
             - name: oriNoDataExpNoData IT
+              shell: bash
               run: |
                   mvn test -q -Dtest=${{ matrix.DB-name }}CapacityExpansionIT#oriNoDataExpNoData -DfailIfNoTests=false -P-format
                   mvn test -q -Dtest=${FUNCTEST} -DfailIfNoTests=false -P-format
@@ -87,6 +89,7 @@ jobs:
                   Test-Way: oriHasDataExpNoData
 
             - name: oriHasDataExpNoData IT
+              shell: bash
               run: |
                   mvn test -q -Dtest=${{ matrix.DB-name }}CapacityExpansionIT#oriHasDataExpNoData -DfailIfNoTests=false -P-format
                   mvn test -q -Dtest=${FUNCTEST} -DfailIfNoTests=false -P-format
@@ -100,6 +103,7 @@ jobs:
                   Test-Way: oriNoDataExpHasData
 
             - name: oriNoDataExpHasData IT
+              shell: bash
               run: |
                   mvn test -q -Dtest=${{ matrix.DB-name }}CapacityExpansionIT#oriNoDataExpHasData -DfailIfNoTests=false -P-format
                   mvn test -q -Dtest=${FUNCTEST} -DfailIfNoTests=false -P-format
@@ -114,6 +118,7 @@ jobs:
                   Read-Only: true
 
             - name: Run testReadOnly
+              shell: bash
               run: |
                   mvn test -q -Dtest=${{ matrix.DB-name }}CapacityExpansionIT#testReadOnly -DfailIfNoTests=false -P-format
                   mvn test -q -Dtest=${FUNCTEST} -DfailIfNoTests=false -P-format

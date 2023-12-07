@@ -626,13 +626,15 @@ public abstract class BaseCapacityExpansionIT {
     int iginxPort = PORT_TO_IGINXPORT.get(port);
     int restPort = PORT_TO_RESTPORT.get(port);
 
+    String separator = System.getProperty("file.separator");
+
     int res =
         executeShellScript(
             scriptPath,
             String.valueOf(port),
             String.valueOf(iginxPort),
-            "test/" + PORT_TO_ROOT.get(port),
-            "test/iginx_" + PORT_TO_ROOT.get(port),
+            "test" + separator + PORT_TO_ROOT.get(port),
+            "test" + separator + "iginx_" + PORT_TO_ROOT.get(port),
             String.valueOf(hasData),
             String.valueOf(isReadOnly),
             "core/target/iginx-core-0.6.0-SNAPSHOT/conf/config.properties");
