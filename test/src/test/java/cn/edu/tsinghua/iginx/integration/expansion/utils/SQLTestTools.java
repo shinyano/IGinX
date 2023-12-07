@@ -137,6 +137,13 @@ public class SQLTestTools {
         System.out.println(line);
       }
 
+      // read any errors
+      BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+      System.out.println("Standard error:");
+      while ((line = stdError.readLine()) != null) {
+        System.out.println(line);
+      }
+
       // 等待脚本执行完毕
       int exitCode = process.waitFor();
       System.out.println("脚本执行完毕，退出码：" + exitCode);

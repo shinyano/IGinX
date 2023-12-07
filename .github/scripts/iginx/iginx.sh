@@ -11,8 +11,9 @@ sed -i "s/restPort=[0-9]\+/restPort=$2/g" core/target/iginx-core-*/conf/config.p
 if [ -n "$MSYSTEM" ]; then
     echo "starting iginx on windows..."
     batPath="$(find core/target -name 'start_iginx.bat' | grep 'iginx-core-.*\/sbin' | head -n 1)"
-    echo "$batPath"
+    echo "$(realpath ${batPath})"
     powershell -Command "Start-Process -FilePath '$batPath' -NoNewWindow -RedirectStandardOutput 'iginx-$1.log' -RedirectStandardError 'iginx-$1-error.log'"
+    echo "finished"
 else
     sh -c "chmod +x core/target/iginx-core-*/sbin/start_iginx.sh"
 

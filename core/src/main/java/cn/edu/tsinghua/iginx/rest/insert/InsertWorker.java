@@ -96,6 +96,7 @@ public class InsertWorker extends Thread {
       }
       response = Response.status(Response.Status.OK).build();
     } catch (Exception e) {
+      System.out.printf("error occurred during insertion: %s", e.getMessage());
       response =
           setHeaders(Response.status(Response.Status.BAD_REQUEST).entity(e.toString())).build();
     }
