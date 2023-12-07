@@ -738,6 +738,7 @@ public class SessionIT extends BaseSessionIT {
     insertDataTypeRecords(dataTypePaths, currPath);
 
     // queryData
+    logger.info("reached here");
     SessionQueryDataSet dtQueryDataSet = session.queryData(dataTypePaths, START_KEY, END_KEY + 1);
     int dtQueryLen = dtQueryDataSet.getKeys().length;
     List<String> dataTypeResPaths = dtQueryDataSet.getPaths();
@@ -781,6 +782,7 @@ public class SessionIT extends BaseSessionIT {
     }
 
     // aggregateData max & avg
+    logger.info("reached here");
     List<String> dTAggrPaths = getPaths(currPath + 1, 4);
     // max
     SessionAggregateQueryDataSet dtMaxDataSet =
@@ -812,6 +814,7 @@ public class SessionIT extends BaseSessionIT {
     }
 
     // avg
+    logger.info("reached here");
     SessionAggregateQueryDataSet dtAvgDataSet =
         session.aggregateQuery(dTAggrPaths, START_KEY, END_KEY + 1, AggregateType.AVG);
     List<String> dtAvgPaths = dtAvgDataSet.getPaths();
@@ -855,6 +858,7 @@ public class SessionIT extends BaseSessionIT {
       dtDelPaths.add(getSinglePath(currPath, 5));
 
       // ensure after delete there are still points in the timeseries
+      logger.info("reached here");
       long dtDelStartKey = START_KEY + KEY_PERIOD / 5;
       long dtDelEndKey = START_KEY + KEY_PERIOD / 10 * 9;
       long dtDelKeyPeriod = (dtDelEndKey - 1) - dtDelStartKey + 1;

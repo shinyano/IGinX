@@ -6,7 +6,7 @@ import java.io.InputStreamReader;
 public class ShellRunner {
 
   // to run .sh script on WindowsOS in github action tests
-  public static final String SH_PATH = "C:/Program Files/Git/git-bash.exe";
+  public static final String SH_PATH = "C:/Program Files/Git/bin/bash.exe";
 
   public void runShellCommand(String command) throws Exception {
     Process p = null;

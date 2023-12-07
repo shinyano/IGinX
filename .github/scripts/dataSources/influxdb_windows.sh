@@ -20,7 +20,13 @@ powershell -command "Start-Process -FilePath 'influxdb2-2.7.4-windows/influxd' $
 
 sh -c "sleep 3"
 
-sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force --name testName"
+boltAb=$(realpath ./influxdb2-2.7.4-windows/.influxdbv2/influxd.bolt)
+
+engAb=$(realpath ./influxdb2-2.7.4-windows/.influxdbv2/engine)
+
+sh -c "sleep 3"
+
+sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --host http://localhost:8086 --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force"
 
 sed -i "s/your-token/testToken/g" conf/config.properties
 
@@ -34,9 +40,11 @@ for port in "$@"
 do
   sh -c "cp -r influxdb2-2.7.4-windows/ influxdb2-2.7.4-windows-$port/"
 
-  arguments="-ArgumentList 'run', '--bolt-path=influxdb2-2.7.4-windows/.influxdbv2/influxd.bolt', '--engine-path=influxdb2-2.7.4-windows/.influxdbv2/engine', '--http-bind-address=:$port', '--query-memory-bytes=20971520'"
+  arguments="-ArgumentList 'run', '--bolt-path=$boltAb', '--engine-path=$engAb', '--http-bind-address=:$port', '--query-memory-bytes=20971520'"
 
   redirect="-RedirectStandardOutput 'influxdb2-2.7.4-windows-$port/logs/influx.log' -RedirectStandardError 'influxdb2-2.7.4-windows-$port/logs/influx-error.log'"
 
   powershell -command "Start-Process -FilePath 'influxdb2-2.7.4-windows-$port/influxd' $arguments -NoNewWindow $redirect"
+
+  sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --host http://localhost:$port --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force --name testName$port"
 done
