@@ -13,7 +13,7 @@ public class ShellRunner {
     try {
       ProcessBuilder builder = new ProcessBuilder();
       if (isOnOs("win")) {;
-        builder.command(BASH_PATH,  command);
+        builder.command(BASH_PATH, command);
       } else {
         builder.command(command);
       }

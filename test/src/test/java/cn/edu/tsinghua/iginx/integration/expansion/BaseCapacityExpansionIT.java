@@ -598,9 +598,9 @@ public abstract class BaseCapacityExpansionIT {
     if (os.contains("mac")) {
       isOnMac = true;
       iginxPath = ".github/scripts/iginx/iginx_macos.sh";
-    } else if (os.contains("win")) {
-      isOnWindows = true;
-      iginxPath = ".github/scripts/iginx/iginx_windows.sh";
+//    } else if (os.contains("win")) {
+//      isOnWindows = true;
+//      iginxPath = ".github/scripts/iginx/iginx_windows.sh";
     }
 
     if (this instanceof FileSystemCapacityExpansionIT) {
