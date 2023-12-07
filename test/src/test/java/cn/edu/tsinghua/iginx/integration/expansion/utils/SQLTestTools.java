@@ -109,11 +109,19 @@ public class SQLTestTools {
   public static int executeShellScript(String scriptPath, String... args) {
     try {
       // 构建shell命令
-      String[] command = new String[args.length + 2];
-      command[0] = "sh";
-      command[1] = scriptPath;
-      System.arraycopy(args, 0, command, 2, args.length);
-
+      String[] command;
+      if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+        command = new String[args.length + 3];
+        command[0] = "C:/Program Files/Git/bin/sh.exe";
+        command[1] = "-c";
+        command[2] = scriptPath;
+        System.arraycopy(args, 0, command, 3, args.length);
+      } else {
+        command = new String[args.length + 2];
+        command[0] = "sh";
+        command[1] = scriptPath;
+        System.arraycopy(args, 0, command, 2, args.length);
+      }
       // 创建进程并执行命令
       logger.info("exe shell : {}", Arrays.toString(command));
       ProcessBuilder processBuilder = new ProcessBuilder(command);

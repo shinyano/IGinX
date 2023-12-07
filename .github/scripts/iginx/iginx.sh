@@ -9,9 +9,9 @@ sed -i "s/#iginx_port=[0-9]\+#/#iginx_port=$1#/g" core/target/iginx-core-*/conf/
 sed -i "s/restPort=[0-9]\+/restPort=$2/g" core/target/iginx-core-*/conf/config.properties
 
 if [ -n "$MSYSTEM" ]; then
-    unset IGINX_HOME
-
+    echo "starting iginx on windows..."
     batPath="$(find core/target -name 'start_iginx.bat' | grep 'iginx-core-.*\/sbin' | head -n 1)"
+    echo "$batPath"
     powershell -Command "Start-Process -FilePath '$batPath' -NoNewWindow -RedirectStandardOutput 'iginx-$1.log' -RedirectStandardError 'iginx-$1-error.log'"
 else
     sh -c "chmod +x core/target/iginx-core-*/sbin/start_iginx.sh"

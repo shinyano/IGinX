@@ -6,14 +6,14 @@ import java.io.InputStreamReader;
 public class ShellRunner {
 
   // to run .sh script on WindowsOS in github action tests
-  public static final String BASH_PATH = "bash";
+  public static final String SH_PATH = "C:/Program Files/Git/git-bash.exe";
 
   public void runShellCommand(String command) throws Exception {
     Process p = null;
     try {
       ProcessBuilder builder = new ProcessBuilder();
       if (isOnOs("win")) {;
-        builder.command(BASH_PATH, command);
+        builder.command(SH_PATH, "-c", command);
       } else {
         builder.command(command);
       }
