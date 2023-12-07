@@ -130,7 +130,7 @@ public class InfluxDBHistoryDataGenerator extends BaseHistoryDataGenerator {
 
   @Override
   public void clearHistoryDataForGivenPort(int port) {
-    String url = "http://127.0.0.1:" + port + "/";
+    String url = "http://localhost:" + port + "/";
     InfluxDBClient client = InfluxDBClientFactory.create(url, TOKEN.toCharArray(), ORGANIZATION);
     Bucket bucket = client.getBucketsApi().findBucketByName("mn");
     if (bucket != null) {

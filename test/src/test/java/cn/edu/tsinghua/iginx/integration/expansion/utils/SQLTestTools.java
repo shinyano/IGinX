@@ -111,11 +111,10 @@ public class SQLTestTools {
       // 构建shell命令
       String[] command;
       if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-        command = new String[args.length + 3];
+        command = new String[args.length + 2];
         command[0] = "C:/Program Files/Git/git-bash.exe";
-        command[1] = "-c";
-        command[2] = scriptPath;
-        System.arraycopy(args, 0, command, 3, args.length);
+        command[1] = scriptPath;
+        System.arraycopy(args, 0, command, 2, args.length);
       } else {
         command = new String[args.length + 2];
         command[0] = "sh";
