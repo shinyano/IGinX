@@ -112,7 +112,7 @@ public class SQLTestTools {
       String[] command;
       if (System.getProperty("os.name").toLowerCase().contains("mac")) {
         command = new String[args.length + 3];
-        command[0] = "C:/Program Files/Git/bin/sh.exe";
+        command[0] = "C:/Program Files/Git/git-bash.exe";
         command[1] = "-c";
         command[2] = scriptPath;
         System.arraycopy(args, 0, command, 3, args.length);

@@ -25,7 +25,7 @@ do
 
   sh -c "mkdir -p $filePrefix/logs"
 
-  arguments="-ArgumentList '-D', '$filePrefix/data', '--username=postgres', '--auth', 'trust', '--no-instructions'"
+  arguments="-ArgumentList '-D', '$filePrefix/data', '--username=postgres', '--auth', 'trust', '--no-instructions', '-E', 'UTF8'"
 
   redirect="-RedirectStandardOutput '$filePrefix/logs/inidb.log' -RedirectStandardError '$filePrefix/logs/initdb-error.log'"
 
