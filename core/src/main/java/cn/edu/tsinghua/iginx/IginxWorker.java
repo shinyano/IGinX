@@ -101,6 +101,7 @@ public class IginxWorker implements IService.Iface {
         continue;
       }
       metaFromConf.setExtraParams(extraParams);
+      logger.info(extraParams.toString());
       boolean hasAdded = false;
       for (StorageEngineMeta meta : metaManager.getStorageEngineList()) {
         if (isDuplicated(metaFromConf, meta)) {

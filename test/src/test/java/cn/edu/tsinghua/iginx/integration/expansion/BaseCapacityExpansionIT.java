@@ -626,7 +626,7 @@ public abstract class BaseCapacityExpansionIT {
     int iginxPort = PORT_TO_IGINXPORT.get(port);
     int restPort = PORT_TO_RESTPORT.get(port);
 
-    String separator = System.getProperty("file.separator");
+    String separator = "/";
 
     int res =
         executeShellScript(
