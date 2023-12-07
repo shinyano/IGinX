@@ -38,8 +38,8 @@ jobs:
             - name: Environment dependence
               uses: ./.github/actions/dependence
               with:
-                java: ${{ matrix.java }}
-                scope: javaOnly
+                  java: ${{ matrix.java }}
+                  scope: javaOnly
 
             - name: Run ZooKeeper
               uses: ./.github/actions/zookeeperRunner
@@ -83,10 +83,11 @@ jobs:
             - name: Environment dependence
               uses: ./.github/actions/dependence
               with:
-                java: ${{ matrix.java }}
-                scope: javaOnly
+                  java: ${{ matrix.java }}
+                  scope: javaOnly
 
             - name: Run ETCD
+              shell: bash
               run: |
                   if [ "$RUNNER_OS" != "Windows" ]; then
                     chmod +x "${GITHUB_WORKSPACE}/.github/scripts/metadata/etcd.sh"
