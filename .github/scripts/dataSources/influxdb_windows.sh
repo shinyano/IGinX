@@ -12,6 +12,10 @@ powershell -command "Expand-Archive ./influxdb2-client-2.7.3-windows-amd64.zip -
 
 sh -c "ls influxdb2-2.7.4-windows"
 
+sh -c "mkdir influxdb2-2.7.4-windows/.influxdbv2"
+
+sh -c "mkdir influxdb2-2.7.4-windows/logs"
+
 arguments="-ArgumentList 'run', '--bolt-path=influxdb2-2.7.4-windows/.influxdbv2/influxd.bolt', '--engine-path=influxdb2-2.7.4-windows/.influxdbv2/engine', '--http-bind-address=:8086', '--query-memory-bytes=300971520'"
 
 redirect="-RedirectStandardOutput 'influxdb2-2.7.4-windows/logs/influx.log' -RedirectStandardError 'influxdb2-2.7.4-windows/logs/influx-error.log'"
@@ -23,6 +27,10 @@ sh -c "sleep 3"
 boltAb=$(realpath ./influxdb2-2.7.4-windows/.influxdbv2/influxd.bolt)
 
 engAb=$(realpath ./influxdb2-2.7.4-windows/.influxdbv2/engine)
+
+echo $boltAb
+
+echo $engAb
 
 sh -c "sleep 3"
 
@@ -46,7 +54,13 @@ do
 
   powershell -command "Start-Process -FilePath 'influxdb2-2.7.4-windows-$port/influxd' $arguments -NoNewWindow $redirect"
 
-  sh -c "sleep 3"
+  sh -c "sleep 10"
+
+  sh -c "cat influxdb2-2.7.4-windows-$port/logs/influx.log"
+
+  echo "==========================================="
+
+  sh -c "cat influxdb2-2.7.4-windows-$port/logs/influx-error.log"
 
   sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --host http://localhost:$port --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force --name testName$port"
 done

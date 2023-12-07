@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,9 +146,18 @@ public class SQLTestTools {
       }
 
       // 等待脚本执行完毕
-      int exitCode = process.waitFor();
-      System.out.println("脚本执行完毕，退出码：" + exitCode);
-      return exitCode;
+      long timeout = 60;
+      boolean finished = process.waitFor(timeout, TimeUnit.SECONDS);
+
+      if (finished) {
+        int exitValue = process.exitValue();
+        System.out.println("Finished. code: " + exitValue);
+        return exitValue;
+      } else {
+        System.out.println("Time limit reached.");
+        process.destroy();
+        return 0;
+      }
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();
     }
