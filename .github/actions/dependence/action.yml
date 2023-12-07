@@ -13,6 +13,13 @@ inputs:
         description: "running environment"
         required: false
         default: ubuntu-latest
+    scope:
+        description: "partial dependency required"
+        required: false
+        default: all
+        # all: setup all
+        # javaOnly: set JDK and local pemja java repo
+
 runs:
     using: "composite"
     steps:
@@ -22,46 +29,33 @@ runs:
           run: |
               tzutil /s "China Standard Time"
 
-        - name: Set up Python ${{ inputs.python-version }}
+        - if: inputs.scope=='all'
+          name: Set up Python ${{ inputs.python-version }}
           uses: actions/setup-python@v3
           with:
               python-version: ${{ inputs.python-version }}
 
-        #        - if: inputs.os=='windows-latest'
-        #          name: Install wget on Windows
-        #          run: |
-        #            choco install wget
-        #            refreshenv
-
-        - name: Install Python dependencies
+        - if: inputs.scope=='all'
+          name: Install Python dependencies
           shell: bash
           run: |
               python -m pip install --upgrade pip
               pip install pandas numpy
-        #              if [[ "$RUNNER_OS" == "Linux" || "$RUNNER_OS" == "macOS" ]]; then
-        #                pip install pemja==0.3.0 pandas numpy
-        #              elif [ "$RUNNER_OS" == "Windows" ]; then
-        #              fi
 
         - name: Set up JDK ${{ inputs.java }}
           uses: actions/setup-java@v1
           with:
               java-version: ${{ inputs.java }}
 
-        - name: Install Pemja Locally
+        - if: inputs.scope=='all'
+          name: Install Pemja Locally
           shell: bash
           run: |
               pip install local-dependencies/python/pemja/pemja-0.5.dev0.tar.gz
               mvn install:install-file -Dfile=local-dependencies/maven/pemja/pemja-0.5-SNAPSHOT.jar -DgroupId=com.alibaba -DartifactId=pemja -Dversion=0.5-SNAPSHOT -Dpackaging=jar
 
-#              chmod +x "${GITHUB_WORKSPACE}/.github/scripts/pemja/pemja_remote.sh"
-#              "${GITHUB_WORKSPACE}/.github/scripts/pemja/pemja_remote.sh"
-
-#        - if: inputs.os=='windows-latest'
-#          name: Install Pemja Locally on Windows
-#          shell: bash
-#          run: |
-#              pip install local-dependencies/python/pemja/pemja-0.5.dev0.tar.gz
-
-#           mvn install:install-file -Dfile=local-dependencies/maven/pemja/pemja-0.5-SNAPSHOT.jar -DgroupId=com.alibaba -DartifactId=pemja -Dversion=0.5-SNAPSHOT -Dpackaging=jar
-
+        - if: inputs.scope=='javaOnly'
+          name: Install Pemja Repo
+          shell: bash
+          run: |
+              mvn install:install-file -Dfile=local-dependencies/maven/pemja/pemja-0.5-SNAPSHOT.jar -DgroupId=com.alibaba -DartifactId=pemja -Dversion=0.5-SNAPSHOT -Dpackaging=jar
