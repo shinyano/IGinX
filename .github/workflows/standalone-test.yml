@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
     Union-DB-Test:
-        timeout-minutes: 10
+        timeout-minutes: 30
         strategy:
             fail-fast: false
             matrix:
@@ -26,9 +26,9 @@ jobs:
 #                        "IoTDB12",
 #                        "InfluxDB",
 #                        "PostgreSQL",
-#                        "Redis",
+                        "Redis",
 #                        "MongoDB",
-                        "Parquet",
+#                        "Parquet",
                     ]
         runs-on: ${{ matrix.os }}
         steps:
