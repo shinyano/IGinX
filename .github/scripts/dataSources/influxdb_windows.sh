@@ -2,13 +2,13 @@
 
 set -e
 
-powershell -command "Invoke-WebRequest -Uri https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.4-windows.zip -OutFile influxdb2-2.7.4-windows.zip"
+sh -c "curl -LJO https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.4-windows.zip -o influxdb2-2.7.4-windows.zip"
 
-powershell -command "Expand-Archive ./influxdb2-2.7.4-windows.zip -DestinationPath './influxdb2-2.7.4-windows/'"
+sh -c "unzip influxdb2-2.7.4-windows.zip -d './influxdb2-2.7.4-windows/'"
 
-powershell -command "Invoke-WebRequest -Uri https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.3-windows-amd64.zip -OutFile influxdb2-client-2.7.3-windows-amd64.zip"
+sh -c "curl -LJO https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.3-windows-amd64.zip -o influxdb2-client-2.7.3-windows-amd64.zip"
 
-powershell -command "Expand-Archive ./influxdb2-client-2.7.3-windows-amd64.zip -DestinationPath './influxdb2-client-2.7.3-windows-amd64/'"
+sh -c "unzip influxdb2-client-2.7.3-windows-amd64.zip -d './influxdb2-client-2.7.3-windows-amd64/'"
 
 sh -c "ls influxdb2-2.7.4-windows"
 
@@ -24,17 +24,7 @@ powershell -command "Start-Process -FilePath 'influxdb2-2.7.4-windows/influxd' $
 
 sh -c "sleep 3"
 
-boltAb=$(realpath ./influxdb2-2.7.4-windows/.influxdbv2/influxd.bolt)
-
-engAb=$(realpath ./influxdb2-2.7.4-windows/.influxdbv2/engine)
-
-echo $boltAb
-
-echo $engAb
-
-sh -c "sleep 3"
-
-sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --host http://localhost:8086 --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force"
+sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force"
 
 sed -i "s/your-token/testToken/g" conf/config.properties
 
@@ -48,21 +38,22 @@ for port in "$@"
 do
   sh -c "cp -r influxdb2-2.7.4-windows/ influxdb2-2.7.4-windows-$port/"
 
-  arguments="-ArgumentList 'run', '--bolt-path=$boltAb', '--engine-path=$engAb', '--http-bind-address=:$port', '--query-memory-bytes=20971520'"
+  pathPrefix="influxdb2-2.7.4-windows-$port"
 
-  redirect="-RedirectStandardOutput 'influxdb2-2.7.4-windows-$port/logs/influx.log' -RedirectStandardError 'influxdb2-2.7.4-windows-$port/logs/influx-error.log'"
+  arguments="-ArgumentList 'run', '--bolt-path=$pathPrefix/.influxdbv2/influxd.bolt', '--engine-path=$pathPrefix/.influxdbv2/engine', '--http-bind-address=:$port', '--query-memory-bytes=20971520'"
+
+  redirect="-RedirectStandardOutput '$pathPrefix/logs/influx.log' -RedirectStandardError '$pathPrefix/logs/influx-error.log'"
 
   powershell -command "Start-Process -FilePath 'influxdb2-2.7.4-windows-$port/influxd' $arguments -NoNewWindow $redirect"
 
   sh -c "sleep 10"
 
-  sh -c "cat influxdb2-2.7.4-windows-$port/logs/influx.log"
+  sh -c "cat $pathPrefix/logs/influx.log"
 
   echo "==========================================="
 
-  sh -c "cat influxdb2-2.7.4-windows-$port/logs/influx-error.log"
+  sh -c "cat $pathPrefix/logs/influx-error.log"
 
-  sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --host http://localhost:$port --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force --name testName$port"
+  echo "==========================================="
 
-  sh -c "sleep 10"
 done

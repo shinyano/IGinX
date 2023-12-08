@@ -11,7 +11,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,28 +138,31 @@ public class SQLTestTools {
       }
 
       // read any errors
-//      BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-//      System.out.println("Standard error:");
-//      while ((line = stdError.readLine()) != null) {
-//        System.out.println(line);
-//      }
-//
-//      // 等待脚本执行完毕
-//      long timeout = 60;
-//      boolean finished = process.waitFor(timeout, TimeUnit.SECONDS);
-//
-//      if (finished) {
-//        int exitValue = process.exitValue();
-//        System.out.println("Finished. code: " + exitValue);
-//        return exitValue;
-//      } else {
-//        System.out.println("Time limit reached.");
-//        process.destroy();
-//        return 0;
-//      }
+      //      BufferedReader stdError = new BufferedReader(new
+      // InputStreamReader(process.getErrorStream()));
+      //      System.out.println("Standard error:");
+      //      while ((line = stdError.readLine()) != null) {
+      //        System.out.println(line);
+      //      }
+      //
+      //      // 等待脚本执行完毕
+      //      long timeout = 60;
+      //      boolean finished = process.waitFor(timeout, TimeUnit.SECONDS);
+      //
+      //      if (finished) {
+      //        int exitValue = process.exitValue();
+      //        System.out.println("Finished. code: " + exitValue);
+      //        return exitValue;
+      //      } else {
+      //        System.out.println("Time limit reached.");
+      //        process.destroy();
+      //        return 0;
+      //      }
 
       int status = process.waitFor();
-      System.err.printf("runShellCommand: %s, status: %s%n, %s%n", Arrays.toString(command), process.exitValue(), status);
+      System.err.printf(
+          "runShellCommand: %s, status: %s%n, %s%n",
+          Arrays.toString(command), process.exitValue(), status);
       if (process.exitValue() != 0) {
         fail("tests fail!");
       }

@@ -16,4 +16,14 @@ echo "$(realpath ${batPath})"
 
 powershell -Command "Start-Process -FilePath '$batPath' -NoNewWindow -RedirectStandardOutput 'iginx-$1.log' -RedirectStandardError 'iginx-$1-error.log'"
 
+sh -c "sleep 20"
+
+echo "==================================================="
+
+sh -c "cat iginx-$1.log"
+
+echo "==================================================="
+
+sh -c "cat iginx-$1-error.log"
+
 echo "finished"

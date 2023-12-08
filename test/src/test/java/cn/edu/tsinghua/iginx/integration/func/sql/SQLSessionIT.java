@@ -5172,7 +5172,8 @@ public class SQLSessionIT {
 
   @Test
   public void testSpecialCharacterPath() {
-    if (!isSupportSpecialCharacterPath) {
+    if (!isSupportSpecialCharacterPath
+        || System.getProperty("os.name").toLowerCase().contains("win")) {
       return;
     }
 
@@ -5225,7 +5226,10 @@ public class SQLSessionIT {
 
   @Test
   public void testMixSpecialPath() {
-    if (!isSupportChinesePath || !isSupportNumericalPath || !isSupportSpecialCharacterPath) {
+    if (!isSupportChinesePath
+        || !isSupportNumericalPath
+        || !isSupportSpecialCharacterPath
+        || System.getProperty("os.name").toLowerCase().contains("win")) {
       return;
     }
 

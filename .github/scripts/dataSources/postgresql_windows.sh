@@ -4,9 +4,9 @@ set -e
 
 echo "Downloading zip archive. This may take a few minutes..."
 
-powershell -command "Invoke-WebRequest -Uri https://get.enterprisedb.com/postgresql/postgresql-15.5-1-windows-x64-binaries.zip -OutFile postgresql-15.5-1-windows-x64-binaries.zip"
+sh -c "curl -LJO https://get.enterprisedb.com/postgresql/postgresql-15.5-1-windows-x64-binaries.zip -o postgresql-15.5-1-windows-x64-binaries.zip"
 
-powershell -command "Expand-Archive ./postgresql-15.5-1-windows-x64-binaries.zip -DestinationPath './'"
+sh -c "unzip postgresql-15.5-1-windows-x64-binaries.zip"
 
 sh -c "ls pgsql/bin"
 
