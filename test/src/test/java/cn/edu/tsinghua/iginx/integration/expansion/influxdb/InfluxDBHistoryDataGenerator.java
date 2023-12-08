@@ -13,6 +13,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static cn.edu.tsinghua.iginx.integration.expansion.constant.Constant.PORT_TO_ROOT;
+
 public class InfluxDBHistoryDataGenerator extends BaseHistoryDataGenerator {
 
   private static final Logger logger = LoggerFactory.getLogger(InfluxDBHistoryDataGenerator.class);
@@ -132,7 +134,7 @@ public class InfluxDBHistoryDataGenerator extends BaseHistoryDataGenerator {
   public void clearHistoryDataForGivenPort(int port) {
     String url = "http://localhost:" + port + "/";
     InfluxDBClient client = InfluxDBClientFactory.create(url, TOKEN.toCharArray(), ORGANIZATION);
-    Bucket bucket = client.getBucketsApi().findBucketByName("mn");
+    Bucket bucket = client.getBucketsApi().findBucketByName(PORT_TO_ROOT.get(port));
     if (bucket != null) {
       client.getBucketsApi().deleteBucket(bucket);
     }
