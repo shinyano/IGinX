@@ -18,12 +18,4 @@ powershell -Command "Start-Process -FilePath '$batPath' -NoNewWindow -RedirectSt
 
 sh -c "sleep 3"
 
-echo "==================================================="
-
-sh -c "cat iginx-$1.log"
-
-echo "==================================================="
-
-sh -c "cat iginx-$1-error.log"
-
 echo "finished"

@@ -146,8 +146,8 @@ public class SQLTestTools {
           }
         }).start();
 
-        // sleep 20s for new thread to print script output
-        Thread.sleep(20000);
+        // sleep 10s for new thread to print script output
+        Thread.sleep(10000);
 
         return 0;
       } else {
