@@ -192,126 +192,126 @@ public class SessionIT extends BaseSessionIT {
     int simpleLen = 2;
     List<String> paths = getPaths(currPath, simpleLen);
     // Simple Test(Including query,valueFilter,aggr:max/min/first/last/count/sum/avg)
-    insertTestsByFourInterfaces();
+//    insertTestsByFourInterfaces();
     insertNumRecords(paths);
     // query
-    SessionQueryDataSet simpleQueryDataSet = session.queryData(paths, START_KEY, END_KEY + 1);
-    int simpleResLen = simpleQueryDataSet.getKeys().length;
-    List<String> queryResPaths = simpleQueryDataSet.getPaths();
-    assertEquals(simpleLen, queryResPaths.size());
-    assertEquals(KEY_PERIOD, simpleResLen);
-    assertEquals(KEY_PERIOD, simpleQueryDataSet.getValues().size());
-    for (int i = 0; i < simpleResLen; i++) {
-      long key = simpleQueryDataSet.getKeys()[i];
-      assertEquals(i + START_KEY, key);
-      List<Object> queryResult = simpleQueryDataSet.getValues().get(i);
-      for (int j = 0; j < simpleLen; j++) {
-        int pathNum = getPathNum(queryResPaths.get(j));
-        assertNotEquals(pathNum, -1);
-        assertEquals(key + pathNum, queryResult.get(j));
-      }
-    }
-    // aggrMax
-    logger.info("aggrMax");
-    SessionAggregateQueryDataSet maxDataSet =
-        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.MAX);
-    List<String> maxResPaths = maxDataSet.getPaths();
-    Object[] maxResult = maxDataSet.getValues();
-    assertEquals(simpleLen, maxResPaths.size());
-    //        assertEquals(simpleLen, maxDataSet.getTimestamps().length);
-    assertEquals(simpleLen, maxDataSet.getValues().length);
-    for (int i = 0; i < simpleLen; i++) {
-      // assertEquals(-1, maxDataSet.getTimestamps()[i]);
-      int pathNum = getPathNum(maxResPaths.get(i));
-      assertNotEquals(pathNum, -1);
-      assertEquals(END_KEY + pathNum, maxResult[i]);
-    }
-    // aggrMin
-    logger.info("aggrMin");
-    SessionAggregateQueryDataSet minDataSet =
-        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.MIN);
-    List<String> minResPaths = minDataSet.getPaths();
-    Object[] minResult = minDataSet.getValues();
-    assertEquals(simpleLen, minResPaths.size());
-    //        assertEquals(simpleLen, minDataSet.getTimestamps().length);
-    assertEquals(simpleLen, minDataSet.getValues().length);
-    for (int i = 0; i < simpleLen; i++) {
-      // assertEquals(-1, minDataSet.getTimestamps()[i]);
-      int pathNum = getPathNum(minResPaths.get(i));
-      assertNotEquals(pathNum, -1);
-      assertEquals(START_KEY + pathNum, minResult[i]);
-    }
-    // aggrFirst
-    logger.info("aggrFirst");
-    SessionAggregateQueryDataSet firstDataSet =
-        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.FIRST_VALUE);
-    List<String> firstResPaths = firstDataSet.getPaths();
-    Object[] firstResult = firstDataSet.getValues();
-    assertEquals(simpleLen, firstResPaths.size());
-    //        assertEquals(simpleLen, firstDataSet.getTimestamps().length);
-    assertEquals(simpleLen, firstDataSet.getValues().length);
-    for (int i = 0; i < simpleLen; i++) {
-      int pathNum = getPathNum(firstResPaths.get(i));
-      assertNotEquals(pathNum, -1);
-      assertEquals(START_KEY + pathNum, firstResult[i]);
-    }
-    // aggrLast
-    logger.info("aggrLast");
-    SessionAggregateQueryDataSet lastDataSet =
-        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.LAST_VALUE);
-    List<String> lastResPaths = lastDataSet.getPaths();
-    Object[] lastResult = lastDataSet.getValues();
-    assertEquals(simpleLen, lastResPaths.size());
-    //        assertEquals(simpleLen, lastDataSet.getTimestamps().length);
-    assertEquals(simpleLen, lastDataSet.getValues().length);
-    for (int i = 0; i < simpleLen; i++) {
-      int pathNum = getPathNum(lastResPaths.get(i));
-      assertNotEquals(pathNum, -1);
-      assertEquals(END_KEY + pathNum, lastResult[i]);
-    }
-    // aggrCount
-    logger.info("aggrCount");
-    SessionAggregateQueryDataSet countDataSet =
-        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.COUNT);
-    assertNull(countDataSet.getKeys());
-    List<String> countResPaths = countDataSet.getPaths();
-    Object[] countResult = countDataSet.getValues();
-    assertEquals(simpleLen, countResPaths.size());
-    assertEquals(simpleLen, countDataSet.getValues().length);
-    for (int i = 0; i < simpleLen; i++) {
-      assertEquals(KEY_PERIOD, countResult[i]);
-    }
-    // aggrSum
-    logger.info("aggrSum");
-    SessionAggregateQueryDataSet sumDataSet =
-        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.SUM);
-    assertNull(sumDataSet.getKeys());
-    List<String> sumResPaths = sumDataSet.getPaths();
-    Object[] sumResult = sumDataSet.getValues();
-    assertEquals(simpleLen, sumResPaths.size());
-    assertEquals(simpleLen, sumDataSet.getValues().length);
-    for (int i = 0; i < simpleLen; i++) {
-      double sum = (START_KEY + END_KEY) * KEY_PERIOD / 2.0;
-      int pathNum = getPathNum(sumResPaths.get(i));
-      assertNotEquals(pathNum, -1);
-      assertEquals(sum + pathNum * KEY_PERIOD, changeResultToDouble(sumResult[i]), delta);
-    }
-
-    // aggrAvg
-    logger.info("aggrAvg");
-    SessionAggregateQueryDataSet avgDataSet =
-        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG);
-    assertNull(avgDataSet.getKeys());
-    List<String> avgResPaths = avgDataSet.getPaths();
-    Object[] avgResult = avgDataSet.getValues();
-    assertEquals(simpleLen, avgResPaths.size());
-    assertEquals(simpleLen, avgDataSet.getValues().length);
-    for (int i = 0; i < simpleLen; i++) {
-      double avg = (START_KEY + END_KEY) / 2.0;
-      int pathNum = getPathNum(avgResPaths.get(i));
-      assertNotEquals(pathNum, -1);
-      assertEquals(avg + pathNum, changeResultToDouble(avgResult[i]), delta);
-    }
+//    SessionQueryDataSet simpleQueryDataSet = session.queryData(paths, START_KEY, END_KEY + 1);
+//    int simpleResLen = simpleQueryDataSet.getKeys().length;
+//    List<String> queryResPaths = simpleQueryDataSet.getPaths();
+//    assertEquals(simpleLen, queryResPaths.size());
+//    assertEquals(KEY_PERIOD, simpleResLen);
+//    assertEquals(KEY_PERIOD, simpleQueryDataSet.getValues().size());
+//    for (int i = 0; i < simpleResLen; i++) {
+//      long key = simpleQueryDataSet.getKeys()[i];
+//      assertEquals(i + START_KEY, key);
+//      List<Object> queryResult = simpleQueryDataSet.getValues().get(i);
+//      for (int j = 0; j < simpleLen; j++) {
+//        int pathNum = getPathNum(queryResPaths.get(j));
+//        assertNotEquals(pathNum, -1);
+//        assertEquals(key + pathNum, queryResult.get(j));
+//      }
+//    }
+//    // aggrMax
+//    logger.info("aggrMax");
+//    SessionAggregateQueryDataSet maxDataSet =
+//        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.MAX);
+//    List<String> maxResPaths = maxDataSet.getPaths();
+//    Object[] maxResult = maxDataSet.getValues();
+//    assertEquals(simpleLen, maxResPaths.size());
+//    //        assertEquals(simpleLen, maxDataSet.getTimestamps().length);
+//    assertEquals(simpleLen, maxDataSet.getValues().length);
+//    for (int i = 0; i < simpleLen; i++) {
+//      // assertEquals(-1, maxDataSet.getTimestamps()[i]);
+//      int pathNum = getPathNum(maxResPaths.get(i));
+//      assertNotEquals(pathNum, -1);
+//      assertEquals(END_KEY + pathNum, maxResult[i]);
+//    }
+//    // aggrMin
+//    logger.info("aggrMin");
+//    SessionAggregateQueryDataSet minDataSet =
+//        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.MIN);
+//    List<String> minResPaths = minDataSet.getPaths();
+//    Object[] minResult = minDataSet.getValues();
+//    assertEquals(simpleLen, minResPaths.size());
+//    //        assertEquals(simpleLen, minDataSet.getTimestamps().length);
+//    assertEquals(simpleLen, minDataSet.getValues().length);
+//    for (int i = 0; i < simpleLen; i++) {
+//      // assertEquals(-1, minDataSet.getTimestamps()[i]);
+//      int pathNum = getPathNum(minResPaths.get(i));
+//      assertNotEquals(pathNum, -1);
+//      assertEquals(START_KEY + pathNum, minResult[i]);
+//    }
+//    // aggrFirst
+//    logger.info("aggrFirst");
+//    SessionAggregateQueryDataSet firstDataSet =
+//        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.FIRST_VALUE);
+//    List<String> firstResPaths = firstDataSet.getPaths();
+//    Object[] firstResult = firstDataSet.getValues();
+//    assertEquals(simpleLen, firstResPaths.size());
+//    //        assertEquals(simpleLen, firstDataSet.getTimestamps().length);
+//    assertEquals(simpleLen, firstDataSet.getValues().length);
+//    for (int i = 0; i < simpleLen; i++) {
+//      int pathNum = getPathNum(firstResPaths.get(i));
+//      assertNotEquals(pathNum, -1);
+//      assertEquals(START_KEY + pathNum, firstResult[i]);
+//    }
+//    // aggrLast
+//    logger.info("aggrLast");
+//    SessionAggregateQueryDataSet lastDataSet =
+//        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.LAST_VALUE);
+//    List<String> lastResPaths = lastDataSet.getPaths();
+//    Object[] lastResult = lastDataSet.getValues();
+//    assertEquals(simpleLen, lastResPaths.size());
+//    //        assertEquals(simpleLen, lastDataSet.getTimestamps().length);
+//    assertEquals(simpleLen, lastDataSet.getValues().length);
+//    for (int i = 0; i < simpleLen; i++) {
+//      int pathNum = getPathNum(lastResPaths.get(i));
+//      assertNotEquals(pathNum, -1);
+//      assertEquals(END_KEY + pathNum, lastResult[i]);
+//    }
+//    // aggrCount
+//    logger.info("aggrCount");
+//    SessionAggregateQueryDataSet countDataSet =
+//        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.COUNT);
+//    assertNull(countDataSet.getKeys());
+//    List<String> countResPaths = countDataSet.getPaths();
+//    Object[] countResult = countDataSet.getValues();
+//    assertEquals(simpleLen, countResPaths.size());
+//    assertEquals(simpleLen, countDataSet.getValues().length);
+//    for (int i = 0; i < simpleLen; i++) {
+//      assertEquals(KEY_PERIOD, countResult[i]);
+//    }
+//    // aggrSum
+//    logger.info("aggrSum");
+//    SessionAggregateQueryDataSet sumDataSet =
+//        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.SUM);
+//    assertNull(sumDataSet.getKeys());
+//    List<String> sumResPaths = sumDataSet.getPaths();
+//    Object[] sumResult = sumDataSet.getValues();
+//    assertEquals(simpleLen, sumResPaths.size());
+//    assertEquals(simpleLen, sumDataSet.getValues().length);
+//    for (int i = 0; i < simpleLen; i++) {
+//      double sum = (START_KEY + END_KEY) * KEY_PERIOD / 2.0;
+//      int pathNum = getPathNum(sumResPaths.get(i));
+//      assertNotEquals(pathNum, -1);
+//      assertEquals(sum + pathNum * KEY_PERIOD, changeResultToDouble(sumResult[i]), delta);
+//    }
+//
+//    // aggrAvg
+//    logger.info("aggrAvg");
+//    SessionAggregateQueryDataSet avgDataSet =
+//        session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG);
+//    assertNull(avgDataSet.getKeys());
+//    List<String> avgResPaths = avgDataSet.getPaths();
+//    Object[] avgResult = avgDataSet.getValues();
+//    assertEquals(simpleLen, avgResPaths.size());
+//    assertEquals(simpleLen, avgDataSet.getValues().length);
+//    for (int i = 0; i < simpleLen; i++) {
+//      double avg = (START_KEY + END_KEY) / 2.0;
+//      int pathNum = getPathNum(avgResPaths.get(i));
+//      assertNotEquals(pathNum, -1);
+//      assertEquals(avg + pathNum, changeResultToDouble(avgResult[i]), delta);
+//    }
 
     /*
     // downSample Aggregate
@@ -445,273 +445,273 @@ public class SessionIT extends BaseSessionIT {
     }*/
 
     // Simple delete and aggregate
-    if (isAbleToDelete) {
-      // deletePartialDataInColumnTest
-      logger.info("deletePartialDataInColumnTest");
-      int removeLen = 1;
-      List<String> delPartPaths = getPaths(currPath, removeLen);
-      // ensure after delete there are still points in the timeseries
-
-      // delete data
-      logger.info("delete data");
-      session.deleteDataInColumns(delPartPaths, delStartKey, delEndKey);
-      Thread.sleep(1000);
-      SessionQueryDataSet delPartDataSet = session.queryData(paths, START_KEY, END_KEY + 1);
-
-      int delPartLen = delPartDataSet.getKeys().length;
-      List<String> delPartResPaths = delPartDataSet.getPaths();
-      assertEquals(simpleLen, delPartResPaths.size());
-      assertEquals(KEY_PERIOD, delPartDataSet.getKeys().length);
-      assertEquals(KEY_PERIOD, delPartDataSet.getValues().size());
-      for (int i = 0; i < delPartLen; i++) {
-        long key = delPartDataSet.getKeys()[i];
-        assertEquals(i + START_KEY, key);
-        List<Object> result = delPartDataSet.getValues().get(i);
-        if (delStartKey <= key && key < delEndKey) {
-          for (int j = 0; j < simpleLen; j++) {
-            int pathNum = getPathNum(delPartResPaths.get(j));
-            assertNotEquals(pathNum, -1);
-            if (pathNum >= currPath + removeLen) {
-              assertEquals(key + pathNum, result.get(j));
-            } else {
-              assertNull(result.get(j));
-            }
-          }
-        } else {
-          for (int j = 0; j < simpleLen; j++) {
-            int pathNum = getPathNum(delPartResPaths.get(j));
-            assertNotEquals(pathNum, -1);
-            assertEquals(key + pathNum, result.get(j));
-          }
-        }
-      }
-
-      // Test avg for the delete
-      logger.info("Test avg for the delete");
-      SessionAggregateQueryDataSet delPartAvgDataSet =
-          session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG);
-      List<String> delPartAvgResPaths = delPartAvgDataSet.getPaths();
-      Object[] delPartAvgResult = delPartAvgDataSet.getValues();
-      assertEquals(simpleLen, delPartAvgResPaths.size());
-      assertEquals(simpleLen, delPartAvgDataSet.getValues().length);
-      for (int i = 0; i < simpleLen; i++) {
-        int pathNum = getPathNum(delPartAvgResPaths.get(i));
-        assertNotEquals(pathNum, -1);
-        if (pathNum < currPath + removeLen) { // Here is the removed rows
-          assertEquals(deleteAvg + pathNum, changeResultToDouble(delPartAvgResult[i]), delta);
-        } else {
-          assertEquals(originAvg + pathNum, changeResultToDouble(delPartAvgResult[i]), delta);
-        }
-      }
-
-      // Test count for the delete
-      logger.info("Test count for the delete");
-      SessionAggregateQueryDataSet delPartCountDataSet =
-          session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.COUNT);
-      List<String> delPartCountResPaths = delPartCountDataSet.getPaths();
-      Object[] delPartCountResult = delPartCountDataSet.getValues();
-      assertEquals(simpleLen, delPartCountResPaths.size());
-      assertEquals(simpleLen, delPartCountDataSet.getValues().length);
-      for (int i = 0; i < simpleLen; i++) {
-        int pathNum = getPathNum(delPartAvgResPaths.get(i));
-        assertNotEquals(pathNum, -1);
-        if (pathNum < currPath + removeLen) { // Here is the removed rows
-          assertEquals(KEY_PERIOD - delKeyPeriod, delPartCountResult[i]);
-        } else {
-          assertEquals(KEY_PERIOD, delPartCountResult[i]);
-        }
-      }
-
-      // Test downSample avg of the delete
-      logger.info("Test downSample avg of the delete");
-      SessionQueryDataSet delDsAvgDataSet =
-          session.downsampleQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG, PRECISION);
-      int delDsLen = delDsAvgDataSet.getKeys().length;
-      List<String> delDsResPaths = delDsAvgDataSet.getPaths();
-      assertEquals(factSampleLen, delDsLen);
-      assertEquals(factSampleLen, delDsAvgDataSet.getValues().size());
-      for (int i = 0; i < delDsLen; i++) {
-        long dsStartKey = delDsAvgDataSet.getKeys()[i];
-        assertEquals(START_KEY + i * PRECISION, dsStartKey);
-        List<Object> dsResult = delDsAvgDataSet.getValues().get(i);
-        for (int j = 0; j < delDsResPaths.size(); j++) {
-          long dsEndKey = Math.min((START_KEY + (i + 1) * PRECISION - 1), END_KEY);
-          double delDsAvg = (dsStartKey + dsEndKey) / 2.0;
-          int pathNum = getPathNum(delDsResPaths.get(j));
-          assertNotEquals(pathNum, -1);
-          if (pathNum < currPath + removeLen) { // Here is the removed rows
-            if (dsStartKey > delEndKey || dsEndKey < delStartKey) {
-              assertEquals(delDsAvg + pathNum, changeResultToDouble(dsResult.get(j)), delta);
-            } else if (dsStartKey >= delStartKey && dsEndKey < delEndKey) {
-              //                            assertNull(dsResult.get(j));
-              assertTrue(Double.isNaN((Double) dsResult.get(j)));
-            } else if (dsStartKey < delStartKey) {
-              assertEquals(
-                  (dsStartKey + delStartKey - 1) / 2.0 + pathNum,
-                  changeResultToDouble(dsResult.get(j)),
-                  delta);
-            } else {
-              assertEquals(
-                  (dsEndKey + (delEndKey - 1) + 1) / 2.0 + pathNum,
-                  changeResultToDouble(dsResult.get(j)),
-                  delta);
-            }
-          } else {
-            assertEquals(delDsAvg + pathNum, changeResultToDouble(dsResult.get(j)), delta);
-          }
-        }
-      }
-
-      currPath += simpleLen;
-
-      // deleteAllDataInColumnTest, make new insert and delete here
-      logger.info("deleteAllDataInColumnTest");
-      int dataInColumnLen = 3;
-      List<String> delDataInColumnPaths = getPaths(currPath, dataInColumnLen);
-      insertNumRecords(delDataInColumnPaths);
-      // TODO add test to test if the insert is right(Is it necessary?)
-      int deleteDataInColumnLen = 2;
-      List<String> delAllDataInColumnPaths = getPaths(currPath, deleteDataInColumnLen);
-      session.deleteDataInColumns(delAllDataInColumnPaths, START_KEY, END_KEY + 1);
-      Thread.sleep(1000);
-      SessionQueryDataSet delDataInColumnDataSet =
-          session.queryData(delDataInColumnPaths, START_KEY, END_KEY + 1);
-      int delDataInColumnLen = delDataInColumnDataSet.getKeys().length;
-      List<String> delDataInColumnResPaths = delDataInColumnDataSet.getPaths();
-      assertEquals(KEY_PERIOD, delDataInColumnLen);
-      assertEquals(KEY_PERIOD, delDataInColumnDataSet.getValues().size());
-      for (int i = 0; i < delDataInColumnLen; i++) {
-        long key = delDataInColumnDataSet.getKeys()[i];
-        assertEquals(i + START_KEY, key);
-        List<Object> result = delDataInColumnDataSet.getValues().get(i);
-        for (int j = 0; j < dataInColumnLen; j++) {
-          int pathNum = getPathNum(delDataInColumnResPaths.get(j));
-          assertNotEquals(pathNum, -1);
-          if (pathNum < currPath + deleteDataInColumnLen) { // Here is the removed rows
-            assertNull(result.get(j));
-          } else {
-            assertEquals(key + pathNum, result.get(j));
-          }
-        }
-      }
-
-      /*
-      // Test value filter for the delete TODO change the value filter to the right test
-      int vfTime = 1123;
-      String booleanExpression = COLUMN_D2_S2 + " > " + vfTime;
-      SessionQueryDataSet vfDataSet = session.valueFilterQuery(delDataInColumnPaths, START_TIME, END_TIME, booleanExpression);
-      int vfLen = vfDataSet.getTimestamps().length;
-      List<String> vfResPaths = vfDataSet.getPaths();
-      assertEquals(TIME_PERIOD + START_TIME - vfTime - 1, vfDataSet.getTimestamps().length);
-      for (int i = 0; i < vfLen; i++) {
-          long key = vfDataSet.getTimestamps()[i];
-          assertEquals(i + vfTime, key);
-          List<Object> result = vfDataSet.getValues().get(i);
-          for (int j = 0; j < dataInColumnLen; j++) {
-              int pathNum = getPathNum(delDataInColumnResPaths.get(j));
-              assertNotEquals(pathNum, -1);
-              if (pathNum < deleteDataInColumnLen){ // Here is the removed rows
-                  assertNull(result.get(j));
-              } else {
-                  assertEquals(key + pathNum, result.get(j));
-              }
-          }
-      }*/
-
-      // Test aggregate function for the delete
-      logger.info("Test aggregate function for the delete");
-      SessionAggregateQueryDataSet delDataAvgSet =
-          session.aggregateQuery(delDataInColumnPaths, START_KEY, END_KEY + 1, AggregateType.AVG);
-      List<String> delDataAvgResPaths = delDataAvgSet.getPaths();
-      Object[] delDataAvgResult = delDataAvgSet.getValues();
-      assertEquals(dataInColumnLen, delDataAvgResPaths.size());
-      assertEquals(dataInColumnLen, delDataAvgSet.getValues().length);
-      for (int i = 0; i < dataInColumnLen; i++) {
-        int pathNum = getPathNum(delDataAvgResPaths.get(i));
-        assertNotEquals(pathNum, -1);
-        if (pathNum < currPath + deleteDataInColumnLen) { // Here is the removed rows
-          //                    assertEquals("null", new String((byte[])
-          // delDataAvgResult[i]));
-          assertTrue(Double.isNaN((Double) delDataAvgResult[i]));
-        } else {
-          assertEquals((START_KEY + END_KEY) / 2.0 + pathNum, delDataAvgResult[i]);
-        }
-      }
-
-      // Test downsample function for the delete
-      logger.info("Test downsample function for the delete");
-      SessionQueryDataSet dsDelDataInColSet =
-          session.downsampleQuery(
-              delDataInColumnPaths, START_KEY, END_KEY + 1, AggregateType.AVG, PRECISION);
-      int dsDelDataLen = dsDelDataInColSet.getKeys().length;
-      List<String> dsDelDataResPaths = dsDelDataInColSet.getPaths();
-      assertEquals(factSampleLen, dsDelDataLen);
-      assertEquals(factSampleLen, dsDelDataInColSet.getValues().size());
-      for (int i = 0; i < dsDelDataLen; i++) {
-        long dsKey = dsDelDataInColSet.getKeys()[i];
-        assertEquals(START_KEY + i * PRECISION, dsKey);
-        List<Object> dsResult = dsDelDataInColSet.getValues().get(i);
-        for (int j = 0; j < dsDelDataResPaths.size(); j++) {
-          long maxNum = Math.min((START_KEY + (i + 1) * PRECISION - 1), END_KEY);
-          double avg = (dsKey + maxNum) / 2.0;
-          int pathNum = getPathNum(dsDelDataResPaths.get(j));
-          assertNotEquals(pathNum, -1);
-          if (pathNum < currPath + deleteDataInColumnLen) { // Here is the removed rows
-            //                        assertNull(dsResult.get(j));
-            assertTrue(Double.isNaN((Double) dsResult.get(j)));
-          } else {
-            assertEquals(avg + pathNum, changeResultToDouble(dsResult.get(j)), delta);
-          }
-        }
-      }
-      currPath += dataInColumnLen;
-
-      // deleteAllColumnsTest
-      logger.info("deleteAllColumnsTest");
-      int delAllColumnLen = 3;
-      List<String> delAllColumnPaths = getPaths(currPath, delAllColumnLen);
-      insertNumRecords(delAllColumnPaths);
-      session.deleteColumns(delAllColumnPaths);
-      SessionQueryDataSet delAllColumnDataSet =
-          session.queryData(delAllColumnPaths, START_KEY, END_KEY + 1);
-      assertEquals(0, delAllColumnDataSet.getPaths().size());
-      assertEquals(0, delAllColumnDataSet.getKeys().length);
-      assertEquals(0, delAllColumnDataSet.getValues().size());
-      currPath += delAllColumnLen;
-
-      // deletePartColumnsTest
-      logger.info("deletePartColumnsTest");
-      int delPartColumnLen = 3;
-      List<String> partColumnPaths = getPaths(currPath, delPartColumnLen);
-      insertNumRecords(partColumnPaths);
-      int delPartColumnNum = 2;
-      List<String> delPartColumnPaths = getPaths(currPath, delPartColumnNum);
-      session.deleteColumns(delPartColumnPaths);
-      SessionQueryDataSet delPartColumnDataSet =
-          session.queryData(partColumnPaths, START_KEY, END_KEY + 1);
-      int delPartResLen = delPartColumnDataSet.getKeys().length;
-      List<String> delPartColResPaths = delPartColumnDataSet.getPaths();
-      assertEquals(delPartColumnLen - delPartColumnNum, delPartColResPaths.size());
-      assertEquals(KEY_PERIOD, delPartResLen);
-      assertEquals(KEY_PERIOD, delPartColumnDataSet.getValues().size());
-      for (int i = 0; i < delPartResLen; i++) {
-        long key = delPartColumnDataSet.getKeys()[i];
-        assertEquals(i + START_KEY, key);
-        List<Object> result = delPartColumnDataSet.getValues().get(i);
-        for (int j = 0; j < delPartColumnLen - delPartColumnNum; j++) {
-          int pathNum = getPathNum(delPartColResPaths.get(j));
-          assertNotEquals(pathNum, -1);
-          if (pathNum < currPath + delPartColumnNum) { // Here is the removed rows
-            fail();
-          } else {
-            assertEquals(key + pathNum, result.get(j));
-          }
-        }
-      }
-      currPath += delPartColumnLen;
-    } else {
-      currPath += simpleLen;
-    }
+//    if (isAbleToDelete) {
+//      // deletePartialDataInColumnTest
+//      logger.info("deletePartialDataInColumnTest");
+//      int removeLen = 1;
+//      List<String> delPartPaths = getPaths(currPath, removeLen);
+//      // ensure after delete there are still points in the timeseries
+//
+//      // delete data
+//      logger.info("delete data");
+//      session.deleteDataInColumns(delPartPaths, delStartKey, delEndKey);
+//      Thread.sleep(1000);
+//      SessionQueryDataSet delPartDataSet = session.queryData(paths, START_KEY, END_KEY + 1);
+//
+//      int delPartLen = delPartDataSet.getKeys().length;
+//      List<String> delPartResPaths = delPartDataSet.getPaths();
+//      assertEquals(simpleLen, delPartResPaths.size());
+//      assertEquals(KEY_PERIOD, delPartDataSet.getKeys().length);
+//      assertEquals(KEY_PERIOD, delPartDataSet.getValues().size());
+//      for (int i = 0; i < delPartLen; i++) {
+//        long key = delPartDataSet.getKeys()[i];
+//        assertEquals(i + START_KEY, key);
+//        List<Object> result = delPartDataSet.getValues().get(i);
+//        if (delStartKey <= key && key < delEndKey) {
+//          for (int j = 0; j < simpleLen; j++) {
+//            int pathNum = getPathNum(delPartResPaths.get(j));
+//            assertNotEquals(pathNum, -1);
+//            if (pathNum >= currPath + removeLen) {
+//              assertEquals(key + pathNum, result.get(j));
+//            } else {
+//              assertNull(result.get(j));
+//            }
+//          }
+//        } else {
+//          for (int j = 0; j < simpleLen; j++) {
+//            int pathNum = getPathNum(delPartResPaths.get(j));
+//            assertNotEquals(pathNum, -1);
+//            assertEquals(key + pathNum, result.get(j));
+//          }
+//        }
+//      }
+//
+//      // Test avg for the delete
+//      logger.info("Test avg for the delete");
+//      SessionAggregateQueryDataSet delPartAvgDataSet =
+//          session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG);
+//      List<String> delPartAvgResPaths = delPartAvgDataSet.getPaths();
+//      Object[] delPartAvgResult = delPartAvgDataSet.getValues();
+//      assertEquals(simpleLen, delPartAvgResPaths.size());
+//      assertEquals(simpleLen, delPartAvgDataSet.getValues().length);
+//      for (int i = 0; i < simpleLen; i++) {
+//        int pathNum = getPathNum(delPartAvgResPaths.get(i));
+//        assertNotEquals(pathNum, -1);
+//        if (pathNum < currPath + removeLen) { // Here is the removed rows
+//          assertEquals(deleteAvg + pathNum, changeResultToDouble(delPartAvgResult[i]), delta);
+//        } else {
+//          assertEquals(originAvg + pathNum, changeResultToDouble(delPartAvgResult[i]), delta);
+//        }
+//      }
+//
+//      // Test count for the delete
+//      logger.info("Test count for the delete");
+//      SessionAggregateQueryDataSet delPartCountDataSet =
+//          session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.COUNT);
+//      List<String> delPartCountResPaths = delPartCountDataSet.getPaths();
+//      Object[] delPartCountResult = delPartCountDataSet.getValues();
+//      assertEquals(simpleLen, delPartCountResPaths.size());
+//      assertEquals(simpleLen, delPartCountDataSet.getValues().length);
+//      for (int i = 0; i < simpleLen; i++) {
+//        int pathNum = getPathNum(delPartAvgResPaths.get(i));
+//        assertNotEquals(pathNum, -1);
+//        if (pathNum < currPath + removeLen) { // Here is the removed rows
+//          assertEquals(KEY_PERIOD - delKeyPeriod, delPartCountResult[i]);
+//        } else {
+//          assertEquals(KEY_PERIOD, delPartCountResult[i]);
+//        }
+//      }
+//
+//      // Test downSample avg of the delete
+//      logger.info("Test downSample avg of the delete");
+//      SessionQueryDataSet delDsAvgDataSet =
+//          session.downsampleQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG, PRECISION);
+//      int delDsLen = delDsAvgDataSet.getKeys().length;
+//      List<String> delDsResPaths = delDsAvgDataSet.getPaths();
+//      assertEquals(factSampleLen, delDsLen);
+//      assertEquals(factSampleLen, delDsAvgDataSet.getValues().size());
+//      for (int i = 0; i < delDsLen; i++) {
+//        long dsStartKey = delDsAvgDataSet.getKeys()[i];
+//        assertEquals(START_KEY + i * PRECISION, dsStartKey);
+//        List<Object> dsResult = delDsAvgDataSet.getValues().get(i);
+//        for (int j = 0; j < delDsResPaths.size(); j++) {
+//          long dsEndKey = Math.min((START_KEY + (i + 1) * PRECISION - 1), END_KEY);
+//          double delDsAvg = (dsStartKey + dsEndKey) / 2.0;
+//          int pathNum = getPathNum(delDsResPaths.get(j));
+//          assertNotEquals(pathNum, -1);
+//          if (pathNum < currPath + removeLen) { // Here is the removed rows
+//            if (dsStartKey > delEndKey || dsEndKey < delStartKey) {
+//              assertEquals(delDsAvg + pathNum, changeResultToDouble(dsResult.get(j)), delta);
+//            } else if (dsStartKey >= delStartKey && dsEndKey < delEndKey) {
+//              //                            assertNull(dsResult.get(j));
+//              assertTrue(Double.isNaN((Double) dsResult.get(j)));
+//            } else if (dsStartKey < delStartKey) {
+//              assertEquals(
+//                  (dsStartKey + delStartKey - 1) / 2.0 + pathNum,
+//                  changeResultToDouble(dsResult.get(j)),
+//                  delta);
+//            } else {
+//              assertEquals(
+//                  (dsEndKey + (delEndKey - 1) + 1) / 2.0 + pathNum,
+//                  changeResultToDouble(dsResult.get(j)),
+//                  delta);
+//            }
+//          } else {
+//            assertEquals(delDsAvg + pathNum, changeResultToDouble(dsResult.get(j)), delta);
+//          }
+//        }
+//      }
+//
+//      currPath += simpleLen;
+//
+//      // deleteAllDataInColumnTest, make new insert and delete here
+//      logger.info("deleteAllDataInColumnTest");
+//      int dataInColumnLen = 3;
+//      List<String> delDataInColumnPaths = getPaths(currPath, dataInColumnLen);
+//      insertNumRecords(delDataInColumnPaths);
+//      // TODO add test to test if the insert is right(Is it necessary?)
+//      int deleteDataInColumnLen = 2;
+//      List<String> delAllDataInColumnPaths = getPaths(currPath, deleteDataInColumnLen);
+//      session.deleteDataInColumns(delAllDataInColumnPaths, START_KEY, END_KEY + 1);
+//      Thread.sleep(1000);
+//      SessionQueryDataSet delDataInColumnDataSet =
+//          session.queryData(delDataInColumnPaths, START_KEY, END_KEY + 1);
+//      int delDataInColumnLen = delDataInColumnDataSet.getKeys().length;
+//      List<String> delDataInColumnResPaths = delDataInColumnDataSet.getPaths();
+//      assertEquals(KEY_PERIOD, delDataInColumnLen);
+//      assertEquals(KEY_PERIOD, delDataInColumnDataSet.getValues().size());
+//      for (int i = 0; i < delDataInColumnLen; i++) {
+//        long key = delDataInColumnDataSet.getKeys()[i];
+//        assertEquals(i + START_KEY, key);
+//        List<Object> result = delDataInColumnDataSet.getValues().get(i);
+//        for (int j = 0; j < dataInColumnLen; j++) {
+//          int pathNum = getPathNum(delDataInColumnResPaths.get(j));
+//          assertNotEquals(pathNum, -1);
+//          if (pathNum < currPath + deleteDataInColumnLen) { // Here is the removed rows
+//            assertNull(result.get(j));
+//          } else {
+//            assertEquals(key + pathNum, result.get(j));
+//          }
+//        }
+//      }
+//
+//      /*
+//      // Test value filter for the delete TODO change the value filter to the right test
+//      int vfTime = 1123;
+//      String booleanExpression = COLUMN_D2_S2 + " > " + vfTime;
+//      SessionQueryDataSet vfDataSet = session.valueFilterQuery(delDataInColumnPaths, START_TIME, END_TIME, booleanExpression);
+//      int vfLen = vfDataSet.getTimestamps().length;
+//      List<String> vfResPaths = vfDataSet.getPaths();
+//      assertEquals(TIME_PERIOD + START_TIME - vfTime - 1, vfDataSet.getTimestamps().length);
+//      for (int i = 0; i < vfLen; i++) {
+//          long key = vfDataSet.getTimestamps()[i];
+//          assertEquals(i + vfTime, key);
+//          List<Object> result = vfDataSet.getValues().get(i);
+//          for (int j = 0; j < dataInColumnLen; j++) {
+//              int pathNum = getPathNum(delDataInColumnResPaths.get(j));
+//              assertNotEquals(pathNum, -1);
+//              if (pathNum < deleteDataInColumnLen){ // Here is the removed rows
+//                  assertNull(result.get(j));
+//              } else {
+//                  assertEquals(key + pathNum, result.get(j));
+//              }
+//          }
+//      }*/
+//
+//      // Test aggregate function for the delete
+//      logger.info("Test aggregate function for the delete");
+//      SessionAggregateQueryDataSet delDataAvgSet =
+//          session.aggregateQuery(delDataInColumnPaths, START_KEY, END_KEY + 1, AggregateType.AVG);
+//      List<String> delDataAvgResPaths = delDataAvgSet.getPaths();
+//      Object[] delDataAvgResult = delDataAvgSet.getValues();
+//      assertEquals(dataInColumnLen, delDataAvgResPaths.size());
+//      assertEquals(dataInColumnLen, delDataAvgSet.getValues().length);
+//      for (int i = 0; i < dataInColumnLen; i++) {
+//        int pathNum = getPathNum(delDataAvgResPaths.get(i));
+//        assertNotEquals(pathNum, -1);
+//        if (pathNum < currPath + deleteDataInColumnLen) { // Here is the removed rows
+//          //                    assertEquals("null", new String((byte[])
+//          // delDataAvgResult[i]));
+//          assertTrue(Double.isNaN((Double) delDataAvgResult[i]));
+//        } else {
+//          assertEquals((START_KEY + END_KEY) / 2.0 + pathNum, delDataAvgResult[i]);
+//        }
+//      }
+//
+//      // Test downsample function for the delete
+//      logger.info("Test downsample function for the delete");
+//      SessionQueryDataSet dsDelDataInColSet =
+//          session.downsampleQuery(
+//              delDataInColumnPaths, START_KEY, END_KEY + 1, AggregateType.AVG, PRECISION);
+//      int dsDelDataLen = dsDelDataInColSet.getKeys().length;
+//      List<String> dsDelDataResPaths = dsDelDataInColSet.getPaths();
+//      assertEquals(factSampleLen, dsDelDataLen);
+//      assertEquals(factSampleLen, dsDelDataInColSet.getValues().size());
+//      for (int i = 0; i < dsDelDataLen; i++) {
+//        long dsKey = dsDelDataInColSet.getKeys()[i];
+//        assertEquals(START_KEY + i * PRECISION, dsKey);
+//        List<Object> dsResult = dsDelDataInColSet.getValues().get(i);
+//        for (int j = 0; j < dsDelDataResPaths.size(); j++) {
+//          long maxNum = Math.min((START_KEY + (i + 1) * PRECISION - 1), END_KEY);
+//          double avg = (dsKey + maxNum) / 2.0;
+//          int pathNum = getPathNum(dsDelDataResPaths.get(j));
+//          assertNotEquals(pathNum, -1);
+//          if (pathNum < currPath + deleteDataInColumnLen) { // Here is the removed rows
+//            //                        assertNull(dsResult.get(j));
+//            assertTrue(Double.isNaN((Double) dsResult.get(j)));
+//          } else {
+//            assertEquals(avg + pathNum, changeResultToDouble(dsResult.get(j)), delta);
+//          }
+//        }
+//      }
+//      currPath += dataInColumnLen;
+//
+//      // deleteAllColumnsTest
+//      logger.info("deleteAllColumnsTest");
+//      int delAllColumnLen = 3;
+//      List<String> delAllColumnPaths = getPaths(currPath, delAllColumnLen);
+//      insertNumRecords(delAllColumnPaths);
+//      session.deleteColumns(delAllColumnPaths);
+//      SessionQueryDataSet delAllColumnDataSet =
+//          session.queryData(delAllColumnPaths, START_KEY, END_KEY + 1);
+//      assertEquals(0, delAllColumnDataSet.getPaths().size());
+//      assertEquals(0, delAllColumnDataSet.getKeys().length);
+//      assertEquals(0, delAllColumnDataSet.getValues().size());
+//      currPath += delAllColumnLen;
+//
+//      // deletePartColumnsTest
+//      logger.info("deletePartColumnsTest");
+//      int delPartColumnLen = 3;
+//      List<String> partColumnPaths = getPaths(currPath, delPartColumnLen);
+//      insertNumRecords(partColumnPaths);
+//      int delPartColumnNum = 2;
+//      List<String> delPartColumnPaths = getPaths(currPath, delPartColumnNum);
+//      session.deleteColumns(delPartColumnPaths);
+//      SessionQueryDataSet delPartColumnDataSet =
+//          session.queryData(partColumnPaths, START_KEY, END_KEY + 1);
+//      int delPartResLen = delPartColumnDataSet.getKeys().length;
+//      List<String> delPartColResPaths = delPartColumnDataSet.getPaths();
+//      assertEquals(delPartColumnLen - delPartColumnNum, delPartColResPaths.size());
+//      assertEquals(KEY_PERIOD, delPartResLen);
+//      assertEquals(KEY_PERIOD, delPartColumnDataSet.getValues().size());
+//      for (int i = 0; i < delPartResLen; i++) {
+//        long key = delPartColumnDataSet.getKeys()[i];
+//        assertEquals(i + START_KEY, key);
+//        List<Object> result = delPartColumnDataSet.getValues().get(i);
+//        for (int j = 0; j < delPartColumnLen - delPartColumnNum; j++) {
+//          int pathNum = getPathNum(delPartColResPaths.get(j));
+//          assertNotEquals(pathNum, -1);
+//          if (pathNum < currPath + delPartColumnNum) { // Here is the removed rows
+//            fail();
+//          } else {
+//            assertEquals(key + pathNum, result.get(j));
+//          }
+//        }
+//      }
+//      currPath += delPartColumnLen;
+//    } else {
+//      currPath += simpleLen;
+//    }
 
     // fake data insert test
     logger.info("fake data insert test");

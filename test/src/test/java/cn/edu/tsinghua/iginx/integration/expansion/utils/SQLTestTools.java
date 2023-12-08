@@ -128,7 +128,7 @@ public class SQLTestTools {
 
       // 设置工作目录（可选）
       processBuilder.directory(new File("../"));
-
+      processBuilder.redirectErrorStream(true);
       Process process = processBuilder.start();
 
       // 读取脚本输出
@@ -139,24 +139,30 @@ public class SQLTestTools {
       }
 
       // read any errors
-      BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-      System.out.println("Standard error:");
-      while ((line = stdError.readLine()) != null) {
-        System.out.println(line);
-      }
+//      BufferedReader stdError = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+//      System.out.println("Standard error:");
+//      while ((line = stdError.readLine()) != null) {
+//        System.out.println(line);
+//      }
+//
+//      // 等待脚本执行完毕
+//      long timeout = 60;
+//      boolean finished = process.waitFor(timeout, TimeUnit.SECONDS);
+//
+//      if (finished) {
+//        int exitValue = process.exitValue();
+//        System.out.println("Finished. code: " + exitValue);
+//        return exitValue;
+//      } else {
+//        System.out.println("Time limit reached.");
+//        process.destroy();
+//        return 0;
+//      }
 
-      // 等待脚本执行完毕
-      long timeout = 60;
-      boolean finished = process.waitFor(timeout, TimeUnit.SECONDS);
-
-      if (finished) {
-        int exitValue = process.exitValue();
-        System.out.println("Finished. code: " + exitValue);
-        return exitValue;
-      } else {
-        System.out.println("Time limit reached.");
-        process.destroy();
-        return 0;
+      int status = process.waitFor();
+      System.err.printf("runShellCommand: %s, status: %s%n, %s%n", Arrays.toString(command), process.exitValue(), status);
+      if (process.exitValue() != 0) {
+        fail("tests fail!");
       }
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();

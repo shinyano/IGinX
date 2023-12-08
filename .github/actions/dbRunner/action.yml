@@ -109,7 +109,6 @@ runs:
                 chmod +x "${GITHUB_WORKSPACE}/.github/scripts/dataSources/redis.sh"
                 "${GITHUB_WORKSPACE}/.github/scripts/dataSources/redis.sh" 6379 6380 6381
               elif [ "$RUNNER_OS" == "Windows" ]; then
-                chmod +x "${GITHUB_WORKSPACE}/.github/scripts/dataSources/redis_windows.sh"
                 "${GITHUB_WORKSPACE}/.github/scripts/dataSources/redis_windows.sh" 6379 6380 6381
               elif [ "$RUNNER_OS" == "macOS" ]; then
                 chmod +x "${GITHUB_WORKSPACE}/.github/scripts/dataSources/redis_macos.sh"

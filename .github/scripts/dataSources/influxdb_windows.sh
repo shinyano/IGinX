@@ -63,4 +63,6 @@ do
   sh -c "cat influxdb2-2.7.4-windows-$port/logs/influx-error.log"
 
   sh -c "./influxdb2-client-2.7.3-windows-amd64/influx setup --host http://localhost:$port --org testOrg --bucket testBucket --username user --password 12345678 --token testToken --force --name testName$port"
+
+  sh -c "sleep 10"
 done
