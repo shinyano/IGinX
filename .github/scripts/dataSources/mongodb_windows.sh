@@ -6,7 +6,7 @@ echo "Downloading zip archive. This may take a few minutes..."
 
 sh -c "curl -LJO https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-6.0.12.zip -o mongodb-windows-x86_64-6.0.12.zip"
 
-sh -c "unzip mongodb-windows-x86_64-6.0.12.zip"
+sh -c "unzip -qq mongodb-windows-x86_64-6.0.12.zip"
 
 sh -c "ls mongodb-win32-x86_64-windows-6.0.12/bin"
 

@@ -6,7 +6,7 @@ echo "Downloading zip archive. This may take a few minutes..."
 
 sh -c "curl -LJO https://get.enterprisedb.com/postgresql/postgresql-15.5-1-windows-x64-binaries.zip -o postgresql-15.5-1-windows-x64-binaries.zip"
 
-sh -c "unzip postgresql-15.5-1-windows-x64-binaries.zip"
+sh -c "unzip -qq postgresql-15.5-1-windows-x64-binaries.zip"
 
 sh -c "ls pgsql/bin"
 

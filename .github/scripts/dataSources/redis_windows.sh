@@ -4,7 +4,7 @@ set -e
 
 echo "Downloading files..."
 
-sh -c "curl -LJO https://github.com/redis-windows/redis-windows/releases/download/7.0.14/Redis-7.0.14-Windows-x64.tar.gz -OutFile Redis-7.0.14-Windows-x64.tar.gz"
+sh -c "curl -LJO https://github.com/redis-windows/redis-windows/releases/download/7.0.14/Redis-7.0.14-Windows-x64.tar.gz -o Redis-7.0.14-Windows-x64.tar.gz"
 
 sh -c "tar -xzvf Redis-7.0.14-Windows-x64.tar.gz"
 

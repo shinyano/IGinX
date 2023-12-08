@@ -110,7 +110,8 @@ public class SQLTestTools {
     try {
       // 构建shell命令
       String[] command;
-      if (System.getProperty("os.name").toLowerCase().contains("win")) {
+      boolean isOnWin = System.getProperty("os.name").toLowerCase().contains("win");
+      if (isOnWin) {
         command = new String[args.length + 2];
         command[0] = "C:/Program Files/Git/bin/sh.exe";
         command[1] = scriptPath;
@@ -130,41 +131,39 @@ public class SQLTestTools {
       processBuilder.redirectErrorStream(true);
       Process process = processBuilder.start();
 
-      // 读取脚本输出
-      BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String line;
-      while ((line = reader.readLine()) != null) {
-        System.out.println(line);
-      }
+      if (isOnWin) {
+        // on windowsOS, the bash script calls a batch script to start iginx.
+        // If waits, java will wait for the iginx process to end, which would take forever.
+        // thus create a new process to read the output.
+        new Thread(() -> {
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+              System.out.println(line);
+            }
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+        }).start();
 
-      // read any errors
-      //      BufferedReader stdError = new BufferedReader(new
-      // InputStreamReader(process.getErrorStream()));
-      //      System.out.println("Standard error:");
-      //      while ((line = stdError.readLine()) != null) {
-      //        System.out.println(line);
-      //      }
-      //
-      //      // 等待脚本执行完毕
-      //      long timeout = 60;
-      //      boolean finished = process.waitFor(timeout, TimeUnit.SECONDS);
-      //
-      //      if (finished) {
-      //        int exitValue = process.exitValue();
-      //        System.out.println("Finished. code: " + exitValue);
-      //        return exitValue;
-      //      } else {
-      //        System.out.println("Time limit reached.");
-      //        process.destroy();
-      //        return 0;
-      //      }
+        // sleep 20s for new thread to print script output
+        Thread.sleep(20000);
 
-      int status = process.waitFor();
-      System.err.printf(
-          "runShellCommand: %s, status: %s%n, %s%n",
-          Arrays.toString(command), process.exitValue(), status);
-      if (process.exitValue() != 0) {
-        fail("tests fail!");
+        return 0;
+      } else {
+        // 读取脚本输出
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+          System.out.println(line);
+        }
+        int status = process.waitFor();
+        System.err.printf(
+                "runShellCommand: %s, status: %s%n, %s%n",
+                Arrays.toString(command), process.exitValue(), status);
+        if (process.exitValue() != 0) {
+          fail("tests fail!");
+        }
       }
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();

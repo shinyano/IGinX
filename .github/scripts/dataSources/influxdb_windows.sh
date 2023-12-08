@@ -4,11 +4,11 @@ set -e
 
 sh -c "curl -LJO https://dl.influxdata.com/influxdb/releases/influxdb2-2.7.4-windows.zip -o influxdb2-2.7.4-windows.zip"
 
-sh -c "unzip influxdb2-2.7.4-windows.zip -d './influxdb2-2.7.4-windows/'"
+sh -c "unzip -qq influxdb2-2.7.4-windows.zip -d './influxdb2-2.7.4-windows/'"
 
 sh -c "curl -LJO https://dl.influxdata.com/influxdb/releases/influxdb2-client-2.7.3-windows-amd64.zip -o influxdb2-client-2.7.3-windows-amd64.zip"
 
-sh -c "unzip influxdb2-client-2.7.3-windows-amd64.zip -d './influxdb2-client-2.7.3-windows-amd64/'"
+sh -c "unzip -qq influxdb2-client-2.7.3-windows-amd64.zip -d './influxdb2-client-2.7.3-windows-amd64/'"
 
 sh -c "ls influxdb2-2.7.4-windows"
 
