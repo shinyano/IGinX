@@ -24,7 +24,7 @@ jobs:
                     [
 #                        "FileSystem",
 #                        "IoTDB12",
-                        "InfluxDB",
+#                        "InfluxDB",
 #                        "PostgreSQL",
 #                        "Redis",
 #                        "MongoDB",

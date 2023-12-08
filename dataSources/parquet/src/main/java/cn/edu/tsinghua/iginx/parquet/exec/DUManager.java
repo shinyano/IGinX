@@ -438,7 +438,10 @@ public class DUManager {
           insertBody = generateRowInsertStmtBody(data);
           break;
       }
+      logger.info("ready to insert.");
       stmt.execute(insertPrefix + insertBody);
+
+      logger.info("insert completed");
 
       if (data.getMaxKey() > curEndTime) {
         curEndTime = data.getMaxKey();
@@ -448,6 +451,7 @@ public class DUManager {
       }
 
       if (curMemSize > MAX_MEM_SIZE) {
+        logger.info("flushed");
         flush();
       }
 
@@ -506,6 +510,7 @@ public class DUManager {
     for (int i = 0; i < data.getKeySize(); i++) {
       rowValueArray[i] = "(" + data.getKey(i) + ", ";
     }
+    logger.info("key column generated");
     for (int i = 0; i < data.getPathNum(); i++) {
       BitmapView bitmapView = data.getBitmapView(i);
 
@@ -526,7 +531,9 @@ public class DUManager {
           rowValueArray[j] += "NULL, ";
         }
       }
+      logger.info("column {} generated", i);
     }
+    logger.info("columns generated");
     for (int i = 0; i < data.getKeySize(); i++) {
       rowValueArray[i] += "), ";
     }

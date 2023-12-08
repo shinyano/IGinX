@@ -448,11 +448,21 @@ public class TransformIT {
           OUTPUT_DIR_PREFIX
               + File.separator
               + "export_file_multiple_python_jobs_by_yaml_with_export_to_iginx.txt";
+
+      SessionExecuteSqlResult sqlresult =
+              session.executeSql("SELECT s1, s2 FROM us.d1 WHERE key < 200;");
+      logger.info("Before transform:");
+      sqlresult.print(false, "ms");
       SessionExecuteSqlResult result =
           session.executeSql(String.format(COMMIT_SQL_FORMATTER, yamlFileName));
       long jobId = result.getJobId();
 
       verifyJobState(jobId);
+
+      sqlresult =
+              session.executeSql("SELECT s1, s2 FROM us.d1 WHERE key < 200;");
+      logger.info("after transform:");
+      sqlresult.print(false, "ms");
 
       SessionExecuteSqlResult queryResult = session.executeSql("SELECT * FROM transform;");
       int timeIndex = queryResult.getPaths().indexOf("transform.key");
