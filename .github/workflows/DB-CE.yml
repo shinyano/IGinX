@@ -27,9 +27,9 @@ jobs:
 #                        "FileSystem",
 #                        "IoTDB12",
                         "InfluxDB",
-#                        "PostgreSQL",
+                        "PostgreSQL",
 #                        "Redis",
-#                        "MongoDB",
+                        "MongoDB",
                         "Parquet",
                     ]
         runs-on: ${{ matrix.os }}

@@ -9,11 +9,15 @@ import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.Organization;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static cn.edu.tsinghua.iginx.integration.expansion.constant.Constant.PORT_TO_ROOT;
+import static cn.edu.tsinghua.iginx.integration.expansion.constant.Constant.oriPort;
 
 public class InfluxDBHistoryDataGenerator extends BaseHistoryDataGenerator {
 
@@ -134,7 +138,8 @@ public class InfluxDBHistoryDataGenerator extends BaseHistoryDataGenerator {
   public void clearHistoryDataForGivenPort(int port) {
     String url = "http://localhost:" + port + "/";
     InfluxDBClient client = InfluxDBClientFactory.create(url, TOKEN.toCharArray(), ORGANIZATION);
-    Bucket bucket = client.getBucketsApi().findBucketByName(PORT_TO_ROOT.get(port));
+    // TODO need optimization
+    Bucket bucket = client.getBucketsApi().findBucketByName(new ArrayList<>(Arrays.asList("mn", "nt", "tm")).get(port - oriPort));
     if (bucket != null) {
       client.getBucketsApi().deleteBucket(bucket);
     }
