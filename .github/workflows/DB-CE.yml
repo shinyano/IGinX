@@ -6,8 +6,8 @@ on:
             - main
 env:
     VERSION: 0.6.0-SNAPSHOT
-    FUNCTEST: SessionIT
-#    FUNCTEST: NewSessionIT,SQLCompareIT,TagIT,RestIT,TransformIT,UDFIT,RestAnnotationIT,SQLSessionIT,SQLSessionPoolIT,SessionV2IT,SessionIT,SessionPoolIT,CompactionIT,TimePrecisionIT
+#    FUNCTEST: SessionIT
+    FUNCTEST: NewSessionIT,SQLCompareIT,TagIT,RestIT,TransformIT,UDFIT,RestAnnotationIT,SQLSessionIT,SQLSessionPoolIT,SessionV2IT,SessionIT,SessionPoolIT,CompactionIT,TimePrecisionIT
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,7 +21,7 @@ jobs:
             matrix:
                 java: [8]
                 python-version: ["3.9"]
-                os: [windows-latest]
+                os: [ubuntu-latest, macos-latest, windows-latest]
                 DB-name:
                     [
 #                        "FileSystem",
@@ -40,6 +40,9 @@ jobs:
               with:
                   python-version: ${{ matrix.python-version }}
                   java: ${{ matrix.java }}
+
+            - name: Set JAVA_OPTS
+              run: echo "JAVA_OPTS=-Xmx4g" >> $GITHUB_ENV
 
             - name: Run ZooKeeper
               uses: ./.github/actions/zookeeperRunner

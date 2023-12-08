@@ -1,4 +1,4 @@
-name: "Union Database Test"
+name: "Union Database Test With Push Down"
 on:
     pull_request:
         types: [opened, reopened]
@@ -11,24 +11,22 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
-    Union-DB-Test:
+    Union-DB-Test-Push_Down:
         timeout-minutes: 30
         strategy:
             fail-fast: false
             matrix:
                 java: [8]
-                python-version-unix: ["3.9"]
-                python-version-win: ["3.9"]
+                python-version: ["3.9"]
                 os: [ubuntu-latest, macos-latest, windows-latest]
                 DB-name:
                     [
-                        "FileSystem",
-                        "IoTDB12",
                         "InfluxDB",
-                        "PostgreSQL",
                         "Redis",
+                        "PostgreSQL",
+                        "FileSystem",
                         "MongoDB",
-                        "Parquet",
+                        "IoTDB12",
                     ]
         runs-on: ${{ matrix.os }}
         steps:
@@ -36,11 +34,8 @@ jobs:
             - name: Environment dependence
               uses: ./.github/actions/dependence
               with:
-                  python-version: ${{ matrix.os == 'windows-latest' && matrix.python-version-win || matrix.python-version-unix }}
+                  python-version: ${{ matrix.python-version }}
                   java: ${{ matrix.java }}
-
-            - name: Set JAVA_OPTS
-              run: echo "JAVA_OPTS=-Xmx4g" >> $GITHUB_ENV
 
             - name: Run ZooKeeper
               uses: ./.github/actions/zookeeperRunner
@@ -59,51 +54,10 @@ jobs:
               uses: ./.github/actions/confWriter
               with:
                   DB-name: ${{ matrix.DB-name }}
+                  Push-Down: "true"
 
-            # start udf path test first to avoid being effected
             - name: Start IGinX
               uses: ./.github/actions/iginxRunner
-              with:
-                  version: ${VERSION}
-                  if-test-udf: "true"
-
-            - name: Run UDF path test
-              if: always()
-              shell: bash
-              run: |
-                  mvn test -q -Dtest=UDFPathIT -DfailIfNoTests=false -P-format
-
-            - name: set client test context
-              uses: ./.github/actions/context
-              with:
-                  work-name: stop-iginx-zk
-
-            - name: set client test context
-              uses: ./.github/actions/context
-              with:
-                  work-name: start-iginx-zk
-
-            - name: set client test context
-              uses: ./.github/actions/context
-              with:
-                  shell: client-before
-
-            - name: Test Client Export File
-              if: always()
-              shell: bash
-              run: |
-                  mvn test -q -Dtest=ExportFileIT -DfailIfNoTests=false -P-format
-
-            - name: set client test context
-              uses: ./.github/actions/context
-              with:
-                  shell: client-after
-
-            - name: Test Client Import File
-              if: always()
-              shell: bash
-              run: |
-                  mvn test -q -Dtest=ImportFileIT -DfailIfNoTests=false -P-format
 
             - name: TestController IT
               if: always()

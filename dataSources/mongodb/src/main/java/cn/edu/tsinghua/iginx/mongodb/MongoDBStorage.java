@@ -256,7 +256,8 @@ public class MongoDBStorage implements IStorage {
         }
       }
     } catch (Exception e) {
-      logger.error("failed to insert", e);
+      logger.error("failed to insert: {}", e.getMessage());
+      e.printStackTrace();
       return new TaskExecuteResult(new PhysicalException("failed to insert", e));
     }
     return new TaskExecuteResult();
