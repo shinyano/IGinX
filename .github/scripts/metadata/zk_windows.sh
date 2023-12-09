@@ -22,9 +22,9 @@ logDir=$(realpath "logs")
 
 echo $logDir
 
-sed -i "s/^dataDir=.*/dataDir=$dataDir/" conf/zoo.cfg
+sed -i "s#^dataDir=.*#dataDir=$dataDir#" conf/zoo.cfg
 
-sed -i "s/^dataLogDir=.*/dataLogDir=$logDir/" conf/zoo.cfg
+sed -i "s#^dataLogDir=.*#dataLogDir=$logDir#" conf/zoo.cfg
 
 powershell -Command "Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput '$logDir/zookeeper.log' -RedirectStandardError '$logDir/zookeeper-error.log'"
 
