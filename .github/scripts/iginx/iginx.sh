@@ -21,6 +21,14 @@ if [ -n "$MSYSTEM" ]; then
     echo "================================"
 
     sh -c "cat iginx-$1.log"
+
+    echo "================================"
+
+    sh -c "cat zookeeper/logs/zookeeper.log"
+
+    echo "================================"
+
+    sh -c "cat zookeeper/logs/zookeeper-error.log"
 else
     sh -c "chmod +x core/target/iginx-core-*/sbin/start_iginx.sh"
 

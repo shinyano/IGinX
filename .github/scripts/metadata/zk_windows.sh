@@ -20,7 +20,7 @@ powershell -Command "Start-Process -FilePath 'bin/zkServer.cmd' -NoNewWindow -Re
 
 sleep 3
 
-sh -c "cat logs/zookeeper.log"
+#sh -c "cat logs/zookeeper.log"
 
 echo "ls data"
 sh -c "ls data"
