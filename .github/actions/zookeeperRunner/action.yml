@@ -43,7 +43,7 @@ runs:
           name: ReRun ZooKeeper
           shell: powershell
           run: |
-              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput '../logs/zookeeper.log' -RedirectStandardError '../logs/zookeeper/zookeeper-error.log'
+              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'zookeeper/logs/zookeeper.log' -RedirectStandardError 'zookeeper/logs/zookeeper-error.log'
         #              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'zookeeper/zookeeper.log' -RedirectStandardError 'zookeeper/zookeeper-error.log'
 
         - if: inputs.if-stop=='true'
@@ -54,3 +54,5 @@ runs:
                 chmod +x "${GITHUB_WORKSPACE}/.github/scripts/metadata/zk_clear.sh"
               fi
               "${GITHUB_WORKSPACE}/.github/scripts/metadata/zk_clear.sh"
+
+#powershell -c "Start-Process -FilePath 'bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'logs/zookeeper.log' -RedirectStandardError 'logs/zookeeper-error.log'"
