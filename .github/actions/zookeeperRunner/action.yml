@@ -47,7 +47,7 @@ runs:
               ls zookeeper/data
               echo ls-logs
               ls zookeeper/logs
-              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'zookeeper/logs/zookeeper.log' -RedirectStandardError 'zookeeper/logs/zookeeper-error.log'
+              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -RedirectStandardOutput 'zookeeper/logs/zookeeper.log' -RedirectStandardError 'zookeeper/logs/zookeeper-error.log'
               sleep 3
               echo ls-data
               ls zookeeper/data
@@ -66,3 +66,16 @@ runs:
               "${GITHUB_WORKSPACE}/.github/scripts/metadata/zk_clear.sh"
 
 #powershell -c "Start-Process -FilePath 'bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'logs/zookeeper.log' -RedirectStandardError 'logs/zookeeper-error.log'"
+
+#  echo ls-data
+#  ls apache-zookeeper-3.8.1-bin/data
+#  echo ls-logs
+#  ls apache-zookeeper-3.8.1-bin/logs
+#  powershell -c "Start-Process -FilePath 'apache-zookeeper-3.8.1-bin/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'apache-zookeeper-3.8.1-bin/logs/zookeeper.log' -RedirectStandardError 'apache-zookeeper-3.8.1-bin/logs/zookeeper-error.log'"
+#  sleep 3
+#  echo ls-data
+#  ls apache-zookeeper-3.8.1-bin/data
+#  echo ls-logs
+#  ls apache-zookeeper-3.8.1-bin/logs
+
+
