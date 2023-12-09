@@ -87,6 +87,9 @@ public class TimePrecisionIT {
 
     SessionQueryDataSet dataSet =
         session.queryData(paths, startTime, endTime, null, TimePrecision.S);
+
+    logger.info("=================================");
+    logger.info("Printing queryTimeS res");
     dataSet.print();
 
     long[] timeList = dataSet.getKeys();
@@ -110,6 +113,8 @@ public class TimePrecisionIT {
 
     SessionQueryDataSet dataSet =
         session.queryData(paths, startTime, endTime, null, TimePrecision.MS);
+    logger.info("=================================");
+    logger.info("Printing queryTimeMS res");
     dataSet.print();
 
     long[] timeList = dataSet.getKeys();
@@ -133,6 +138,8 @@ public class TimePrecisionIT {
 
     SessionQueryDataSet dataSet =
         session.queryData(paths, startTime, endTime, null, TimePrecision.US);
+    logger.info("=================================");
+    logger.info("Printing queryTimeUS res");
     dataSet.print();
 
     long[] timeList = dataSet.getKeys();
@@ -153,6 +160,8 @@ public class TimePrecisionIT {
 
     SessionQueryDataSet dataSet =
         session.queryData(paths, startTime, endTime, null, TimePrecision.NS);
+    logger.info("=================================");
+    logger.info("Printing queryTimeNS res");
     dataSet.print();
 
     long[] timeList = dataSet.getKeys();

@@ -207,6 +207,12 @@ public class NewExecutor implements Executor {
       String storageUnit,
       boolean isDummyStorageUnit) {
     DUManager duManager;
+    logger.info("========================================");
+    logger.info("projecting in parquet:");
+    logger.info("| paths: {}", paths.toString());
+    logger.info("| tags: {}", tagFilter != null ? tagFilter.toString() : "null");
+    logger.info("| filter: {}", filter != null ? filter : "null");
+    logger.info("========================================");
     try {
       duManager = getDUManager(storageUnit, isDummyStorageUnit);
     } catch (IOException e) {

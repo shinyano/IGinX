@@ -22,6 +22,8 @@ import cn.edu.tsinghua.iginx.rest.RestSession;
 import cn.edu.tsinghua.iginx.rest.bean.QueryResultDataset;
 import cn.edu.tsinghua.iginx.session.SessionQueryDataSet;
 
+import java.util.List;
+
 public class QueryShowColumns extends QueryAggregator {
   public QueryShowColumns() {
     super(QueryAggregatorType.SHOW_COLUMNS);
@@ -31,6 +33,11 @@ public class QueryShowColumns extends QueryAggregator {
     QueryResultDataset queryResultDataset = new QueryResultDataset();
     try {
       SessionQueryDataSet sessionQueryDataSet = session.showColumns();
+      List<String> columns = getPathsFromShowColumns(sessionQueryDataSet);
+      System.out.println("columns:");
+      for (String s : columns) {
+        System.out.println(s);
+      }
       queryResultDataset.setPaths(getPathsFromShowColumns(sessionQueryDataSet));
     } catch (Exception e) {
       e.printStackTrace();

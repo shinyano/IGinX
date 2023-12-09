@@ -544,6 +544,8 @@ public class DUManager {
       builder.append(row.toString());
     }
 
+    logger.info(builder.toString());
+
 //    String[] rowValueArray = new String[data.getKeySize()];
 //    for (int i = 0; i < data.getKeySize(); i++) {
 //      rowValueArray[i] = "(" + data.getKey(i) + ", ";
