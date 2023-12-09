@@ -16,9 +16,9 @@ sh -c "mkdir logs"
 
 sh -c "mkdir data"
 
-dataDir=$(realpath "data")
+dataDir=$(cygpath -w "${PWD}/data")
 
-logDir=$(realpath "logs")
+logDir=$(cygpath -w "${PWD}/logs")
 
 echo $logDir
 
