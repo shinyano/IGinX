@@ -14,6 +14,13 @@ if [ -n "$MSYSTEM" ]; then
     echo "$(realpath ${batPath})"
     powershell -Command "Start-Process -FilePath '$batPath' -NoNewWindow -RedirectStandardOutput 'iginx-$1.log' -RedirectStandardError 'iginx-$1-error.log'"
     echo "finished"
+
+    sleep 3
+    sh -c "cat iginx-$1-error.log"
+
+    echo "================================"
+
+    sh -c "cat iginx-$1.log"
 else
     sh -c "chmod +x core/target/iginx-core-*/sbin/start_iginx.sh"
 

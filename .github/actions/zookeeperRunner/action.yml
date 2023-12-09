@@ -53,6 +53,7 @@ runs:
               ls zookeeper/data
               echo ls-logs
               ls zookeeper/logs
+              cat zookeeper/logs/zookeeper.log
         #              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'zookeeper/zookeeper.log' -RedirectStandardError 'zookeeper/zookeeper-error.log'
 
         - if: inputs.if-stop=='true'
