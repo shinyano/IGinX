@@ -755,25 +755,26 @@ public class DUManager {
     StringBuilder sb = new StringBuilder();
     sb.append("\n========================\n");
     for (String path : paths) {
-      sb.append("| path : ").append(path).append("\n");
+      sb.append("| path : ").append(path).append("(" + TagKVUtils.splitFullName(path).getK() + ")").append("\n");
       for (String pattern : patterns) {
         sb.append("| \tpattern : ").append(pattern);
         Pair<String, Map<String, String>> pair = TagKVUtils.splitFullName(path);
         if (tagFilter == null) {
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())) {
-            sb.append("  -- match");
+            sb.append("  -- match\n");
             ret.add(path);
             break;
           }
         } else {
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())
               && TagKVUtils.match(pair.getV(), tagFilter)) {
-            sb.append("  -- match");
+            sb.append("  -- match with tag\t");
+            sb.append("filter:\t").append(tagFilter);
+            sb.append("tag:\t").append(pair.getV().toString());
             ret.add(path);
             break;
           }
         }
-        sb.append("\n");
       }
     }
     logger.info(sb.toString());
