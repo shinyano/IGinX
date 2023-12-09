@@ -752,23 +752,31 @@ public class DUManager {
   private List<String> determinePathList(
       Set<String> paths, List<String> patterns, TagFilter tagFilter) {
     List<String> ret = new ArrayList<>();
+    StringBuilder sb = new StringBuilder();
+    sb.append("\n========================\n");
     for (String path : paths) {
+      sb.append("| path : ").append(path).append("\n");
       for (String pattern : patterns) {
+        sb.append("| \tpattern : ").append(pattern);
         Pair<String, Map<String, String>> pair = TagKVUtils.splitFullName(path);
         if (tagFilter == null) {
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())) {
+            sb.append("  -- match");
             ret.add(path);
             break;
           }
         } else {
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())
               && TagKVUtils.match(pair.getV(), tagFilter)) {
+            sb.append("  -- match");
             ret.add(path);
             break;
           }
         }
+        sb.append("\n");
       }
     }
+    logger.info(sb.toString());
     return ret;
   }
 
