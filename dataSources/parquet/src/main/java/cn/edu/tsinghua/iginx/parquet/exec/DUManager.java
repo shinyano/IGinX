@@ -755,7 +755,7 @@ public class DUManager {
     StringBuilder sb = new StringBuilder();
     sb.append("\n========================\n");
     for (String path : paths) {
-      sb.append("| path : ").append(path).append("(" + TagKVUtils.splitFullName(path).getK() + ")").append("\n");
+      sb.append("| path : ").append(path).append("(").append(TagKVUtils.splitFullName(path).getK()).append(")").append("\n");
       for (String pattern : patterns) {
         sb.append("| \tpattern : ").append(pattern);
         Pair<String, Map<String, String>> pair = TagKVUtils.splitFullName(path);
@@ -767,7 +767,7 @@ public class DUManager {
           }
         } else {
           sb.append("  @@filter:\t").append(tagFilter);
-          sb.append("tag:\t").append(pair.getV().toString());
+          sb.append("tag:\t").append(pair.getV() != null ? pair.getV().toString() : "null");
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())
               && TagKVUtils.match(pair.getV(), tagFilter)) {
             sb.append("\t  -- match with tag\n");
