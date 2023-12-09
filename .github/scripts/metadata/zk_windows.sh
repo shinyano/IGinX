@@ -37,4 +37,4 @@ sh -c "ls logs"
 
 sleep 3
 
-sh -c "cat $logDir/zookeeper.log"
+sh -c "cat logs/zookeeper.log"
