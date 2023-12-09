@@ -12,9 +12,9 @@ sh -c "cp ./.github/actions/zookeeperRunner/zooWin.cfg zookeeper/conf/zoo.cfg"
 
 cd zookeeper
 
-#sh -c "mkdir logs"
-#
-#sh -c "mkdir data"
+sh -c "mkdir logs"
+
+sh -c "mkdir data"
 #
 #dataDir=$(cygpath -w "${PWD}/data" | sed 's/\\/\\\\/g')
 #
