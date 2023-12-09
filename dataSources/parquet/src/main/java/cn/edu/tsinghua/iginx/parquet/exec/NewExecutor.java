@@ -207,12 +207,6 @@ public class NewExecutor implements Executor {
       String storageUnit,
       boolean isDummyStorageUnit) {
     DUManager duManager;
-    logger.info("========================================");
-    logger.info("projecting in parquet:");
-    logger.info("| paths: {}", paths.toString());
-    logger.info("| tags: {}", tagFilter != null ? tagFilter.toString() : "null");
-    logger.info("| filter: {}", filter != null ? filter : "null");
-    logger.info("========================================");
     try {
       duManager = getDUManager(storageUnit, isDummyStorageUnit);
     } catch (IOException e) {
@@ -222,6 +216,24 @@ public class NewExecutor implements Executor {
     try {
       List<cn.edu.tsinghua.iginx.parquet.entity.Column> columns =
           duManager.project(paths, tagFilter, filter);
+      StringBuilder stringBuilder = new StringBuilder();
+      for (cn.edu.tsinghua.iginx.parquet.entity.Column col : columns) {
+
+        stringBuilder.append(col.getPathName()).append(",\t")
+                .append(col.getPhysicalPath()).append(",\t")
+                .append(col.getType().toString()).append(",\t")
+                .append(col.getData().toString())
+                .append("\n");
+      }
+      logger.info("\n========================================\n"
+              + "projecting in parquet:\n"
+              + String.format("| paths: %s\n", paths.toString())
+              + String.format("| tags: %s\n", tagFilter != null ? tagFilter.toString() : "null")
+              + String.format("| filter: %s\n", filter != null ? filter : "null")
+              + "========================================\n"
+              + "==res:===============================\n"
+              + stringBuilder
+              + "========================================\n");
       RowStream rowStream = new ClearEmptyRowStreamWrapper(new NewQueryRowStream(columns));
       return new TaskExecuteResult(rowStream, null);
     } catch (SQLException e) {

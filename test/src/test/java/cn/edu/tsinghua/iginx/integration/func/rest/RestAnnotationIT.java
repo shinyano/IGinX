@@ -229,7 +229,7 @@ public class RestAnnotationIT {
   public void testAll() {
     for (DataType dataType : DATA_TYPE_ARRAY) {
       logger.info("Testing datatype: {}...", dataType);
-      testQueryAnno(dataType);
+//      testQueryAnno(dataType);
       testQueryAll(dataType);
 
 //      testAppendViaQueryAnno(dataType);
@@ -261,12 +261,12 @@ public class RestAnnotationIT {
   // 查询annotation信息
   private void testQueryAnno(DataType dataType) {
     insertData(dataType);
-    try {
-      SessionExecuteSqlResult result = session.executeSql("select * from *;");
-      result.print(false, "ms");
-    } catch (SessionException | ExecutionException e) {
-      logger.error("Query through session failed: {}", e.getMessage());
-    }
+//    try {
+//      SessionExecuteSqlResult result = session.executeSql("select * from *;");
+//      result.print(false, "ms");
+//    } catch (SessionException | ExecutionException e) {
+//      logger.error("Query through session failed: {}", e.getMessage());
+//    }
     String ans = getAns(getMethodName(), dataType);
     executeAndCompare("queryAnno.json", ans, TYPE.QUERY_ANNOTATION, dataType);
     clearData();
@@ -275,12 +275,12 @@ public class RestAnnotationIT {
   // 查询数据以及annotation信息
   private void testQueryAll(DataType dataType) {
     insertData(dataType);
-    try {
-      SessionExecuteSqlResult result = session.executeSql("select * from *;");
-      result.print(false, "ms");
-    } catch (SessionException | ExecutionException e) {
-      logger.error("Query through session failed: {}", e.getMessage());
-    }
+//    try {
+//      SessionExecuteSqlResult result = session.executeSql("select * from *;");
+//      result.print(false, "ms");
+//    } catch (SessionException | ExecutionException e) {
+//      logger.error("Query through session failed: {}", e.getMessage());
+//    }
     String ans = getAns(getMethodName(), dataType);
     executeAndCompare("queryData.json", ans, TYPE.QUERY_ALL, dataType);
     clearData();

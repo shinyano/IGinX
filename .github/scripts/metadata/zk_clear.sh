@@ -2,10 +2,6 @@
 
 set -e
 
-echo "ls zookeeper/data"
-sh -c "ls zookeeper/data"
-echo "ls zookeeper/logs"
-sh -c "ls zookeeper/logs"
 if [ -n "$MSYSTEM" ]; then
   PORT=2181
 
@@ -29,8 +25,3 @@ sh -c "mkdir zookeeper/data"
 sh -c "rm -rf zookeeper/logs"
 
 sh -c "mkdir zookeeper/logs"
-
-echo "ls zookeeper/data"
-sh -c "ls zookeeper/data"
-echo "ls zookeeper/logs"
-sh -c "ls zookeeper/logs"
