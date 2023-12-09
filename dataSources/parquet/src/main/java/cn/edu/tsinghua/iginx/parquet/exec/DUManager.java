@@ -766,15 +766,16 @@ public class DUManager {
             break;
           }
         } else {
+          sb.append("  @@filter:\t").append(tagFilter);
+          sb.append("tag:\t").append(pair.getV().toString());
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())
               && TagKVUtils.match(pair.getV(), tagFilter)) {
-            sb.append("  -- match with tag\t");
-            sb.append("filter:\t").append(tagFilter);
-            sb.append("tag:\t").append(pair.getV().toString());
+            sb.append("\t  -- match with tag\n");
             ret.add(path);
             break;
           }
         }
+        sb.append("\n");
       }
     }
     logger.info(sb.toString());

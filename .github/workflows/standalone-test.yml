@@ -40,8 +40,15 @@ jobs:
                   java: ${{ matrix.java }}
 
             - if: runner.os == 'Windows'
-              name: Set JAVA_OPTS
+              name: Set JVM heap
               run: echo "JAVA_OPTS=-Xmx4g" >> $GITHUB_ENV
+
+            - if: runner.os == 'Windows'
+              name: Set UTF-8 charset
+              run: |
+                [System.Text.Encoding]::UTF8
+                $env:PYTHONIOENCODING = "utf-8"
+                [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
             - name: Run ZooKeeper
               uses: ./.github/actions/zookeeperRunner
