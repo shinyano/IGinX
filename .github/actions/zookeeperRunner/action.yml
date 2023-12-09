@@ -43,7 +43,7 @@ runs:
           name: ReRun ZooKeeper
           shell: powershell
           run: |
-              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd'
+              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput '../logs/zookeeper.log' -RedirectStandardError '../logs/zookeeper/zookeeper-error.log'
         #              Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'zookeeper/zookeeper.log' -RedirectStandardError 'zookeeper/zookeeper-error.log'
 
         - if: inputs.if-stop=='true'

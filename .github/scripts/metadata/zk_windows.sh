@@ -10,4 +10,17 @@ sh -c "mv apache-zookeeper-3.7.2-bin zookeeper"
 
 sh -c "cp ./.github/actions/zookeeperRunner/zooWin.cfg zookeeper/conf/zoo.cfg"
 
-powershell -Command "Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput 'zookeeper/zookeeper.log' -RedirectStandardError 'zookeeper/zookeeper-error.log'"
+sh -c "mkdir zookeeper/logs"
+
+logDir=$(realpath "zookeeper/logs")
+
+echo $logDir
+
+powershell -Command "Start-Process -FilePath 'zookeeper/bin/zkServer.cmd' -NoNewWindow -RedirectStandardOutput '$logDir/zookeeper.log' -RedirectStandardError '$logDir/zookeeper-error.log'"
+
+sleep 3
+
+echo "ls zookeeper/data"
+sh -c "ls zookeeper/data"
+echo "ls zookeeper/logs"
+sh -c "ls zookeeper/logs"

@@ -541,7 +541,14 @@ public class IginxWorker implements IService.Iface {
     StatementExecutor executor = StatementExecutor.getInstance();
     RequestContext ctx = contextBuilder.build(req);
     executor.execute(ctx);
-    return ctx.getResult().getExecuteSqlResp();
+    ExecuteSqlResp res =  ctx.getResult().getExecuteSqlResp();
+    logger.info("==========execute res===========");
+    logger.info(req.getStatement());
+    logger.info("| paths: {}", res.getPaths() != null ? res.getPaths().toString() : "NULL");
+    logger.info("| types: {}", res.getDataTypeList() != null ? res.getDataTypeList().toString() : "NULL");
+    logger.info("| keys: {}", res.getKeys() != null ? Arrays.toString(res.getKeys()) : "NULL");
+    logger.info("| value: {}", res.getValuesList() != null ? Arrays.toString(res.getValuesList()) : "NULL");
+    return res;
   }
 
   @Override
