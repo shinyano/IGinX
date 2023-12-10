@@ -19,7 +19,7 @@ jobs:
                 java: [8]
                 python-version-unix: ["3.9"]
                 python-version-win: ["3.9"]
-                os: [windows-latest]
+                os: [windows-latest, ubuntu-latest]
                 DB-name:
                     [
 #                        "FileSystem",
@@ -49,6 +49,7 @@ jobs:
                 [System.Text.Encoding]::UTF8
                 $env:PYTHONIOENCODING = "utf-8"
                 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+                echo "::set-env name=JAVA_TOOL_OPTIONS::-Dfile.encoding=UTF-8"
 
             - name: Run ZooKeeper
               uses: ./.github/actions/zookeeperRunner
