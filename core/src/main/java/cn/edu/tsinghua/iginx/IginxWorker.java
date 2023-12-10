@@ -84,7 +84,7 @@ public class IginxWorker implements IService.Iface {
       System.exit(-1);
     }
     Charset defaultCharset = Charset.defaultCharset();
-    System.out.println("default charset：" + defaultCharset.displayName());
+    System.out.println("default charset: " + defaultCharset.displayName());
 
   }
 

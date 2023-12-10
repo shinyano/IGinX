@@ -40,7 +40,6 @@ public class Iginx {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   public static void main(String[] args) throws Exception {
-    System.setProperty("file.encoding", "UTF-8");
     if (config.isEnableRestService()) {
       new Thread(new RestServer()).start();
     }
