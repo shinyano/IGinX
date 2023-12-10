@@ -8,6 +8,8 @@ sh -c "curl -LJO https://get.enterprisedb.com/postgresql/postgresql-15.5-1-windo
 
 sh -c "unzip -qq postgresql-15.5-1-windows-x64-binaries.zip"
 
+echo "Download finished."
+
 sh -c "ls pgsql/bin"
 
 sed -i "s/storageEngineList=127.0.0.1#6667#iotdb12/#storageEngineList=127.0.0.1#6667#iotdb12/g" conf/config.properties

@@ -8,6 +8,8 @@ sh -c "curl -LJO https://github.com/redis-windows/redis-windows/releases/downloa
 
 sh -c "tar -xzvf Redis-7.0.14-Windows-x64.tar.gz"
 
+echo "Download finished."
+
 sh -c "ls Redis-7.0.14-Windows-x64"
 
 sed -i "s/storageEngineList=127.0.0.1#6667/#storageEngineList=127.0.0.1#6667/g" conf/config.properties
@@ -25,5 +27,4 @@ do
   redirect="-RedirectStandardOutput '$filePrefix/logs/redis-$port.log' -RedirectStandardError '$filePrefix/logs/redis-$port-error.log'"
 
   powershell -command "Start-Process -FilePath '$filePrefix/redis-server' -ArgumentList '--port', '$port' -NoNewWindow $redirect"
-  # sh -c "nohup redis-server --port $port &"
 done

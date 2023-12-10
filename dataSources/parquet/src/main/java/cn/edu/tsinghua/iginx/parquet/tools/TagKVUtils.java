@@ -129,7 +129,6 @@ public class TagKVUtils {
       return false;
     }
     String actualValue = tags.get(tagKey);
-    logger.info("comparing tag: key: " + tagKey +", expected: " + expectedValue + ", actual: " + (actualValue != null ? actualValue : "NULL"));
     if (!StringUtils.isPattern(expectedValue)) {
       return expectedValue.equals(actualValue);
     } else {

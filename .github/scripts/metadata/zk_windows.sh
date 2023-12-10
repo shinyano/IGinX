@@ -2,7 +2,7 @@
 
 set -e
 
-powershell -command "Invoke-WebRequest -Uri https://dlcdn.apache.org/zookeeper/zookeeper-3.7.2/apache-zookeeper-3.7.2-bin.tar.gz -OutFile apache-zookeeper-3.7.2-bin.tar.gz"
+sh -c "curl -LJO https://dlcdn.apache.org/zookeeper/zookeeper-3.7.2/apache-zookeeper-3.7.2-bin.tar.gz -o apache-zookeeper-3.7.2-bin.tar.gz"
 
 sh -c "tar -zxf apache-zookeeper-3.7.2-bin.tar.gz"
 

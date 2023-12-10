@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import cn.edu.tsinghua.iginx.utils.ShellRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,17 +113,14 @@ public class SQLTestTools {
       // 构建shell命令
       String[] command;
       boolean isOnWin = System.getProperty("os.name").toLowerCase().contains("win");
-      if (isOnWin) {
-        command = new String[args.length + 2];
+      command = new String[args.length + 2];
+      if (isOnWin && !ShellRunner.isCommandOnPath("sh")) {
         command[0] = "C:/Program Files/Git/bin/sh.exe";
-        command[1] = scriptPath;
-        System.arraycopy(args, 0, command, 2, args.length);
       } else {
-        command = new String[args.length + 2];
         command[0] = "sh";
-        command[1] = scriptPath;
-        System.arraycopy(args, 0, command, 2, args.length);
       }
+      command[1] = scriptPath;
+      System.arraycopy(args, 0, command, 2, args.length);
       // 创建进程并执行命令
       logger.info("exe shell : {}", Arrays.toString(command));
       ProcessBuilder processBuilder = new ProcessBuilder(command);
@@ -157,13 +156,11 @@ public class SQLTestTools {
         while ((line = reader.readLine()) != null) {
           System.out.println(line);
         }
-        int status = process.waitFor();
-        System.err.printf(
-                "runShellCommand: %s, status: %s%n, %s%n",
-                Arrays.toString(command), process.exitValue(), status);
-        if (process.exitValue() != 0) {
-          fail("tests fail!");
-        }
+
+        // 等待脚本执行完毕
+        int exitCode = process.waitFor();
+        System.out.println("脚本执行完毕，退出码：" + exitCode);
+        return exitCode;
       }
     } catch (IOException | InterruptedException e) {
       e.printStackTrace();

@@ -138,7 +138,6 @@ public class InfluxDBHistoryDataGenerator extends BaseHistoryDataGenerator {
   public void clearHistoryDataForGivenPort(int port) {
     String url = "http://localhost:" + port + "/";
     InfluxDBClient client = InfluxDBClientFactory.create(url, TOKEN.toCharArray(), ORGANIZATION);
-    // TODO need optimization
     Bucket bucket = client.getBucketsApi().findBucketByName(new ArrayList<>(Arrays.asList("mn", "nt", "tm")).get(port - oriPort));
     if (bucket != null) {
       client.getBucketsApi().deleteBucket(bucket);

@@ -13,8 +13,6 @@ if [ -n "$MSYSTEM" ]; then
 
     batPath="$(find core/target -name 'start_iginx.bat' | grep 'iginx-core-.*\/sbin' | head -n 1)"
 
-    echo "$(realpath ${batPath})"
-
     powershell -Command "Start-Process -FilePath '$batPath' -NoNewWindow -RedirectStandardOutput 'iginx-$1.log' -RedirectStandardError 'iginx-$1-error.log'"
 
     echo "finished"

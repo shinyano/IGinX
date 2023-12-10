@@ -48,7 +48,6 @@ import cn.edu.tsinghua.iginx.utils.*;
 import cn.edu.tsinghua.iginx.utils.JsonUtils;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -83,9 +82,6 @@ public class IginxWorker implements IService.Iface {
       logger.error("there are no valid storage engines!");
       System.exit(-1);
     }
-    Charset defaultCharset = Charset.defaultCharset();
-    System.out.println("default charset: " + defaultCharset.displayName());
-
   }
 
   private boolean addLocalStorageEngineMetas() {
@@ -105,7 +101,6 @@ public class IginxWorker implements IService.Iface {
         continue;
       }
       metaFromConf.setExtraParams(extraParams);
-      logger.info(extraParams.toString());
       boolean hasAdded = false;
       for (StorageEngineMeta meta : metaManager.getStorageEngineList()) {
         if (isDuplicated(metaFromConf, meta)) {
@@ -545,13 +540,6 @@ public class IginxWorker implements IService.Iface {
     StatementExecutor executor = StatementExecutor.getInstance();
     RequestContext ctx = contextBuilder.build(req);
     executor.execute(ctx);
-//    ExecuteSqlResp res =  ctx.getResult().getExecuteSqlResp();
-//    logger.info("==========execute res===========");
-//    logger.info(req.getStatement());
-//    logger.info("| paths: {}", res.getPaths() != null ? res.getPaths().toString() : "NULL");
-//    logger.info("| types: {}", res.getDataTypeList() != null ? res.getDataTypeList().toString() : "NULL");
-//    logger.info("| keys: {}", res.getKeys() != null ? Arrays.toString(res.getKeys()) : "NULL");
-//    logger.info("| value: {}", res.getValuesList() != null ? Arrays.toString(res.getValuesList()) : "NULL");
     return ctx.getResult().getExecuteSqlResp();
   }
 

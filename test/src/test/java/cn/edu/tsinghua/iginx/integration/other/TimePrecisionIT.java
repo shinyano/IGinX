@@ -87,7 +87,6 @@ public class TimePrecisionIT {
 
     SessionQueryDataSet dataSet =
         session.queryData(paths, startTime, endTime, null, TimePrecision.S);
-
     logger.info("=================================");
     logger.info("Printing queryTimeS res");
     dataSet.print();

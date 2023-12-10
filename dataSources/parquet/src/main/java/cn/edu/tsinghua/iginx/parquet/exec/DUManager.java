@@ -438,10 +438,7 @@ public class DUManager {
           insertBody = generateRowInsertStmtBody(data);
           break;
       }
-      logger.info("ready to insert.");
       stmt.execute(insertPrefix + insertBody);
-
-      logger.info("insert completed");
 
       if (data.getMaxKey() > curEndTime) {
         curEndTime = data.getMaxKey();
@@ -451,7 +448,6 @@ public class DUManager {
       }
 
       if (curMemSize > MAX_MEM_SIZE) {
-        logger.info("flushed");
         flush();
       }
 
@@ -510,7 +506,6 @@ public class DUManager {
     for (int i = 0; i < data.getKeySize(); i++) {
       rowStringBuilderArray[i] = new StringBuilder("(" + data.getKey(i) + ", ");
     }
-    logger.info("key column generated");
     for (int i = 0; i < data.getPathNum(); i++) {
       BitmapView bitmapView = data.getBitmapView(i);
       int index = 0;
@@ -530,10 +525,7 @@ public class DUManager {
           rowStringBuilderArray[j].append("NULL, ");
         }
       }
-      logger.info("column {} generated", i);
     }
-
-    logger.info("columns generated");
 
     for (int i = 0; i < data.getKeySize(); i++) {
       rowStringBuilderArray[i].append("), ");
@@ -543,45 +535,6 @@ public class DUManager {
     for (StringBuilder row : rowStringBuilderArray) {
       builder.append(row.toString());
     }
-
-    logger.info(builder.toString());
-
-//    String[] rowValueArray = new String[data.getKeySize()];
-//    for (int i = 0; i < data.getKeySize(); i++) {
-//      rowValueArray[i] = "(" + data.getKey(i) + ", ";
-//    }
-//    logger.info("key column generated");
-//    for (int i = 0; i < data.getPathNum(); i++) {
-//      BitmapView bitmapView = data.getBitmapView(i);
-//
-//      int index = 0;
-//      for (int j = 0; j < data.getKeySize(); j++) {
-//        if (bitmapView.get(j)) {
-//          DataType type = data.getDataType(i);
-//          if (type == DataType.BINARY) {
-//            byte[] bytes = (byte[]) data.getValue(i, index);
-//            rowValueArray[j] += "'" + new String(bytes) + "', ";
-//            curMemSize += bytes.length;
-//          } else {
-//            rowValueArray[j] += data.getValue(i, index) + ", ";
-//            curMemSize += DataTypeTransformer.getDataSize(type);
-//          }
-//          index++;
-//        } else {
-//          rowValueArray[j] += "NULL, ";
-//        }
-//      }
-//      logger.info("column {} generated", i);
-//    }
-//    logger.info("columns generated");
-//    for (int i = 0; i < data.getKeySize(); i++) {
-//      rowValueArray[i] += "), ";
-//    }
-//
-//    StringBuilder builder = new StringBuilder();
-//    for (String row : rowValueArray) {
-//      builder.append(row);
-//    }
     return builder.toString();
   }
 
@@ -752,33 +705,23 @@ public class DUManager {
   private List<String> determinePathList(
       Set<String> paths, List<String> patterns, TagFilter tagFilter) {
     List<String> ret = new ArrayList<>();
-    StringBuilder sb = new StringBuilder();
-    sb.append("\n========================\n");
     for (String path : paths) {
-      sb.append("| path : ").append(path).append("(").append(TagKVUtils.splitFullName(path).getK()).append(")").append("\n");
       for (String pattern : patterns) {
-        sb.append("| \tpattern : ").append(pattern);
         Pair<String, Map<String, String>> pair = TagKVUtils.splitFullName(path);
         if (tagFilter == null) {
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())) {
-            sb.append("  -- match\n");
             ret.add(path);
             break;
           }
         } else {
-          sb.append("  @@filter:\t").append(tagFilter);
-          sb.append("tag:\t").append(pair.getV() != null ? pair.getV().toString() : "null");
           if (Pattern.matches(StringUtils.reformatPath(pattern), pair.getK())
               && TagKVUtils.match(pair.getV(), tagFilter)) {
-            sb.append("\t  -- match with tag\n");
             ret.add(path);
             break;
           }
         }
-        sb.append("\n");
       }
     }
-    logger.info(sb.toString());
     return ret;
   }
 

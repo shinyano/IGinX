@@ -421,7 +421,7 @@ public class RedisStorage implements IStorage {
     String storageUnit = dataArea.getStorageUnit();
     DataViewWrapper data = new DataViewWrapper(insert.getData());
     for (int i = 0; i < data.getPathNum(); i++) {
-      logger.info("inserting data in redis...");
+
       String path = data.getPath(i);
       String type = DataTransformer.toStringDataType(data.getDataType(i));
 
@@ -437,12 +437,9 @@ public class RedisStorage implements IStorage {
         byte[] zSetKey = DataCoder.encode(String.format(KEY_FORMAT_ZSET_KEYS, storageUnit, path));
         jedis.zadd(zSetKey, scores);
 
-        logger.info("ready to insert data into jedis...");
         jedis.hset(KEY_DATA_TYPE, path, type);
         jedis.set(String.format(KEY_FORMAT_STRING_PATH, storageUnit, path), EMTPY_STRING);
       } catch (Exception e) {
-        logger.error("Error occurred during data insertion: {}", e.getMessage());
-        e.printStackTrace();
         return new TaskExecuteResult(new PhysicalException("execute insert in redis error", e));
       }
     }

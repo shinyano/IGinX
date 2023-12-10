@@ -467,7 +467,6 @@ public class Session {
       }
       valuesList[i] = values;
     }
-    logger.info("set value completed.");
 
     List<String> sortedPaths = new ArrayList<>(paths);
     index = new Integer[sortedPaths.size()];
@@ -516,7 +515,6 @@ public class Session {
     req.setDataTypeList(sortedDataTypeList);
     req.setTagsList(sortedTagsList);
     req.setTimePrecision(precision);
-    logger.info("executing.");
 
     executeWithCheck(() -> client.insertNonAlignedColumnRecords(req));
   }

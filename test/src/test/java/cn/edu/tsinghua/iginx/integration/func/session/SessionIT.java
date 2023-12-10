@@ -212,7 +212,6 @@ public class SessionIT extends BaseSessionIT {
       }
     }
     // aggrMax
-    logger.info("aggrMax");
     SessionAggregateQueryDataSet maxDataSet =
         session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.MAX);
     List<String> maxResPaths = maxDataSet.getPaths();
@@ -227,7 +226,6 @@ public class SessionIT extends BaseSessionIT {
       assertEquals(END_KEY + pathNum, maxResult[i]);
     }
     // aggrMin
-    logger.info("aggrMin");
     SessionAggregateQueryDataSet minDataSet =
         session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.MIN);
     List<String> minResPaths = minDataSet.getPaths();
@@ -242,7 +240,6 @@ public class SessionIT extends BaseSessionIT {
       assertEquals(START_KEY + pathNum, minResult[i]);
     }
     // aggrFirst
-    logger.info("aggrFirst");
     SessionAggregateQueryDataSet firstDataSet =
         session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.FIRST_VALUE);
     List<String> firstResPaths = firstDataSet.getPaths();
@@ -256,7 +253,6 @@ public class SessionIT extends BaseSessionIT {
       assertEquals(START_KEY + pathNum, firstResult[i]);
     }
     // aggrLast
-    logger.info("aggrLast");
     SessionAggregateQueryDataSet lastDataSet =
         session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.LAST_VALUE);
     List<String> lastResPaths = lastDataSet.getPaths();
@@ -270,7 +266,6 @@ public class SessionIT extends BaseSessionIT {
       assertEquals(END_KEY + pathNum, lastResult[i]);
     }
     // aggrCount
-    logger.info("aggrCount");
     SessionAggregateQueryDataSet countDataSet =
         session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.COUNT);
     assertNull(countDataSet.getKeys());
@@ -282,7 +277,6 @@ public class SessionIT extends BaseSessionIT {
       assertEquals(KEY_PERIOD, countResult[i]);
     }
     // aggrSum
-    logger.info("aggrSum");
     SessionAggregateQueryDataSet sumDataSet =
         session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.SUM);
     assertNull(sumDataSet.getKeys());
@@ -298,7 +292,6 @@ public class SessionIT extends BaseSessionIT {
     }
 
     // aggrAvg
-    logger.info("aggrAvg");
     SessionAggregateQueryDataSet avgDataSet =
         session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG);
     assertNull(avgDataSet.getKeys());
@@ -447,13 +440,11 @@ public class SessionIT extends BaseSessionIT {
     // Simple delete and aggregate
     if (isAbleToDelete) {
       // deletePartialDataInColumnTest
-      logger.info("deletePartialDataInColumnTest");
       int removeLen = 1;
       List<String> delPartPaths = getPaths(currPath, removeLen);
       // ensure after delete there are still points in the timeseries
 
       // delete data
-      logger.info("delete data");
       session.deleteDataInColumns(delPartPaths, delStartKey, delEndKey);
       Thread.sleep(1000);
       SessionQueryDataSet delPartDataSet = session.queryData(paths, START_KEY, END_KEY + 1);
@@ -487,7 +478,6 @@ public class SessionIT extends BaseSessionIT {
       }
 
       // Test avg for the delete
-      logger.info("Test avg for the delete");
       SessionAggregateQueryDataSet delPartAvgDataSet =
           session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG);
       List<String> delPartAvgResPaths = delPartAvgDataSet.getPaths();
@@ -505,7 +495,6 @@ public class SessionIT extends BaseSessionIT {
       }
 
       // Test count for the delete
-      logger.info("Test count for the delete");
       SessionAggregateQueryDataSet delPartCountDataSet =
           session.aggregateQuery(paths, START_KEY, END_KEY + 1, AggregateType.COUNT);
       List<String> delPartCountResPaths = delPartCountDataSet.getPaths();
@@ -523,10 +512,8 @@ public class SessionIT extends BaseSessionIT {
       }
 
       // Test downSample avg of the delete
-      logger.info("Test downSample avg of the delete");
       SessionQueryDataSet delDsAvgDataSet =
-          session.downsampleQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG,
- PRECISION);
+          session.downsampleQuery(paths, START_KEY, END_KEY + 1, AggregateType.AVG, PRECISION);
       int delDsLen = delDsAvgDataSet.getKeys().length;
       List<String> delDsResPaths = delDsAvgDataSet.getPaths();
       assertEquals(factSampleLen, delDsLen);
@@ -566,7 +553,6 @@ public class SessionIT extends BaseSessionIT {
       currPath += simpleLen;
 
       // deleteAllDataInColumnTest, make new insert and delete here
-      logger.info("deleteAllDataInColumnTest");
       int dataInColumnLen = 3;
       List<String> delDataInColumnPaths = getPaths(currPath, dataInColumnLen);
       insertNumRecords(delDataInColumnPaths);
@@ -600,8 +586,7 @@ public class SessionIT extends BaseSessionIT {
       // Test value filter for the delete TODO change the value filter to the right test
       int vfTime = 1123;
       String booleanExpression = COLUMN_D2_S2 + " > " + vfTime;
-      SessionQueryDataSet vfDataSet = session.valueFilterQuery(delDataInColumnPaths,
- START_TIME, END_TIME, booleanExpression);
+      SessionQueryDataSet vfDataSet = session.valueFilterQuery(delDataInColumnPaths, START_TIME, END_TIME, booleanExpression);
       int vfLen = vfDataSet.getTimestamps().length;
       List<String> vfResPaths = vfDataSet.getPaths();
       assertEquals(TIME_PERIOD + START_TIME - vfTime - 1, vfDataSet.getTimestamps().length);
@@ -621,10 +606,8 @@ public class SessionIT extends BaseSessionIT {
       }*/
 
       // Test aggregate function for the delete
-      logger.info("Test aggregate function for the delete");
       SessionAggregateQueryDataSet delDataAvgSet =
-          session.aggregateQuery(delDataInColumnPaths, START_KEY, END_KEY + 1,
- AggregateType.AVG);
+          session.aggregateQuery(delDataInColumnPaths, START_KEY, END_KEY + 1, AggregateType.AVG);
       List<String> delDataAvgResPaths = delDataAvgSet.getPaths();
       Object[] delDataAvgResult = delDataAvgSet.getValues();
       assertEquals(dataInColumnLen, delDataAvgResPaths.size());
@@ -642,7 +625,6 @@ public class SessionIT extends BaseSessionIT {
       }
 
       // Test downsample function for the delete
-      logger.info("Test downsample function for the delete");
       SessionQueryDataSet dsDelDataInColSet =
           session.downsampleQuery(
               delDataInColumnPaths, START_KEY, END_KEY + 1, AggregateType.AVG, PRECISION);
@@ -670,7 +652,6 @@ public class SessionIT extends BaseSessionIT {
       currPath += dataInColumnLen;
 
       // deleteAllColumnsTest
-      logger.info("deleteAllColumnsTest");
       int delAllColumnLen = 3;
       List<String> delAllColumnPaths = getPaths(currPath, delAllColumnLen);
       insertNumRecords(delAllColumnPaths);
@@ -683,7 +664,6 @@ public class SessionIT extends BaseSessionIT {
       currPath += delAllColumnLen;
 
       // deletePartColumnsTest
-      logger.info("deletePartColumnsTest");
       int delPartColumnLen = 3;
       List<String> partColumnPaths = getPaths(currPath, delPartColumnLen);
       insertNumRecords(partColumnPaths);
@@ -717,7 +697,6 @@ public class SessionIT extends BaseSessionIT {
     }
 
     // fake data insert test
-    logger.info("fake data insert test");
     int fakeDataLen = 2;
     List<String> fakeDataPaths = getPaths(currPath, fakeDataLen);
     insertNumRecords(fakeDataPaths);
@@ -735,17 +714,11 @@ public class SessionIT extends BaseSessionIT {
     currPath += fakeDataLen;
 
     // dataTypeTest
-    logger.info("dataTypeTest");
     int dataTypeLen = 6;
     List<String> dataTypePaths = getPaths(currPath, dataTypeLen);
     insertDataTypeRecords(dataTypePaths, currPath);
 
-//    if (System.getProperty("os.name").toLowerCase().contains("win")) {
-//      return;
-//    }
-
     // queryData
-    logger.info("reached here");
     SessionQueryDataSet dtQueryDataSet = session.queryData(dataTypePaths, START_KEY, END_KEY + 1);
     int dtQueryLen = dtQueryDataSet.getKeys().length;
     List<String> dataTypeResPaths = dtQueryDataSet.getPaths();
@@ -789,7 +762,6 @@ public class SessionIT extends BaseSessionIT {
     }
 
     // aggregateData max & avg
-    logger.info("reached here");
     List<String> dTAggrPaths = getPaths(currPath + 1, 4);
     // max
     SessionAggregateQueryDataSet dtMaxDataSet =
@@ -821,7 +793,6 @@ public class SessionIT extends BaseSessionIT {
     }
 
     // avg
-    logger.info("reached here");
     SessionAggregateQueryDataSet dtAvgDataSet =
         session.aggregateQuery(dTAggrPaths, START_KEY, END_KEY + 1, AggregateType.AVG);
     List<String> dtAvgPaths = dtAvgDataSet.getPaths();
@@ -865,7 +836,6 @@ public class SessionIT extends BaseSessionIT {
       dtDelPaths.add(getSinglePath(currPath, 5));
 
       // ensure after delete there are still points in the timeseries
-      logger.info("reached here");
       long dtDelStartKey = START_KEY + KEY_PERIOD / 5;
       long dtDelEndKey = START_KEY + KEY_PERIOD / 10 * 9;
       long dtDelKeyPeriod = (dtDelEndKey - 1) - dtDelStartKey + 1;
@@ -930,7 +900,6 @@ public class SessionIT extends BaseSessionIT {
       }
 
       // Test aggregate function for the delete
-      logger.info("Test aggregate function for the delete");
       SessionAggregateQueryDataSet dtDelPartAvgDataSet =
           session.aggregateQuery(dTAggrPaths, START_KEY, END_KEY + 1, AggregateType.AVG);
       List<String> dtDelPartAvgResPaths = dtDelPartAvgDataSet.getPaths();
@@ -981,7 +950,6 @@ public class SessionIT extends BaseSessionIT {
       currPath += dataTypeLen;
 
       // deleteAll data in column, before deletion must insert first
-      logger.info("deleteAll data in column");
       List<String> dataTypePaths2 = getPaths(currPath, dataTypeLen);
       insertDataTypeRecords(dataTypePaths2, currPath);
       int dtDelColumnNum = 2;
@@ -1036,7 +1004,6 @@ public class SessionIT extends BaseSessionIT {
 
       // Test aggregate function for the delete
 
-      logger.info("Test aggregate function for the delete");
       List<String> dTDeleteAggrPaths =
           getPaths(currPath + 1, 4); // only the 1-4 columns are numbers
 

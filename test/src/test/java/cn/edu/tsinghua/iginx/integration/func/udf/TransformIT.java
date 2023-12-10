@@ -448,7 +448,6 @@ public class TransformIT {
           OUTPUT_DIR_PREFIX
               + File.separator
               + "export_file_multiple_python_jobs_by_yaml_with_export_to_iginx.txt";
-
       SessionExecuteSqlResult result =
           session.executeSql(String.format(COMMIT_SQL_FORMATTER, yamlFileName));
       long jobId = result.getJobId();
@@ -463,9 +462,7 @@ public class TransformIT {
 
       BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
       writer.write("key,sum\n");
-      logger.info("after transform:");
       for (List<Object> row : queryResult.getValues()) {
-        logger.info("| {} | {} |", row.get(timeIndex), row.get(sumIndex));
         writer.write(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
       }
       writer.close();

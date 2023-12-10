@@ -1,4 +1,5 @@
-name: "Union Database Test With Push Down"
+name: "Bug Regression Test"
+
 on:
     pull_request:
         types: [opened, reopened]
@@ -6,28 +7,20 @@ on:
             - main
 env:
     VERSION: 0.6.0-SNAPSHOT
+
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
 jobs:
-    Union-DB-Test-Push_Down:
-        timeout-minutes: 30
+    MixCluster-ShowTimeseries:
+        timeout-minutes: 15
         strategy:
             fail-fast: false
             matrix:
                 java: [8]
                 python-version: ["3.9"]
                 os: [ubuntu-latest, macos-latest, windows-latest]
-                DB-name:
-                    [
-                        "InfluxDB",
-                        "Redis",
-                        "PostgreSQL",
-                        "FileSystem",
-                        "MongoDB",
-                        "IoTDB12",
-                    ]
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v2
@@ -37,44 +30,27 @@ jobs:
                   python-version: ${{ matrix.python-version }}
                   java: ${{ matrix.java }}
 
-            - if: runner.os == 'Windows'
-              name: Set JAVA_OPTS
-              run: echo "JAVA_OPTS=-Xmx4g" >> $GITHUB_ENV
-
             - name: Run ZooKeeper
               uses: ./.github/actions/zookeeperRunner
 
             - name: Run DB
               uses: ./.github/actions/dbRunner
               with:
-                  DB-name: ${{ matrix.DB-name }}
+                  DB-name: "Mix-IoTDB12-InfluxDB"
 
             - name: Install IGinX with Maven
               shell: bash
               run: |
                   mvn clean package -DskipTests -P-format -q
 
-            - name: Change IGinX config
-              uses: ./.github/actions/confWriter
-              with:
-                  DB-name: ${{ matrix.DB-name }}
-                  Push-Down: "true"
-
             - name: Start IGinX
               uses: ./.github/actions/iginxRunner
 
-            - name: TestController IT
+            - name: TestMixCluster
               if: always()
               shell: bash
               run: |
-                  chmod +x "${GITHUB_WORKSPACE}/.github/scripts/test/test_union.sh"
-                  mvn test -q -Dtest=Controller -DfailIfNoTests=false -P-format
-
-            - name: Show test result
-              if: always()
-              shell: bash
-              run: |
-                  cat ${GITHUB_WORKSPACE}/test/src/test/resources/testResult.txt
+                  mvn test -q -Dtest=MixClusterShowColumnsRegressionTest -DfailIfNoTests=false -P-format
 
             - name: Show IGinX log
               if: always()

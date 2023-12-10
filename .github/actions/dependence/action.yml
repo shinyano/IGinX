@@ -51,7 +51,11 @@ runs:
           name: Install Pemja Locally
           shell: bash
           run: |
-              pip install local-dependencies/python/pemja/pemja-0.5.dev0.tar.gz
+              if [ "$RUNNER_OS" == "Windows" ]; then
+                pip install local-dependencies/python/pemja/pemja-0.5.dev0-cp39-cp39-win_amd64.whl            
+            else
+                pip install local-dependencies/python/pemja/pemja-0.5.dev0-cp39-cp39-linux_x86_64.whl            
+            fi
               mvn install:install-file -Dfile=local-dependencies/maven/pemja/pemja-0.5-SNAPSHOT.jar -DgroupId=com.alibaba -DartifactId=pemja -Dversion=0.5-SNAPSHOT -Dpackaging=jar
 
         - if: inputs.scope=='javaOnly'

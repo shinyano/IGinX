@@ -8,7 +8,7 @@ if [ -n "$MSYSTEM" ]; then
   PID=$(netstat -ano | grep $PORT | awk '{print $5}' | uniq)
 
   if [ -z "$PID" ]; then
-      echo "Can't find zookeeper process..."
+      echo "Can't find zookeeper process"
   else
       sh -c "taskkill -f -pid $PID"
   fi

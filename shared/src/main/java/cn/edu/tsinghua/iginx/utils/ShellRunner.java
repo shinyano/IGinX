@@ -1,19 +1,20 @@
 package cn.edu.tsinghua.iginx.utils;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class ShellRunner {
 
   // to run .sh script on WindowsOS in github action tests
-  public static final String SH_PATH = "C:/Program Files/Git/bin/bash.exe";
+  public static final String BASH_PATH = "C:/Program Files/Git/bin/bash.exe";
 
   public void runShellCommand(String command) throws Exception {
     Process p = null;
     try {
       ProcessBuilder builder = new ProcessBuilder();
-      if (isOnOs("win")) {;
-        builder.command(SH_PATH, command);
+      if (isOnWin()) {;
+        builder.command((isCommandOnPath("bash") ? "bash" : BASH_PATH), command);
       } else {
         builder.command(command);
       }
@@ -37,7 +38,17 @@ public class ShellRunner {
     }
   }
 
-  private boolean isOnOs(String osName) {
-    return System.getProperty("os.name").toLowerCase().contains(osName.toLowerCase());
+  private boolean isOnWin() {
+    return System.getProperty("os.name").toLowerCase().contains("win");
+  }
+
+  public static boolean isCommandOnPath(String command) {
+    try {
+      Process process = new ProcessBuilder(command, "--version").start();
+      int exitCode = process.waitFor();
+      return exitCode == 0;
+    } catch (IOException | InterruptedException e) {
+      return false;
+    }
   }
 }

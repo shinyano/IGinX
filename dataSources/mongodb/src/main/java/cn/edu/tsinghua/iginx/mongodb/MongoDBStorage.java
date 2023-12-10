@@ -89,11 +89,11 @@ public class MongoDBStorage implements IStorage {
                     builder
                         .maxWaitTime(MAX_WAIT_TIME, TimeUnit.SECONDS)
                         .maxSize(SESSION_POOL_MAX_SIZE))
-            .applyToSocketSettings(
-                builder ->
-                    builder
-                        .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-                        .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS))
+//            .applyToSocketSettings(
+//                builder ->
+//                    builder
+//                        .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
+//                        .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS))
             .build();
 
     return MongoClients.create(settings);
@@ -263,8 +263,7 @@ public class MongoDBStorage implements IStorage {
         }
       }
     } catch (Exception e) {
-      logger.error("failed to insert: {}", e.getMessage());
-      e.printStackTrace();
+      logger.error("failed to insert", e);
       return new TaskExecuteResult(new PhysicalException("failed to insert", e));
     }
     return new TaskExecuteResult();

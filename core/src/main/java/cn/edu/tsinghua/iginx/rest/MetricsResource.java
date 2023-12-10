@@ -176,7 +176,6 @@ public class MetricsResource {
   @Path(QUERY_ANNOTATION_DATA_URL)
   public Response queryAnnotationData(String jsonStr) {
     try {
-      logger.info(jsonStr);
       return postQuery(jsonStr, true, true, false);
     } catch (Exception e) {
       logger.error("Error occurred during execution ", e);
@@ -350,12 +349,10 @@ public class MetricsResource {
       } else if (isAnnoData) {
         QueryResult result = annoDataQuery(query, parser);
         entity = parser.parseAnnoDataResultToJson(result);
-        logger.info("query result: {}", entity);
       } else { // 只查询anno信息
         QueryResult result = annoQuery(parser, jsonStr);
         parser.getAnnoCategory(result);
         entity = parser.parseAnnoResultToJson(result);
-        logger.info("query result: {}", entity);
       }
       return setHeaders(Response.status(Status.OK).entity(entity + "\n")).build();
     } catch (Exception e) {

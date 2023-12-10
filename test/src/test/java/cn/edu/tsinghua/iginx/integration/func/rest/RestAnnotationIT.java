@@ -79,9 +79,7 @@ public class RestAnnotationIT {
   private static final String PREFIX = "curl -XPOST -H\"Content-Type: application/json\" -d @";
 
   private static final DataType[] DATA_TYPE_ARRAY =
-      new DataType[] {DataType.LONG};
-//  private static final DataType[] DATA_TYPE_ARRAY =
-//          new DataType[] {DataType.LONG, DataType.DOUBLE, DataType.BINARY};
+          new DataType[] {DataType.LONG, DataType.DOUBLE, DataType.BINARY};
 
   @BeforeClass
   public static void setUp() throws SessionException {
@@ -101,7 +99,6 @@ public class RestAnnotationIT {
   private String execute(String fileName, TYPE type, DataType dataType) throws Exception {
     StringBuilder ret = new StringBuilder();
     String curlArray = orderGen(fileName, type);
-    logger.info(curlArray);
     Process process = null;
     try {
       ProcessBuilder processBuilder = new ProcessBuilder(curlArray.split(" "));
@@ -131,8 +128,6 @@ public class RestAnnotationIT {
       return ret.toString();
     } catch (InterruptedException e) {
       // 强制关闭子进程（如果打开程序，需要额外关闭）
-      logger.error("execution failed: {}", e.getMessage());
-      e.printStackTrace();
       process.destroyForcibly();
       return null;
     }
@@ -229,44 +224,38 @@ public class RestAnnotationIT {
   public void testAll() {
     for (DataType dataType : DATA_TYPE_ARRAY) {
       logger.info("Testing datatype: {}...", dataType);
-//      testQueryAnno(dataType);
+      testQueryAnno(dataType);
       testQueryAll(dataType);
 
-//      testAppendViaQueryAnno(dataType);
-//      testAppendViaQueryAll(dataType);
-//
-//      testDuplicateAppend2ViaQueryAll(dataType);
-//      testDuplicateAppendViaQueryAll(dataType);
-//
-//      testSameAppendViaQueryAll(dataType);
-//
-//      if (isAbleToDelete) {
-//        testUpdateViaQueryAnno(dataType);
-//        testUpdateViaQueryAll(dataType);
-//        testDeleteViaQueryAnno(dataType);
-//        testDeleteViaQueryAll(dataType);
-//
-//        testDuplicateUpdateViaQueryAnno(dataType);
-//        testDuplicateUpdateViaQueryAll(dataType);
-//        testDuplicateDeleteViaQueryAnno(dataType);
-//        testDuplicateDeleteViaQueryAll(dataType);
-//
-//        testSameUpdateViaQueryAll(dataType);
-//
-//        testAppend2ViaQueryAll(dataType);
-//      }
+      testAppendViaQueryAnno(dataType);
+      testAppendViaQueryAll(dataType);
+
+      testDuplicateAppend2ViaQueryAll(dataType);
+      testDuplicateAppendViaQueryAll(dataType);
+
+      testSameAppendViaQueryAll(dataType);
+
+      if (isAbleToDelete) {
+        testUpdateViaQueryAnno(dataType);
+        testUpdateViaQueryAll(dataType);
+        testDeleteViaQueryAnno(dataType);
+        testDeleteViaQueryAll(dataType);
+
+        testDuplicateUpdateViaQueryAnno(dataType);
+        testDuplicateUpdateViaQueryAll(dataType);
+        testDuplicateDeleteViaQueryAnno(dataType);
+        testDuplicateDeleteViaQueryAll(dataType);
+
+        testSameUpdateViaQueryAll(dataType);
+
+        testAppend2ViaQueryAll(dataType);
+      }
     }
   }
 
   // 查询annotation信息
   private void testQueryAnno(DataType dataType) {
     insertData(dataType);
-//    try {
-//      SessionExecuteSqlResult result = session.executeSql("select * from *;");
-//      result.print(false, "ms");
-//    } catch (SessionException | ExecutionException e) {
-//      logger.error("Query through session failed: {}", e.getMessage());
-//    }
     String ans = getAns(getMethodName(), dataType);
     executeAndCompare("queryAnno.json", ans, TYPE.QUERY_ANNOTATION, dataType);
     clearData();
@@ -275,12 +264,6 @@ public class RestAnnotationIT {
   // 查询数据以及annotation信息
   private void testQueryAll(DataType dataType) {
     insertData(dataType);
-//    try {
-//      SessionExecuteSqlResult result = session.executeSql("select * from *;");
-//      result.print(false, "ms");
-//    } catch (SessionException | ExecutionException e) {
-//      logger.error("Query through session failed: {}", e.getMessage());
-//    }
     String ans = getAns(getMethodName(), dataType);
     executeAndCompare("queryData.json", ans, TYPE.QUERY_ALL, dataType);
     clearData();
