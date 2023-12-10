@@ -40,6 +40,12 @@ jobs:
                   java: ${{ matrix.java }}
 
             - if: runner.os == 'Windows'
+              name: Check OS charset
+              run: |
+                chcp
+                echo "Default Encoding: %chcp%"
+
+            - if: runner.os == 'Windows'
               name: Set JVM heap
               run: echo "JAVA_OPTS=-Xmx4g" >> $GITHUB_ENV
 
