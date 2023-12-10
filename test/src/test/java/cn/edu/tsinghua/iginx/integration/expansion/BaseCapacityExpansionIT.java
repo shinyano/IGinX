@@ -600,7 +600,7 @@ public abstract class BaseCapacityExpansionIT {
       iginxPath = ".github/scripts/iginx/iginx_macos.sh";
     } else if (os.contains("win")) {
       isOnWindows = true;
-      iginxPath = ".github/scripts/iginx/iginx_new_windows.sh";
+      iginxPath = ".github/scripts/iginx/iginx_windows.sh";
     }
 
     if (this instanceof FileSystemCapacityExpansionIT) {
