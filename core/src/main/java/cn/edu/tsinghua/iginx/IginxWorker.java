@@ -48,6 +48,7 @@ import cn.edu.tsinghua.iginx.utils.*;
 import cn.edu.tsinghua.iginx.utils.JsonUtils;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -82,6 +83,9 @@ public class IginxWorker implements IService.Iface {
       logger.error("there are no valid storage engines!");
       System.exit(-1);
     }
+    Charset defaultCharset = Charset.defaultCharset();
+    System.out.println("default charset：" + defaultCharset.displayName());
+
   }
 
   private boolean addLocalStorageEngineMetas() {
