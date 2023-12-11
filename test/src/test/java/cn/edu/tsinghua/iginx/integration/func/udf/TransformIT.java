@@ -478,9 +478,14 @@ public class TransformIT {
   private void verifyMultiplePythonJobs(
       SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex, int lineCount) {
     long index = 0;
-    logger.info("Display job result:\n");
+    StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
+    // display full result first
     for (List<Object> row : queryResult.getValues()) {
-      logger.info(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+      sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+    }
+    logger.info(sb.toString());
+
+    for (List<Object> row : queryResult.getValues()) {
       assertEquals(index + 1, row.get(timeIndex));
       assertEquals(index + 1 + index + 1 + 1, row.get(sumIndex));
       index++;
