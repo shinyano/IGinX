@@ -479,14 +479,13 @@ public class TransformIT {
 
   private void verifyMultiplePythonJobs(SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex) {
     long index = 0;
-    StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
+    logger.info("Display job result:\n");
     for (List<Object> row : queryResult.getValues()) {
-      sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+      logger.info(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
       assertEquals(index + 1, row.get(timeIndex));
       assertEquals(index + 1 + index + 1 + 1, row.get(sumIndex));
       index++;
     }
-    logger.info(sb.toString());
     assertEquals(200, index);
   }
 
