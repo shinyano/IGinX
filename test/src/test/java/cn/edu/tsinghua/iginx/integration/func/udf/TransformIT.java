@@ -470,14 +470,14 @@ public class TransformIT {
 //      logger.info(sb.toString());
 //      writer.close();
 
-      verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex);
+      verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex, 100);
     } catch (SessionException | ExecutionException | InterruptedException e) {
       logger.error("Transform:  execute fail. Caused by:", e);
       fail();
     }
   }
 
-  private void verifyMultiplePythonJobs(SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex) {
+  private void verifyMultiplePythonJobs(SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex, int lineCount) {
     long index = 0;
     logger.info("Display job result:\n");
     for (List<Object> row : queryResult.getValues()) {
@@ -486,14 +486,10 @@ public class TransformIT {
       assertEquals(index + 1 + index + 1 + 1, row.get(sumIndex));
       index++;
     }
-    assertEquals(200, index);
+    assertEquals(lineCount, index);
   }
 
   private void verifyMultiplePythonJobs(String outputFileName) throws IOException {
-    verifyMultiplePythonJobs(outputFileName, 200);
-  }
-
-  private void verifyMultiplePythonJobs(String outputFileName, int lineCount) throws IOException {
     BufferedReader reader = new BufferedReader(new FileReader(outputFileName));
     String line = reader.readLine();
     String[] parts = line.split(",");
@@ -510,7 +506,7 @@ public class TransformIT {
     }
     reader.close();
 
-    assertEquals(lineCount, index);
+    assertEquals(200, index);
     assertTrue(Files.deleteIfExists(Paths.get(outputFileName)));
   }
 

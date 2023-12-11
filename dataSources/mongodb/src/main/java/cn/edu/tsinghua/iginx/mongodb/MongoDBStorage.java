@@ -58,8 +58,6 @@ public class MongoDBStorage implements IStorage {
 
   private static final long MAX_WAIT_TIME = 5;
   private static final int SESSION_POOL_MAX_SIZE = 200;
-  private static final int CONNECT_TIMEOUT = 30;
-  private static final int READ_TIMEOUT = 90;
   public static final String VALUE_FIELD = "v";
   public static final String[] SYSTEM_DBS = new String[] {"admin", "config", "local"};
 
@@ -89,11 +87,6 @@ public class MongoDBStorage implements IStorage {
                     builder
                         .maxWaitTime(MAX_WAIT_TIME, TimeUnit.SECONDS)
                         .maxSize(SESSION_POOL_MAX_SIZE))
-//            .applyToSocketSettings(
-//                builder ->
-//                    builder
-//                        .connectTimeout(CONNECT_TIMEOUT, TimeUnit.SECONDS)
-//                        .readTimeout(READ_TIMEOUT, TimeUnit.SECONDS))
             .build();
 
     return MongoClients.create(settings);
