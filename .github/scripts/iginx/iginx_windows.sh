@@ -12,8 +12,6 @@ batPath="$(find core/target -name 'start_iginx.bat' | grep 'iginx-core-.*\/sbin'
 
 sed -i 's/-Xmx%MAX_HEAP_SIZE% -Xms%MAX_HEAP_SIZE%/-Xmx4608M -Xms4608M/g' $batPath
 
-tail -n 50 $batPath
-
 echo "starting iginx on windows..."
 
 powershell -Command "Start-Process -FilePath '$batPath' -NoNewWindow -RedirectStandardOutput 'iginx-$1.log' -RedirectStandardError 'iginx-$1-error.log'"
