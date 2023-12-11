@@ -6,14 +6,13 @@ import cn.edu.tsinghua.iginx.exceptions.ExecutionException;
 import cn.edu.tsinghua.iginx.exceptions.SessionException;
 import cn.edu.tsinghua.iginx.session.Session;
 import cn.edu.tsinghua.iginx.session.SessionExecuteSqlResult;
+import cn.edu.tsinghua.iginx.utils.ShellRunner;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import cn.edu.tsinghua.iginx.utils.ShellRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,16 +133,19 @@ public class SQLTestTools {
         // on windowsOS, the bash script calls a batch script to start iginx.
         // If waits, java will wait for the iginx process to end, which would take forever.
         // thus create a new process to read the output.
-        new Thread(() -> {
-          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-              System.out.println(line);
-            }
-          } catch (IOException e) {
-            e.printStackTrace();
-          }
-        }).start();
+        new Thread(
+                () -> {
+                  try (BufferedReader reader =
+                      new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                      System.out.println(line);
+                    }
+                  } catch (IOException e) {
+                    e.printStackTrace();
+                  }
+                })
+            .start();
 
         // sleep 10s for new thread to print script output
         Thread.sleep(10000);

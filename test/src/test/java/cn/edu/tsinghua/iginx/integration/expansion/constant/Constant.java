@@ -66,7 +66,7 @@ public class Constant {
       Arrays.asList(Arrays.asList(33333333L, 33333333L), Arrays.asList(44444444L, 44444444L));
 
   // for file system
-  public static final Map<Integer, String> PORT_TO_ROOT =
+  public static Map<Integer, String> PORT_TO_ROOT =
       new HashMap<Integer, String>() {
         {
           put(oriPort, "mn");

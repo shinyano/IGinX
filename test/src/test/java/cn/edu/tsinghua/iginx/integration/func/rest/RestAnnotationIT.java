@@ -3,13 +3,11 @@ package cn.edu.tsinghua.iginx.integration.func.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import cn.edu.tsinghua.iginx.exceptions.ExecutionException;
 import cn.edu.tsinghua.iginx.exceptions.SessionException;
 import cn.edu.tsinghua.iginx.integration.controller.Controller;
 import cn.edu.tsinghua.iginx.integration.tool.ConfLoader;
 import cn.edu.tsinghua.iginx.integration.tool.DBConf;
 import cn.edu.tsinghua.iginx.session.Session;
-import cn.edu.tsinghua.iginx.session.SessionExecuteSqlResult;
 import cn.edu.tsinghua.iginx.thrift.DataType;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
@@ -79,7 +77,7 @@ public class RestAnnotationIT {
   private static final String PREFIX = "curl -XPOST -H\"Content-Type: application/json\" -d @";
 
   private static final DataType[] DATA_TYPE_ARRAY =
-          new DataType[] {DataType.LONG, DataType.DOUBLE, DataType.BINARY};
+      new DataType[] {DataType.LONG, DataType.DOUBLE, DataType.BINARY};
 
   @BeforeClass
   public static void setUp() throws SessionException {

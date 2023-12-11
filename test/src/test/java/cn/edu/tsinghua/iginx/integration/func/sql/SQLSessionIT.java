@@ -5175,7 +5175,8 @@ public class SQLSessionIT {
   @Test
   public void testSpecialCharacterPath() {
     if (!isSupportSpecialCharacterPath
-        || (System.getProperty("os.name").toLowerCase().contains("win") && RUNNING_ENGINE.equalsIgnoreCase("filesystem"))) {
+        || (System.getProperty("os.name").toLowerCase().contains("win")
+            && RUNNING_ENGINE.equalsIgnoreCase("filesystem"))) {
       return;
     }
 
@@ -5231,7 +5232,8 @@ public class SQLSessionIT {
     if (!isSupportChinesePath
         || !isSupportNumericalPath
         || !isSupportSpecialCharacterPath
-        || (System.getProperty("os.name").toLowerCase().contains("win") && RUNNING_ENGINE.equalsIgnoreCase("filesystem"))) {
+        || (System.getProperty("os.name").toLowerCase().contains("win")
+            && RUNNING_ENGINE.equalsIgnoreCase("filesystem"))) {
       return;
     }
 

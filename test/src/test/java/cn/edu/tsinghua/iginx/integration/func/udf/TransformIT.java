@@ -36,10 +36,8 @@ import cn.edu.tsinghua.iginx.thrift.RegisterTaskInfo;
 import cn.edu.tsinghua.iginx.thrift.TaskInfo;
 import cn.edu.tsinghua.iginx.thrift.TaskType;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -460,15 +458,15 @@ public class TransformIT {
       assertNotEquals(-1, timeIndex);
       assertNotEquals(-1, sumIndex);
 
-//      BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
-//      StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
-//      writer.write("key,sum\n");
-//      for (List<Object> row : queryResult.getValues()) {
-//        sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
-//        writer.write(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
-//      }
-//      logger.info(sb.toString());
-//      writer.close();
+      //      BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
+      //      StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
+      //      writer.write("key,sum\n");
+      //      for (List<Object> row : queryResult.getValues()) {
+      //        sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+      //        writer.write(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+      //      }
+      //      logger.info(sb.toString());
+      //      writer.close();
 
       verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex, 100);
     } catch (SessionException | ExecutionException | InterruptedException e) {
@@ -477,7 +475,8 @@ public class TransformIT {
     }
   }
 
-  private void verifyMultiplePythonJobs(SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex, int lineCount) {
+  private void verifyMultiplePythonJobs(
+      SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex, int lineCount) {
     long index = 0;
     logger.info("Display job result:\n");
     for (List<Object> row : queryResult.getValues()) {
