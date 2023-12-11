@@ -460,21 +460,34 @@ public class TransformIT {
       assertNotEquals(-1, timeIndex);
       assertNotEquals(-1, sumIndex);
 
-      BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
-      StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
-      writer.write("key,sum\n");
-      for (List<Object> row : queryResult.getValues()) {
-        sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
-        writer.write(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
-      }
-      logger.info(sb.toString());
-      writer.close();
+//      BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
+//      StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
+//      writer.write("key,sum\n");
+//      for (List<Object> row : queryResult.getValues()) {
+//        sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+//        writer.write(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+//      }
+//      logger.info(sb.toString());
+//      writer.close();
 
-      verifyMultiplePythonJobs(outputFileName, 100);
-    } catch (SessionException | ExecutionException | InterruptedException | IOException e) {
+      verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex);
+    } catch (SessionException | ExecutionException | InterruptedException e) {
       logger.error("Transform:  execute fail. Caused by:", e);
       fail();
     }
+  }
+
+  private void verifyMultiplePythonJobs(SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex) {
+    int index = 0;
+    StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
+    for (List<Object> row : queryResult.getValues()) {
+      sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+      assertEquals(index + 1, row.get(timeIndex));
+      assertEquals(index + 1 + index + 1 + 1, row.get(sumIndex));
+      index++;
+    }
+    logger.info(sb.toString());
+    assertEquals(200, index);
   }
 
   private void verifyMultiplePythonJobs(String outputFileName) throws IOException {
