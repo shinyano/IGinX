@@ -470,7 +470,7 @@ public class TransformIT {
       logger.info(sb.toString());
       writer.close();
 
-      verifyMultiplePythonJobs(outputFileName);
+      verifyMultiplePythonJobs(outputFileName, 100);
     } catch (SessionException | ExecutionException | InterruptedException | IOException e) {
       logger.error("Transform:  execute fail. Caused by:", e);
       fail();
@@ -478,6 +478,10 @@ public class TransformIT {
   }
 
   private void verifyMultiplePythonJobs(String outputFileName) throws IOException {
+    verifyMultiplePythonJobs(outputFileName, 200);
+  }
+
+  private void verifyMultiplePythonJobs(String outputFileName, int lineCount) throws IOException {
     BufferedReader reader = new BufferedReader(new FileReader(outputFileName));
     String line = reader.readLine();
     String[] parts = line.split(",");
@@ -494,7 +498,7 @@ public class TransformIT {
     }
     reader.close();
 
-    assertEquals(200, index);
+    assertEquals(lineCount, index);
     assertTrue(Files.deleteIfExists(Paths.get(outputFileName)));
   }
 
