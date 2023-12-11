@@ -461,10 +461,13 @@ public class TransformIT {
       assertNotEquals(-1, sumIndex);
 
       BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
+      StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
       writer.write("key,sum\n");
       for (List<Object> row : queryResult.getValues()) {
+        sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
         writer.write(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
       }
+      logger.info(sb.toString());
       writer.close();
 
       verifyMultiplePythonJobs(outputFileName);

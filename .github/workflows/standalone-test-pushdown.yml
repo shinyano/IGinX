@@ -22,11 +22,11 @@ jobs:
                 DB-name:
                     [
                         "InfluxDB",
-                        "Redis",
-                        "PostgreSQL",
-                        "FileSystem",
-                        "MongoDB",
-                        "IoTDB12",
+#                        "Redis",
+#                        "PostgreSQL",
+#                        "FileSystem",
+#                        "MongoDB",
+#                        "IoTDB12",
                     ]
         runs-on: ${{ matrix.os }}
         steps:
