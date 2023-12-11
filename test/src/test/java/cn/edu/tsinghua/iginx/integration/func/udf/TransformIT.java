@@ -478,7 +478,7 @@ public class TransformIT {
   }
 
   private void verifyMultiplePythonJobs(SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex) {
-    int index = 0;
+    long index = 0;
     StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
     for (List<Object> row : queryResult.getValues()) {
       sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
