@@ -763,8 +763,10 @@ public class StatementExecutor {
 
   private void processClearData(RequestContext ctx) throws ExecutionException, PhysicalException {
     DeleteStatement deleteStatement = new DeleteStatement(Collections.singletonList("*"));
+    logger.info("delete * generated");
     ctx.setStatement(deleteStatement);
     process(ctx);
+    logger.info("clear data success.");
   }
 
   private void setEmptyQueryResp(RequestContext ctx) {
