@@ -11,7 +11,7 @@ sed -i "s/restPort=[0-9]\+/restPort=$2/g" core/target/iginx-core-*/conf/config.p
 batPath="$(find core/target -name 'start_iginx.bat' | grep 'iginx-core-.*\/sbin' | head -n 1)"
 
 if grep -q "^storageEngineList=.*iotdb12" core/target/iginx-core-*/conf/config.properties; then
-  sed -i 's/-Xmx%MAX_HEAP_SIZE% -Xms%MAX_HEAP_SIZE%/-Xmx5g -Xms4g -XX:MaxMetaspaceSize=512M/g' $batPath
+  sed -i 's/-Xmx%MAX_HEAP_SIZE% -Xms%MAX_HEAP_SIZE%/-Xmx4g -Xms4g -XX:MaxMetaspaceSize=512M/g' $batPath
 else
   sed -i 's/-Xmx%MAX_HEAP_SIZE% -Xms%MAX_HEAP_SIZE%/-Xmx4g -Xms4g -XX:MaxMetaspaceSize=512M/g' $batPath
 fi
