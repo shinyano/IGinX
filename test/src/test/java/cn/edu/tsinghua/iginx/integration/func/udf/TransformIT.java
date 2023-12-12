@@ -468,7 +468,7 @@ public class TransformIT {
       //      logger.info(sb.toString());
       //      writer.close();
 
-      verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex, 100);
+      verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex, 200);
     } catch (SessionException | ExecutionException | InterruptedException e) {
       logger.error("Transform:  execute fail. Caused by:", e);
       fail();
