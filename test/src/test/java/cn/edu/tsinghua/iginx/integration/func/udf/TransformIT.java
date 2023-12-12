@@ -481,7 +481,7 @@ public class TransformIT {
     StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
     // display full result first
     for (List<Object> row : queryResult.getValues()) {
-      sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
+      sb.append(row.get(timeIndex)).append(",").append(row.get(sumIndex)).append("\n");
     }
     logger.info(sb.toString());
 
