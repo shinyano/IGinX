@@ -134,7 +134,7 @@ jobs:
               run: |
                   cat iginx-*.log
 
-            - if: runner.os == 'Windows'
+            - if: always()
               name: Show IoTDB logs
               uses: ./.github/actions/dbReadLog
               with:

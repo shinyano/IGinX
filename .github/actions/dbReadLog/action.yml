@@ -9,7 +9,7 @@ inputs:
 runs:
   using: "composite" # Mandatory parameter
   steps:
-      - if: inputs.DB-name=='IoTDB12'
+      - if: ${{ inputs.DB-name=='IoTDB12' && runner.os == 'Windows' }}
         name: Run DB
         shell: bash
         run: |
