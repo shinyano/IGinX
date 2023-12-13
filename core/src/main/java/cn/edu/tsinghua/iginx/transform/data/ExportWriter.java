@@ -9,9 +9,16 @@ public abstract class ExportWriter implements Writer, Exporter {
 
   public ExportWriter() {}
 
+
   @Override
   public void writeBatch(BatchData batchData) {
     write(batchData);
+
+    try {
+      Thread.sleep(1);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
 
     // call the JobRunner to send next batch of data.
     mutex.unlock();
