@@ -134,6 +134,12 @@ jobs:
               run: |
                   cat iginx-*.log
 
+            - if: runner.os == 'Windows'
+              name: Show IoTDB logs
+              uses: ./.github/actions/dbReadLog
+              with:
+                  DB-name: ${{ matrix.DB-name }}
+
             - uses: codecov/codecov-action@v1
               with:
                   file: ./**/target/site/jacoco/jacoco.xml
