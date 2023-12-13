@@ -5,13 +5,17 @@ set -e
 if [ -n "$MSYSTEM" ]; then
   PORT=2181
 
-  PID=$(netstat -ano | grep $PORT | awk '{print $5}' | uniq)
+#  PID=$(netstat -ano | grep $PORT | awk '{print $5}' | uniq)
 
-  if [ -z "$PID" ]; then
-      echo "Can't find zookeeper process"
-  else
-      sh -c "taskkill -f -pid $PID"
-  fi
+  readarray -t results < <(netstat -ano | grep $PORT | awk '{print $5}' | uniq)
+
+  for PID in "${results[@]}"; do
+    if [ -z "$PID" ]; then
+        echo "Can't find zookeeper process $PID"
+    else
+        sh -c "taskkill -f -pid $PID"
+    fi
+  done
 else
   sh -c "zookeeper/bin/zkServer.sh stop"
 fi
