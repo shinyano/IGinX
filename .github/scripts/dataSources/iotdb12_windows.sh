@@ -26,6 +26,10 @@ do
 
   sh -c "sed -i 's/^set HEAP_NEWSIZE=.*$/set HEAP_NEWSIZE=1G/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat"
 
+  grep "^set MAX_HEAP_SIZE="apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat
+
+  grep "^set HEAP_NEWSIZE="apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat
+
   sh -c "mkdir -p apache-iotdb-0.12.6-server-bin-$port/logs"
 
   powershell -Command "Start-Process -FilePath 'apache-iotdb-0.12.6-server-bin-$port/sbin/start-server.bat' -NoNewWindow -RedirectStandardOutput 'apache-iotdb-0.12.6-server-bin-$port/logs/db.log' -RedirectStandardError 'apache-iotdb-0.12.6-server-bin-$port/logs/db-error.log'"
