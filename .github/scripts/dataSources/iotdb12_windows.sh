@@ -26,9 +26,9 @@ do
 
   sh -c "sed -i 's/^set HEAP_NEWSIZE=.*$/set HEAP_NEWSIZE=1G/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat"
 
-  grep "^set MAX_HEAP_SIZE="apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat
+  sh -c "grep '^set MAX_HEAP_SIZE=' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat"
 
-  grep "^set HEAP_NEWSIZE="apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat
+  sh -c "grep '^set HEAP_NEWSIZE=' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat"
 
   sh -c "mkdir -p apache-iotdb-0.12.6-server-bin-$port/logs"
 
