@@ -26,9 +26,13 @@ do
 
   sh -c "sed -i 's/^@REM set HEAP_NEWSIZE=.*$/set HEAP_NEWSIZE=1G/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat"
 
+  sh -c "sed -i 's/^# compaction_strategy=/compaction_strategy=NO_COMPACTION/g' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
+
   sh -c "grep '^set MAX_HEAP_SIZE=' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat"
 
   sh -c "grep '^set HEAP_NEWSIZE=' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-env.bat"
+
+  sh -c "grep '^compaction_strategy=' apache-iotdb-0.12.6-server-bin-$port/conf/iotdb-engine.properties"
 
   sh -c "mkdir -p apache-iotdb-0.12.6-server-bin-$port/logs"
 
