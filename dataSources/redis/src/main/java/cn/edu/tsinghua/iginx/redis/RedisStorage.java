@@ -421,7 +421,6 @@ public class RedisStorage implements IStorage {
     String storageUnit = dataArea.getStorageUnit();
     DataViewWrapper data = new DataViewWrapper(insert.getData());
     for (int i = 0; i < data.getPathNum(); i++) {
-
       String path = data.getPath(i);
       String type = DataTransformer.toStringDataType(data.getDataType(i));
 

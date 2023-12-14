@@ -9,7 +9,6 @@ public abstract class ExportWriter implements Writer, Exporter {
 
   public ExportWriter() {}
 
-
   @Override
   public void writeBatch(BatchData batchData) {
     write(batchData);

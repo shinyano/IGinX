@@ -442,10 +442,6 @@ public class TransformIT {
 
       String yamlFileName =
           OUTPUT_DIR_PREFIX + File.separator + "TransformMultiplePythonJobsWithExportToIginx.yaml";
-      String outputFileName =
-          OUTPUT_DIR_PREFIX
-              + File.separator
-              + "export_file_multiple_python_jobs_by_yaml_with_export_to_iginx.txt";
       SessionExecuteSqlResult result =
           session.executeSql(String.format(COMMIT_SQL_FORMATTER, yamlFileName));
       long jobId = result.getJobId();
@@ -458,17 +454,7 @@ public class TransformIT {
       assertNotEquals(-1, timeIndex);
       assertNotEquals(-1, sumIndex);
 
-      //      BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName));
-      //      StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
-      //      writer.write("key,sum\n");
-      //      for (List<Object> row : queryResult.getValues()) {
-      //        sb.append(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
-      //        writer.write(row.get(timeIndex) + "," + row.get(sumIndex) + "\n");
-      //      }
-      //      logger.info(sb.toString());
-      //      writer.close();
-
-      verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex, 100);
+      verifyMultiplePythonJobs(queryResult, timeIndex, sumIndex, 200);
     } catch (SessionException | ExecutionException | InterruptedException e) {
       logger.error("Transform:  execute fail. Caused by:", e);
       fail();
@@ -478,13 +464,6 @@ public class TransformIT {
   private void verifyMultiplePythonJobs(
       SessionExecuteSqlResult queryResult, int timeIndex, int sumIndex, int lineCount) {
     long index = 0;
-    StringBuilder sb = new StringBuilder("\nDisplay job result:\n");
-    // display full result first
-    for (List<Object> row : queryResult.getValues()) {
-      sb.append(row.get(timeIndex)).append(",").append(row.get(sumIndex)).append("\n");
-    }
-    logger.info(sb.toString());
-
     for (List<Object> row : queryResult.getValues()) {
       assertEquals(index + 1, row.get(timeIndex));
       assertEquals(index + 1 + index + 1 + 1, row.get(sumIndex));

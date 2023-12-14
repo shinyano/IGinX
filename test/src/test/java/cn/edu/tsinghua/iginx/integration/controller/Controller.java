@@ -60,9 +60,7 @@ public class Controller {
   public static void clearData(MultiConnection session) {
     SessionExecuteSqlResult res = null;
     try {
-      logger.info("Start clear data");
       res = session.executeSql(CLEAR_DATA);
-      logger.info("End clear data");
     } catch (SessionException | ExecutionException e) {
       if (e.toString().trim().equals(CLEAR_DATA_EXCEPTION)) {
         logger.warn(CLEAR_DATA_WARNING);

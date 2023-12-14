@@ -65,7 +65,7 @@ public class Constant {
   public static List<List<Object>> REPEAT_EXP_VALUES_LIST1 =
       Arrays.asList(Arrays.asList(33333333L, 33333333L), Arrays.asList(44444444L, 44444444L));
 
-  // for file system
+  // for file system & influxdb
   public static Map<Integer, String> PORT_TO_ROOT =
       new HashMap<Integer, String>() {
         {
