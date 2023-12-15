@@ -51,12 +51,13 @@ public class IginXWriter extends ExportWriter {
 
     // construct values
     builder.append(") VALUES");
+    long threadID = Thread.currentThread().getId();
     long index = getCurrentTimeInNS();
     for (Row row : batchData.getRowList()) {
       builder.append(" (");
-      builder.append(index).append(",");
+      builder.append(index).append(threadID).append(",");
       for (Object value : row.getValues()) {
-        builder.append(value + ",");
+        builder.append(value).append(",");
       }
       builder.deleteCharAt(builder.length() - 1);
       builder.append("),");
