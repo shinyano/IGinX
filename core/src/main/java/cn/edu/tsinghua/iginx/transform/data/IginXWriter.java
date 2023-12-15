@@ -52,10 +52,11 @@ public class IginXWriter extends ExportWriter {
     // construct values
     builder.append(") VALUES");
     long threadID = Thread.currentThread().getId();
+    logger.info("Creating SQL from batch in thread: " + threadID + " with first row(" + batchData.getRowList().get(0).toString() + ")");
     long index = getCurrentTimeInNS();
     for (Row row : batchData.getRowList()) {
       builder.append(" (");
-      builder.append(index).append(threadID).append(",");
+      builder.append(index + threadID).append(",");
       for (Object value : row.getValues()) {
         builder.append(value).append(",");
       }
