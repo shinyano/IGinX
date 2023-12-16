@@ -449,6 +449,7 @@ public class TransformIT {
       verifyJobState(jobId);
 
       SessionExecuteSqlResult queryResult = session.executeSql("SELECT * FROM transform;");
+      queryResult.print(false, "ns");
       int timeIndex = queryResult.getPaths().indexOf("transform.key");
       int sumIndex = queryResult.getPaths().indexOf("transform.sum");
       assertNotEquals(-1, timeIndex);
