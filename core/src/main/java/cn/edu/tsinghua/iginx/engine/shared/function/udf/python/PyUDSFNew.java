@@ -1,0 +1,158 @@
+package cn.edu.tsinghua.iginx.engine.shared.function.udf.python;
+
+import cn.edu.tsinghua.iginx.engine.physical.memory.execute.Table;
+import cn.edu.tsinghua.iginx.engine.shared.data.read.Field;
+import cn.edu.tsinghua.iginx.engine.shared.data.read.Header;
+import cn.edu.tsinghua.iginx.engine.shared.data.read.Row;
+import cn.edu.tsinghua.iginx.engine.shared.data.read.RowStream;
+import cn.edu.tsinghua.iginx.engine.shared.function.FunctionParams;
+import cn.edu.tsinghua.iginx.engine.shared.function.FunctionType;
+import cn.edu.tsinghua.iginx.engine.shared.function.MappingType;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.UDSF;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.CheckUtils;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.RowUtils;
+import cn.edu.tsinghua.iginx.thrift.DataType;
+import cn.edu.tsinghua.iginx.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import pemja.core.PythonInterpreter;
+
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.regex.Pattern;
+
+import static cn.edu.tsinghua.iginx.engine.shared.Constants.UDF_CLASS;
+import static cn.edu.tsinghua.iginx.engine.shared.Constants.UDF_FUNC;
+
+public class PyUDSFNew implements UDSF {
+
+  private static final Logger logger = LoggerFactory.getLogger(PyUDSFNew.class);
+
+  private static final String PY_UDSF = "py_udsf";
+
+  private final BlockingQueue<PythonInterpreter> interpreters;
+
+  private final String funcName;
+
+  public PyUDSFNew(BlockingQueue<PythonInterpreter> interpreters, String funcName) {
+    this.interpreters = interpreters;
+    this.funcName = funcName;
+  }
+
+  @Override
+  public FunctionType getFunctionType() {
+    return FunctionType.UDF;
+  }
+
+  @Override
+  public MappingType getMappingType() {
+    return MappingType.Mapping;
+  }
+
+  @Override
+  public String getIdentifier() {
+    return PY_UDSF;
+  }
+
+  @Override
+  public RowStream transform(Table table, FunctionParams params) throws Exception {
+    if (!CheckUtils.isLegal(params)) {
+      throw new IllegalArgumentException("unexpected params for PyUDSF.");
+    }
+
+    PythonInterpreter interpreter = interpreters.take();
+
+
+
+
+
+
+    // default starts
+
+    List<Object> colNames = new ArrayList<>(Collections.singletonList("key"));
+    List<Object> colTypes = new ArrayList<>(Collections.singletonList(DataType.LONG.toString()));
+    List<Integer> indices = new ArrayList<>();
+
+    List<String> paths = params.getPaths();
+    flag:
+    for (String target : paths) {
+      if (StringUtils.isPattern(target)) {
+        Pattern pattern = Pattern.compile(StringUtils.reformatPath(target));
+        for (int i = 0; i < table.getHeader().getFieldSize(); i++) {
+          Field field = table.getHeader().getField(i);
+          if (pattern.matcher(field.getName()).matches()) {
+            colNames.add(field.getName());
+            colTypes.add(field.getType().toString());
+            indices.add(i);
+          }
+        }
+      } else {
+        for (int i = 0; i < table.getHeader().getFieldSize(); i++) {
+          Field field = table.getHeader().getField(i);
+          if (target.equals(field.getName())) {
+            colNames.add(field.getName());
+            colTypes.add(field.getType().toString());
+            indices.add(i);
+            continue flag;
+          }
+        }
+      }
+    }
+
+    if (colNames.size() == 1) {
+      return Table.EMPTY_TABLE;
+    }
+
+    List<List<Object>> data = new ArrayList<>();
+    data.add(colNames);
+    data.add(colTypes);
+    for (Row row : table.getRows()) {
+      List<Object> rowData = new ArrayList<>();
+      rowData.add(row.getKey());
+      for (Integer idx : indices) {
+        rowData.add(row.getValues()[idx]);
+      }
+      data.add(rowData);
+    }
+
+    List<Object> args = params.getConPosArgs();
+    Map<String, Object> kvargs = params.getKwargs();
+
+    long startTime = System.nanoTime();
+    List<List<Object>> res =
+            (List<List<Object>>) interpreter.invokeMethod(UDF_CLASS, UDF_FUNC, data, args, kvargs);
+    long endTime = System.nanoTime();
+    logger.info("invoke method cost {} nanos", endTime - startTime);
+
+    if (res == null || res.size() < 3) {
+      return Table.EMPTY_TABLE;
+    }
+    interpreters.add(interpreter);
+
+    // [["key", col1, col2 ....],
+    // ["LONG", type1, type2 ...],
+    // [key1, val11, val21 ...],
+    // [key2, val21, val22 ...]
+    // ...]
+    boolean hasKey = res.get(0).get(0).equals("key");
+    if (hasKey) {
+      res.get(0).remove(0);
+      res.get(1).remove(0);
+    }
+
+    // if returns key, build header with key, and construct rows with key values
+    Header header = RowUtils.constructHeaderWithFirstTwoRowsUsingFuncName(res, hasKey, funcName);
+    return hasKey
+            ? RowUtils.constructNewTableWithKey(header, res, 2)
+            : RowUtils.constructNewTable(header, res, 2);
+  }
+
+  @Override
+  public String getFunctionName() {
+    return funcName;
+  }
+}
