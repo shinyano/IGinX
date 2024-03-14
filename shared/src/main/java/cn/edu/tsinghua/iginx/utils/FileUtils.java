@@ -18,6 +18,15 @@ public class FileUtils {
         File file = new File(columns[i]);
         FileOutputStream fos;
         if (!file.exists()) {
+          File parentDir = file.getParentFile();
+          // 检查父目录是否存在
+          if (!parentDir.exists()) {
+            // 父目录不存在，尝试创建
+            boolean dirsCreated = parentDir.mkdirs();
+            if (!dirsCreated) {
+              throw new RuntimeException(columns[i] + ": 父目录创建失败，请检查路径和权限。");
+            }
+          }
           Files.createFile(Paths.get(file.getPath()));
           fos = new FileOutputStream(file);
         } else {

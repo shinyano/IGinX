@@ -67,7 +67,9 @@ public class BatchData {
           fields.add(valueVectors.getField());
         });
 
-    return new VectorSchemaRoot(fields, vectors);
+    VectorSchemaRoot root = new VectorSchemaRoot(fields, vectors);
+    root.setRowCount(rowList.size());
+    return root;
   }
 
   public List<Row> getRowList() {

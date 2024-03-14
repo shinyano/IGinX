@@ -12,6 +12,7 @@ import cn.edu.tsinghua.iginx.engine.shared.function.udf.UDSF;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.CheckUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.RowUtils;
 import cn.edu.tsinghua.iginx.thrift.DataType;
+import cn.edu.tsinghua.iginx.transform.data.BatchData;
 import cn.edu.tsinghua.iginx.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +66,9 @@ public class PyUDSFNew implements UDSF {
     }
 
     PythonInterpreter interpreter = interpreters.take();
+
+
+
 
 
 
