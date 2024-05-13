@@ -1,0 +1,55 @@
+name: "Duplicate code"
+
+on:
+  issue_comment:
+    types:
+      - created
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  duplicate-code-check:
+    name: Check for duplicate code
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && contains(github.event.comment.body, 'run_duplicate_code_detection')
+    steps:
+      - name: Check for duplicate code(core)
+        uses: platisd/duplicate-code-detection-tool@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directories: "core"
+          ignore_directories: "core/src/main/java/cn/edu/tsinghua/iginx/engine/physical/exception"
+          file_extensions: "java, py"
+          # Only report similarities above x%
+          ignore_below: 80
+          # If a file is more than x% similar to another, then the job fails
+          fail_above: 90
+          # If a file is more than x% similar to another, show a warning symbol in the report
+          warn_above: 85
+          # Leave only one comment with the report and update it for consecutive runs
+          one_comment: true
+
+      - name: Check for duplicate code(datasource)
+        if: always()
+        uses: platisd/duplicate-code-detection-tool@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directories: "dataSources"
+          file_extensions: "java, py"
+          ignore_below: 80
+          fail_above: 90
+          warn_above: 85
+          one_comment: true
+
+      - name: Check for duplicate code(session, shared)
+        if: always()
+        uses: platisd/duplicate-code-detection-tool@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directories: "session, shared"
+          file_extensions: "java, py"
+          ignore_below: 70
+          fail_above: 90
+          warn_above: 80
+          one_comment: true
