@@ -25,11 +25,11 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           directories: "core"
           file_extensions: "java, py"
-          # Only report similarities above 5%
+          # Only report similarities above x%
           ignore_below: 80
-          # If a file is more than 70% similar to another, then the job fails
-          fail_above: 99
-          # If a file is more than 15% similar to another, show a warning symbol in the report
+          # If a file is more than x% similar to another, then the job fails
+          fail_above: 90
+          # If a file is more than x% similar to another, show a warning symbol in the report
           warn_above: 85
           # Leave only one comment with the report and update it for consecutive runs
           one_comment: true
@@ -41,12 +41,10 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           directories: "dataSources"
           file_extensions: "java, py"
-          # Only report similarities above 5%
           ignore_below: 80
-          # If a file is more than 70% similar to another, then the job fails
-          fail_above: 99
-          # If a file is more than 15% similar to another, show a warning symbol in the report
+          fail_above: 90
           warn_above: 85
+          one_comment: true
 
       - name: Check for duplicate code(session, shared)
         if: always()
@@ -55,9 +53,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           directories: "session, shared"
           file_extensions: "java, py"
-          # Only report similarities above 5%
           ignore_below: 70
-          # If a file is more than 70% similar to another, then the job fails
-          fail_above: 99
-          # If a file is more than 15% similar to another, show a warning symbol in the report
+          fail_above: 90
           warn_above: 80
+          one_comment: true
