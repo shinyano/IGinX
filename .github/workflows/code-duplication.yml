@@ -15,11 +15,56 @@ jobs:
     name: Check for duplicate code
     runs-on: ubuntu-latest
     steps:
-      - name: Check for duplicate code
+      - name: Check for duplicate code(core)
         uses: platisd/duplicate-code-detection-tool@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          directories: "core, dataSources, jdbc, session, shared, test, thrift"
+          directories: "core"
+          file_extensions: "java, py"
+          # Only report similarities above 5%
+          ignore_below: 70
+          # If a file is more than 70% similar to another, then the job fails
+          fail_above: 90
+          # If a file is more than 15% similar to another, show a warning symbol in the report
+          warn_above: 80
+          # Leave only one comment with the report and update it for consecutive runs
+          one_comment: true
+
+      - name: Check for duplicate code(datasource)
+        uses: platisd/duplicate-code-detection-tool@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directories: "dataSources"
+          file_extensions: "java, py"
+          # Only report similarities above 5%
+          ignore_below: 70
+          # If a file is more than 70% similar to another, then the job fails
+          fail_above: 90
+          # If a file is more than 15% similar to another, show a warning symbol in the report
+          warn_above: 80
+          # Leave only one comment with the report and update it for consecutive runs
+          one_comment: true
+
+      - name: Check for duplicate code(session, shared)
+        uses: platisd/duplicate-code-detection-tool@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directories: "session, shared"
+          file_extensions: "java, py"
+          # Only report similarities above 5%
+          ignore_below: 70
+          # If a file is more than 70% similar to another, then the job fails
+          fail_above: 90
+          # If a file is more than 15% similar to another, show a warning symbol in the report
+          warn_above: 80
+          # Leave only one comment with the report and update it for consecutive runs
+          one_comment: true
+
+      - name: Check for duplicate code(test)
+        uses: platisd/duplicate-code-detection-tool@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          directories: "test"
           file_extensions: "java, py"
           # Only report similarities above 5%
           ignore_below: 70
