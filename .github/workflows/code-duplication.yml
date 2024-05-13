@@ -6,6 +6,9 @@ on:
       - opened
       - edited
       - synchronize
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   duplicate-code-check:
