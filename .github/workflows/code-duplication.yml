@@ -31,21 +31,23 @@ jobs:
           one_comment: true
 
       - name: Check for duplicate code(datasource)
+        if: always()
         uses: platisd/duplicate-code-detection-tool@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           directories: "dataSources"
           file_extensions: "java, py"
           # Only report similarities above 5%
-          ignore_below: 70
+          ignore_below: 80
           # If a file is more than 70% similar to another, then the job fails
           fail_above: 90
           # If a file is more than 15% similar to another, show a warning symbol in the report
-          warn_above: 80
+          warn_above: 85
           # Leave only one comment with the report and update it for consecutive runs
           one_comment: true
 
       - name: Check for duplicate code(session, shared)
+        if: always()
         uses: platisd/duplicate-code-detection-tool@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -61,6 +63,7 @@ jobs:
           one_comment: true
 
       - name: Check for duplicate code(test)
+        if: always()
         uses: platisd/duplicate-code-detection-tool@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
