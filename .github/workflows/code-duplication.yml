@@ -7,6 +7,7 @@ on:
       - edited
       - synchronize
 
+
 jobs:
   duplicate-code-check:
     name: Check for duplicate code
