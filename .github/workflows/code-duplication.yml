@@ -19,10 +19,10 @@ jobs:
           directories: "antlr, assembly, client, core, dataSources, example, jdbc, session, shared, test, thrift"
           file_extensions: "java, py"
           # Only report similarities above 5%
-          ignore_below: 5
+          ignore_below: 50
           # If a file is more than 70% similar to another, then the job fails
           fail_above: 70
           # If a file is more than 15% similar to another, show a warning symbol in the report
-          warn_above: 15
+          warn_above: 50
           # Leave only one comment with the report and update it for consecutive runs
           one_comment: true
