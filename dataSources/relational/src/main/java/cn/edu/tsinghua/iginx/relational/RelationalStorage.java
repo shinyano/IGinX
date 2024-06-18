@@ -346,6 +346,7 @@ public class RelationalStorage implements IStorage {
       if (patterns == null || patterns.size() == 0) {
         patternList = new ArrayList<>(Collections.singletonList("*.*"));
       }
+      String tablePattern, colPattern;
 
       // non-dummy
       for (String databaseName : getDatabaseNames()) {
@@ -371,7 +372,6 @@ public class RelationalStorage implements IStorage {
         }
 
         Map<String, String> tableAndColPattern = new HashMap<>(), tempRes;
-        String tablePattern, colPattern;
 
         if (patterns != null && patterns.size() != 0) {
           tableAndColPattern = new HashMap<>();
@@ -484,35 +484,37 @@ public class RelationalStorage implements IStorage {
       for (String databaseName : dummyRes.keySet()) {
         table2cols = dummyRes.get(databaseName);
         for (String tableName : table2cols.keySet()) {
-
-          List<ColumnField> columnFieldList = getColumns(databaseName, tableName, table2cols.get(tableName));
-          for (ColumnField columnField : columnFieldList) {
-            String columnName = columnField.columnName;
-            String typeName = columnField.columnType;
-            if (columnName.equals(KEY_NAME)) { // key 列不显示
-              continue;
-            }
-            Pair<String, Map<String, String>> nameAndTags = splitFullName(columnName);
+          colPattern = table2cols.get(tableName);
+          for (String colName : colPattern.split(", ")) {
+            List<ColumnField> columnFieldList = getColumns(databaseName, tableName, colName);
+            for (ColumnField columnField : columnFieldList) {
+              String columnName = columnField.columnName;
+              String typeName = columnField.columnType;
+              if (columnName.equals(KEY_NAME)) { // key 列不显示
+                continue;
+              }
+              Pair<String, Map<String, String>> nameAndTags = splitFullName(columnName);
 //            if (databaseName.startsWith(DATABASE_PREFIX)) {
 //              columnName = tableName + SEPARATOR + nameAndTags.k;
 //            } else {
-            columnName = databaseName + SEPARATOR + tableName + SEPARATOR + nameAndTags.k;
+              columnName = databaseName + SEPARATOR + tableName + SEPARATOR + nameAndTags.k;
 //            }
 
 //            // get columns by pattern
 //            if (!isPathMatchPattern(columnName, patterns)) {
 //              continue;
 //            }
-            // get columns by tag filter
-            if (tagFilter != null && !TagKVUtils.match(nameAndTags.v, tagFilter)) {
-              continue;
+              // get columns by tag filter
+              if (tagFilter != null && !TagKVUtils.match(nameAndTags.v, tagFilter)) {
+                continue;
+              }
+              columns.add(
+                      new Column(
+                              columnName,
+                              relationalMeta.getDataTypeTransformer().fromEngineType(typeName),
+                              nameAndTags.v,
+                              true));
             }
-            columns.add(
-                    new Column(
-                            columnName,
-                            relationalMeta.getDataTypeTransformer().fromEngineType(typeName),
-                            nameAndTags.v,
-                            true));
           }
         }
       }

@@ -295,7 +295,7 @@ public class InfluxDBStorage implements IStorage {
             patternPairs.add(new Pair<>(
                     StringUtils.reformatPath(p.substring(0, p.indexOf("."))),
                     StringUtils.reformatPath(p.substring(p.indexOf(".") + 1))));
-            // match multiple payers
+            // match multiple layers
             patternPairs.add(new Pair<>(
                     StringUtils.reformatPath("*"),
                     StringUtils.reformatPath(p)
