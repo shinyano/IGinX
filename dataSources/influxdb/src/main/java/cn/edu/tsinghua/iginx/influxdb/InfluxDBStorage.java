@@ -343,13 +343,10 @@ public class InfluxDBStorage implements IStorage {
         if (isDummy && !isUnit) {
           path = bucket.getName() + "." + path;
         }
-        LOGGER.info("path queried: {}", path);
         // get columns by pattern
         if (!isPathMatchPattern(path, patterns)) {
-          LOGGER.info("not match");
           continue;
         }
-        LOGGER.info("match");
         // get columns by tag filter
         if (tagFilter != null && !TagKVUtils.match(tag, tagFilter)) {
           continue;
