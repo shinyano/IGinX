@@ -20,7 +20,6 @@ package cn.edu.tsinghua.iginx.influxdb;
 
 import static cn.edu.tsinghua.iginx.influxdb.tools.TimeUtils.instantToNs;
 import static com.influxdb.client.domain.WritePrecision.NS;
-import static com.influxdb.client.domain.WritePrecision.S;
 
 import cn.edu.tsinghua.iginx.engine.logical.utils.LogicalFilterUtils;
 import cn.edu.tsinghua.iginx.engine.physical.exception.PhysicalException;
@@ -98,7 +97,7 @@ public class InfluxDBStorage implements IStorage {
       "from(bucket:\"%s\") |> range(start: time(v: 0), stop: time(v: 9223372036854775807)) |> filter(fn: (r) => (r._measurement =~ /.*/ and r._field =~ /.+/)) |> first()";
 
   private static final String SHOW_TIME_SERIES_BY_PATTERN =
-          "from(bucket:\"%s\") |> range(start: time(v: 0), stop: time(v: 9223372036854775807)) |> filter(fn: (r) => (r._measurement =~ /%s/ and r._field =~ /%s/)) |> first()";
+      "from(bucket:\"%s\") |> range(start: time(v: 0), stop: time(v: 9223372036854775807)) |> filter(fn: (r) => (r._measurement =~ /%s/ and r._field =~ /%s/)) |> first()";
 
   private final StorageEngineMeta meta;
 
@@ -259,7 +258,10 @@ public class InfluxDBStorage implements IStorage {
       // <measurementPattern, fieldPattern>
       List<Pair<String, String>> patternPairs = new ArrayList<>();
 
-      if (patterns == null || patterns.size() == 0 || patterns.contains("*") || patterns.contains("*.*")) {
+      if (patterns == null
+          || patterns.size() == 0
+          || patterns.contains("*")
+          || patterns.contains("*.*")) {
         statement = String.format(SHOW_TIME_SERIES, bucket.getName());
         tables = client.getQueryApi().query(statement, organization.getId());
       } else {
@@ -277,7 +279,8 @@ public class InfluxDBStorage implements IStorage {
               p = p.substring(2);
               if (p.contains(".")) {
                 // pattern *.xx.xx
-                patternPairs.add(new Pair<>(
+                patternPairs.add(
+                    new Pair<>(
                         StringUtils.reformatPath(p.substring(0, p.indexOf("."))),
                         StringUtils.reformatPath(p.substring(p.indexOf(".") + 1))));
               }
@@ -289,33 +292,31 @@ public class InfluxDBStorage implements IStorage {
           }
           thisBucketIsQueried = true;
 
-
           if (p.startsWith("*.")) {
             // match one layer first
-            patternPairs.add(new Pair<>(
+            patternPairs.add(
+                new Pair<>(
                     StringUtils.reformatPath(p.substring(0, p.indexOf("."))),
                     StringUtils.reformatPath(p.substring(p.indexOf(".") + 1))));
             // match multiple layers
-            patternPairs.add(new Pair<>(
-                    StringUtils.reformatPath("*"),
-                    StringUtils.reformatPath(p)
-            ));
-          } else if (p.equals("*")){
-            patternPairs.add(new Pair<>(
-                    StringUtils.reformatPath("*"),
-                    StringUtils.reformatPath("*")
-            ));
+            patternPairs.add(
+                new Pair<>(StringUtils.reformatPath("*"), StringUtils.reformatPath(p)));
+          } else if (p.equals("*")) {
+            patternPairs.add(
+                new Pair<>(StringUtils.reformatPath("*"), StringUtils.reformatPath("*")));
           } else if (p.contains(".")) {
-            patternPairs.add(new Pair<>(
+            patternPairs.add(
+                new Pair<>(
                     StringUtils.reformatPath(p.substring(0, p.indexOf("."))),
-                    StringUtils.reformatPath(p.substring(p.indexOf(".") + 1))
-            ));
+                    StringUtils.reformatPath(p.substring(p.indexOf(".") + 1))));
           }
           for (Pair<String, String> patternPair : patternPairs) {
             measPattern = patternPair.k;
             fieldPattern = patternPair.v;
             // query time series based on pattern
-            statement = String.format(SHOW_TIME_SERIES_BY_PATTERN, bucket.getName(), measPattern, fieldPattern);
+            statement =
+                String.format(
+                    SHOW_TIME_SERIES_BY_PATTERN, bucket.getName(), measPattern, fieldPattern);
             LOGGER.info("executing column query: {}", statement);
             tables.addAll(client.getQueryApi().query(statement, organization.getId()));
           }
