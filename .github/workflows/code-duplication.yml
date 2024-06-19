@@ -13,7 +13,7 @@ jobs:
   duplicate-code-check:
     name: Check for duplicate code
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' || (github.event.issue.pull_request && contains(github.event.comment.body, 'run_duplicate_code_detection'))
+    if: github.event.issue.pull_request && contains(github.event.comment.body, 'run_duplicate_code_detection')
     steps:
       - name: Check for duplicate code(core)
         uses: platisd/duplicate-code-detection-tool@master
