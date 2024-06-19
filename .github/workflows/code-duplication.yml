@@ -39,6 +39,7 @@ jobs:
           ignore_below: 80
           fail_above: 90
           warn_above: 85
+          unique_header_message_start: "## 📌 Duplicate code detection tool report (datasource)"
 
       - name: Check for duplicate code(session, shared)
         if: always()
@@ -50,3 +51,4 @@ jobs:
           ignore_below: 70
           fail_above: 90
           warn_above: 80
+          unique_header_message_start: "## 📌 Duplicate code detection tool report (session, shared)"
