@@ -29,7 +29,7 @@ jobs:
           # If a file is more than x% similar to another, show a warning symbol in the report
           warn_above: 85
           one_comment: true
-          unique_header_message_start: "## 📌 Duplicate code detection tool report (core)"
+          header_message_start: "## 📌 Duplicate code detection tool report (core)"
 
       - name: Check for duplicate code(datasource)
         if: always()
@@ -42,7 +42,7 @@ jobs:
           fail_above: 90
           warn_above: 85
           one_comment: true
-          unique_header_message_start: "## 📌 Duplicate code detection tool report (datasource)"
+          header_message_start: "## 📌 Duplicate code detection tool report (datasource)"
 
       - name: Check for duplicate code(session, shared)
         if: always()
@@ -55,4 +55,4 @@ jobs:
           fail_above: 90
           warn_above: 80
           one_comment: true
-          unique_header_message_start: "## 📌 Duplicate code detection tool report (session, shared)"
+          header_message_start: "## 📌 Duplicate code detection tool report (session, shared)"
