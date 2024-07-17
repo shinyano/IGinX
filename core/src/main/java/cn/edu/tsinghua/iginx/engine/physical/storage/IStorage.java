@@ -24,6 +24,7 @@ import cn.edu.tsinghua.iginx.engine.physical.task.TaskExecuteResult;
 import cn.edu.tsinghua.iginx.engine.shared.operator.*;
 import cn.edu.tsinghua.iginx.metadata.entity.ColumnsInterval;
 import cn.edu.tsinghua.iginx.metadata.entity.KeyInterval;
+import cn.edu.tsinghua.iginx.metadata.entity.StorageEngineMeta;
 import cn.edu.tsinghua.iginx.utils.Pair;
 import java.util.List;
 
@@ -64,6 +65,8 @@ public interface IStorage {
 
   /** 获取指定前缀的数据边界 */
   Pair<ColumnsInterval, KeyInterval> getBoundaryOfStorage(String prefix) throws PhysicalException;
+
+  void refreshParams(StorageEngineMeta meta);
 
   /** 释放底层连接 */
   void release() throws PhysicalException;

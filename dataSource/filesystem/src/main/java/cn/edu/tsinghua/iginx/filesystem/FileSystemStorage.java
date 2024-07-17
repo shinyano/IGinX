@@ -159,6 +159,9 @@ public class FileSystemStorage implements IStorage {
   }
 
   @Override
+  public void refreshParams(StorageEngineMeta meta) {}
+
+  @Override
   public synchronized void release() throws PhysicalException {
     executor.close();
     if (thread != null) {

@@ -544,6 +544,9 @@ public class RedisStorage implements IStorage {
   }
 
   @Override
+  public void refreshParams(StorageEngineMeta meta) {}
+
+  @Override
   public void release() throws PhysicalException {
     jedisPool.close();
   }

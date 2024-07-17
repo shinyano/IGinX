@@ -176,7 +176,7 @@ public class IoTDBStorage implements IStorage {
         columnsInterval = new ColumnsInterval(dataPrefix);
       }
     } catch (IoTDBConnectionException | StatementExecutionException e) {
-      throw new IoTDBTaskExecuteFailureException("get time series failure: ", e);
+      throw new IoTDBTaskExecuteFailureException("get time series failure: " + e.getMessage(), e);
     }
 
     // 获取 key 范围
@@ -184,6 +184,9 @@ public class IoTDBStorage implements IStorage {
 
     return new Pair<>(columnsInterval, keyInterval);
   }
+
+  @Override
+  public void refreshParams(StorageEngineMeta meta) {}
 
   @Override
   public void release() {
@@ -244,7 +247,7 @@ public class IoTDBStorage implements IStorage {
       }
       dataSet.close();
     } catch (IoTDBConnectionException | StatementExecutionException e) {
-      throw new IoTDBTaskExecuteFailureException("get time series failure: ", e);
+      throw new IoTDBTaskExecuteFailureException("get time series failure: " + e.getMessage(), e);
     }
   }
 
@@ -316,7 +319,7 @@ public class IoTDBStorage implements IStorage {
       return new TaskExecuteResult(rowStream);
     } catch (IoTDBConnectionException | StatementExecutionException | PhysicalException e) {
       return new TaskExecuteResult(
-          new IoTDBTaskExecuteFailureException("execute project task in iotdb12 failure", e));
+          new IoTDBTaskExecuteFailureException("execute project task in iotdb12 failure" + e.getMessage(), e));
     }
   }
 
@@ -372,7 +375,7 @@ public class IoTDBStorage implements IStorage {
       return new TaskExecuteResult(rowStream);
     } catch (IoTDBConnectionException | StatementExecutionException | PhysicalException e) {
       return new TaskExecuteResult(
-          new IoTDBTaskExecuteFailureException("execute project task in iotdb12 failure", e));
+          new IoTDBTaskExecuteFailureException("execute project task in iotdb12 failure" + e.getMessage(), e));
     }
   }
 
@@ -745,7 +748,7 @@ public class IoTDBStorage implements IStorage {
           LOGGER.warn("encounter error when delete path: ", e);
           return new TaskExecuteResult(
               new IoTDBTaskExecuteFailureException(
-                  "execute delete path task in iotdb11 failure", e));
+                  "execute delete path task in iotdb12 failure", e));
         }
         for (String path : deletedPaths) {
           try {

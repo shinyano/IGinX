@@ -299,6 +299,9 @@ public class InfluxDBStorage implements IStorage {
   }
 
   @Override
+  public void refreshParams(StorageEngineMeta meta) {}
+
+  @Override
   public void release() throws PhysicalException {
     client.close();
   }

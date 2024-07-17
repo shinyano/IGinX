@@ -404,6 +404,9 @@ public class MongoDBStorage implements IStorage {
   }
 
   @Override
+  public void refreshParams(StorageEngineMeta meta) {}
+
+  @Override
   public void release() {
     client.close();
   }

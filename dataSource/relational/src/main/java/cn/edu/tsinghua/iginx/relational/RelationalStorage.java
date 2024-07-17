@@ -1902,6 +1902,11 @@ public class RelationalStorage implements IStorage {
   }
 
   @Override
+  public void refreshParams(StorageEngineMeta meta) {
+
+  }
+
+  @Override
   public void release() throws PhysicalException {
     try {
       connection.close();

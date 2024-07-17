@@ -47,6 +47,7 @@ statement
    | COMPACT # compactStatement
    | SHOW RULES # showRulesStatement
    | SET RULES ruleAssignment (COMMA ruleAssignment)* # setRulesStatement
+   | ALTER ENGINE engineId = INT WITH PARAMS params = stringLiteral # alterEngineStatement
    ;
 
 udfClassRef
