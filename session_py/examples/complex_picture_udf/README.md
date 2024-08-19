@@ -54,6 +54,7 @@ Step 1：准备原始数据
 图片链接：
 camera, horse, notebook, pizza, wedding
 插入元信息到关系型数据库，这里使用mysql命令行
+```sql
 CREATE DATABASE pics;
 USE pics;
 
@@ -70,6 +71,8 @@ INSERT INTO image_descriptions (name, description) VALUES
 ('notebook\\jpg', 'notebook'),
 ('pizza\\jpg', 'pizza'),
 ('wedding\\jpg', 'wedding');
+```
+
 
 Step 2：注册UDF
 需要用到两个UDF，一个是为没有key的表格添加key，一个是图片处理UDF

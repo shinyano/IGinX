@@ -77,7 +77,9 @@ class ImgUDF:
             image = bytearray()
             for row in range(np_data.shape[0] - 1):
                 element = np_data[row, col]
-                if isinstance(element, bytes):
+                if element is None:
+                    continue
+                elif isinstance(element, bytes):
                     image += element
                 else:
                     try:
