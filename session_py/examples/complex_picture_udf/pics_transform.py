@@ -75,15 +75,17 @@ class ImgUDF:
 
         return new_image_data
 
-    def transform(self, data, args, kvargs):
+    def transform(self, data):
         res = self.buildHeader(data)
         res_col = [0]
         # data每行均为bytes类型
-        np_data = np.array(data[2:], dtype=object)
+        np_data = np.array(data[1:], dtype=object)
+        print(np_data.shape)
         for col in range(1, np_data.shape[1]):
             image = bytearray()
             for row in range(np_data.shape[0] - 1):
                 element = np_data[row, col]
+                print(type(element))
                 if element is None:
                     continue
                 elif isinstance(element, bytes):
@@ -95,14 +97,14 @@ class ImgUDF:
                         print(f"Error converting element at row {row}, col {col}: {element}")
                         continue
             new_img = self.process_image(image, np_data[np_data.shape[0] - 1, col])
+            print(type(new_img))
+            print(len(new_img))
             res_col.append(new_img)
         res.append(res_col)
         return res
 
     def buildHeader(self, data):
         ret_name = ["key"]
-        ret_type = ["LONG"]
         for name in data[0][1:]:
             ret_name.append(f"udf_img_cap({name})")
-            ret_type.append("BINARY")
-        return [ret_name, ret_type]
+        return [ret_name]
