@@ -73,11 +73,11 @@ public class PyUDSF extends PyUDF implements UDSF {
       return Table.EMPTY_TABLE;
     }
 
-    List<Object> args = params.getArgs();
+    List<List<Object>> posArgs = getPyPosParams(params.getPosArgs());
     Map<String, Object> kvargs = params.getKwargs();
 
     List<List<Object>> res =
-        (List<List<Object>>) interpreter.invokeMethod(UDF_CLASS, UDF_FUNC, data, args, kvargs);
+        (List<List<Object>>) interpreter.invokeMethod(UDF_CLASS, UDF_FUNC, data, posArgs, kvargs);
 
     if (res == null || res.size() < 3) {
       return Table.EMPTY_TABLE;

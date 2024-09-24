@@ -125,12 +125,20 @@ expression
    ;
 
 function
-   : functionName LR_BRACKET (ALL | DISTINCT)? path (COMMA path)* (COMMA param)* RR_BRACKET
+   : functionName LR_BRACKET (ALL | DISTINCT)? udfArg RR_BRACKET
    ;
 
-param
+udfArg
+   : (path | udfPosArg) (COMMA path | COMMA udfPosArg)* (COMMA udfKwarg)*
+   | udfKwarg (COMMA udfKwarg)*
+   ;
+
+udfPosArg
+   : value = constant
+   ;
+
+udfKwarg
    : key = ID OPERATOR_EQ value = constant
-   | value = constant
    ;
 
 functionName
@@ -439,9 +447,7 @@ path
    ;
 
 udfType
-   : UDAF
-   | UDTF
-   | UDSF
+   : UDF
    | TRANSFORM
    ;
 
@@ -827,16 +833,8 @@ AS
    : A S
    ;
 
-UDAF
-   : U D A F
-   ;
-
-UDTF
-   : U D T F
-   ;
-
-UDSF
-   : U D S F
+UDF
+   : U D F
    ;
 
 WITH

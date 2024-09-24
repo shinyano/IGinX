@@ -106,8 +106,7 @@ public class ExprUtils {
     }
     RowMappingFunction rowMappingFunction = (RowMappingFunction) function;
     FunctionParams params =
-        new FunctionParams(
-            funcExpr.getColumns(), funcExpr.getArgs(), funcExpr.getKvargs(), funcExpr.isDistinct());
+        new FunctionParams(funcExpr.getPosArgs(), funcExpr.getKvargs(), funcExpr.isDistinct());
     Row ret;
     try {
       ret = rowMappingFunction.transform(row, params);
@@ -753,8 +752,7 @@ public class ExprUtils {
         FuncExpression funcExpression = (FuncExpression) expression;
         return new FuncExpression(
             funcExpression.getFuncName(),
-            new ArrayList<>(funcExpression.getColumns()),
-            new ArrayList<>(funcExpression.getArgs()),
+            new ArrayList<>(funcExpression.getPosArgs()),
             new HashMap<>(funcExpression.getKvargs()),
             funcExpression.isDistinct());
       case Bracket:

@@ -15,21 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
-class UDFReverseRows:
-  def __init__(self):
-    pass
+from iginx_udf import UDSF
 
-  def transform(self, data, args, kvargs):
-    res = self.buildHeader(data)
-    res.extend(list(reversed(data[2:])))
-    return res
 
-  def buildHeader(self, data):
-    colNames = []
-    for name in data[0]:
-      if name != "key":
-        colNames.append("reverse_rows(" + name + ")")
-      else:
-        colNames.append(name)
-    return [colNames, data[1]]
+class UDFReverseRows(UDSF):
+    def eval(self, data):
+        res = data.iloc[::-1]
+        res.columns = ['key' if col == 'key' else f'{self.udf_name}({col})' for col in data.columns]
+        return res

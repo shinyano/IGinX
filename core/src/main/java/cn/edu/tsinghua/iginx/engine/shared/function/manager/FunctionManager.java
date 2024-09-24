@@ -17,6 +17,8 @@
  */
 package cn.edu.tsinghua.iginx.engine.shared.function.manager;
 
+import static cn.edu.tsinghua.iginx.engine.shared.Constants.*;
+
 import static cn.edu.tsinghua.iginx.utils.ShellRunner.runCommand;
 
 import cn.edu.tsinghua.iginx.conf.Config;
@@ -71,6 +73,8 @@ public class FunctionManager {
 
   private static final String PY_SUFFIX = ".py";
 
+  private static final String IGINX_ROOT_MODULE = "iginx_udf";
+
   private static final String PATH =
       String.join(File.separator, config.getDefaultUDFDir(), "python_scripts");
 
@@ -79,6 +83,13 @@ public class FunctionManager {
     this.initSystemFunctions();
     if (config.isNeedInitBasicUDFFunctions()) {
       this.initBasicUDFFunctions();
+    }
+    String pythonCMD = config.getPythonCMD();
+    PythonInterpreterConfig config =
+            PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).addPythonPaths(PATH).build();
+
+    try (PythonInterpreter interpreter = new PythonInterpreter(config)) {
+      interpreter.exec(String.format("import %s", IGINX_ROOT_MODULE));
     }
   }
 
@@ -208,33 +219,59 @@ public class FunctionManager {
       className = className.substring(className.lastIndexOf(".") + 1);
     }
 
+    UDFType type = UDFType.UNKNOWN;
+    String udfType = "UNKNOWN";
+
     // init the python udf
     BlockingQueue<PythonInterpreter> queue = new LinkedBlockingQueue<>();
     for (int i = 0; i < INTERPRETER_NUM; i++) {
       PythonInterpreter interpreter = new PythonInterpreter(config);
+      interpreter.exec(String.format("import %s", IGINX_ROOT_MODULE));
       interpreter.exec(String.format("import %s", moduleName));
       interpreter.exec(String.format("t = %s.%s()", moduleName, className));
+
+      if (i == 0) {
+        // get udf type
+        udfType = (String) interpreter.invokeMethod(UDF_CLASS, GET_TYPE_METHOD);
+        switch (udfType) {
+          case "UDTF":
+            type = UDFType.UDTF;
+            break;
+          case "UDAF":
+            type = UDFType.UDAF;
+            break;
+          case "UDSF":
+            type = UDFType.UDSF;
+            break;
+          default:
+        }
+      }
+      // tell udf its name in sql
+      interpreter.invokeMethod(UDF_CLASS, SET_NAME_METHOD, identifier);
       queue.add(interpreter);
     }
 
-    if (taskMeta.getType().equals(UDFType.UDAF)) {
+    if (type.equals(UDFType.UDAF)) {
       PyUDAF udaf = new PyUDAF(queue, identifier, moduleName);
       functions.put(identifier, udaf);
+      taskMeta.setType(type);
       return udaf;
-    } else if (taskMeta.getType().equals(UDFType.UDTF)) {
+    } else if (type.equals(UDFType.UDTF)) {
       PyUDTF udtf = new PyUDTF(queue, identifier, moduleName);
       functions.put(identifier, udtf);
+      taskMeta.setType(type);
       return udtf;
-    } else if (taskMeta.getType().equals(UDFType.UDSF)) {
+    } else if (type.equals(UDFType.UDSF)) {
       PyUDSF udsf = new PyUDSF(queue, identifier, moduleName);
       functions.put(identifier, udsf);
+      taskMeta.setType(type);
       return udsf;
     } else {
       while (!queue.isEmpty()) {
         queue.poll().close();
       }
       throw new IllegalArgumentException(
-          String.format("UDF %s registered in type %s", identifier, taskMeta.getType()));
+          String.format("UDF %s registered in type %s", identifier, udfType));
     }
   }
 

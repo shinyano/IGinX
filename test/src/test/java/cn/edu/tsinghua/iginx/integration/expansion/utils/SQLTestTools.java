@@ -42,7 +42,7 @@ public class SQLTestTools {
     assertEquals(exceptOutput, actualOutput);
   }
 
-  private static String execute(Session session, String statement) {
+  public static String execute(Session session, String statement) {
     LOGGER.info("Execute Statement: \"{}\"", statement);
 
     SessionExecuteSqlResult res = null;
