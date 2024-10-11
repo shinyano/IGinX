@@ -34,6 +34,7 @@ exception RpcException {
 struct DataUnit {
     1: required bool dummy
     2: optional string name
+    3: optional string dummyPath
 }
 
 struct DataBoundary {
