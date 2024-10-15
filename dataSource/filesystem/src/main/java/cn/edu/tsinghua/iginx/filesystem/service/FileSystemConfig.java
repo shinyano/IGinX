@@ -26,11 +26,15 @@ import com.typesafe.config.Config;
 import com.typesafe.config.Optional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.FieldNameConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -48,7 +52,7 @@ public class FileSystemConfig extends AbstractConfig {
 
   @Optional StorageConfig data = null;
 
-  @Optional StorageConfig dummy = null;
+  @Optional Map<String, StorageConfig> dummy = null;
 
   @Override
   public List<ValidationProblem> validate() {
@@ -63,7 +67,11 @@ public class FileSystemConfig extends AbstractConfig {
         validateSubConfig(problems, Fields.data, data);
       }
       if (dummy != null) {
-        validateSubConfig(problems, Fields.dummy, dummy);
+        validateDummyNotEmpty(problems, Fields.dummy, dummy);
+        for (Map.Entry<String, StorageConfig> entry : dummy.entrySet()) {
+          validateNotBlanks(problems, Fields.dummy, entry.getKey());
+          validateSubConfig(problems, Fields.dummy, entry.getValue());
+        }
       }
     } else {
       validateSubConfig(problems, Fields.client, client);
@@ -84,5 +92,16 @@ public class FileSystemConfig extends AbstractConfig {
     }
 
     return result;
+  }
+
+  protected static void validateDummyNotEmpty(
+          List<ValidationProblem> dst, String field, @Nullable Map<String, StorageConfig> value) {
+    if (!validateNotNull(dst, field, value)) {
+      return;
+    }
+    assert value != null;
+    if (value.isEmpty()) {
+      dst.add(new ValidationWarning(field, "must not be empty"));
+    }
   }
 }

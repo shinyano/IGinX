@@ -17,6 +17,7 @@
  */
 package cn.edu.tsinghua.iginx.filesystem;
 
+import static cn.edu.tsinghua.iginx.filesystem.struct.legacy.filesystem.shared.Constant.*;
 import static cn.edu.tsinghua.iginx.metadata.utils.StorageEngineUtils.isLocal;
 
 import cn.edu.tsinghua.iginx.engine.physical.exception.PhysicalException;
@@ -112,6 +113,7 @@ public class FileSystemStorage implements IStorage {
     Config rawConfig = toConfig(meta);
     LOGGER.debug("storage of {} config: {}", meta, rawConfig);
     FileSystemConfig fileSystemConfig = FileSystemConfig.of(rawConfig);
+
     LOGGER.debug("storage of {} will be initialized with {}", meta, fileSystemConfig);
     List<AbstractConfig.ValidationProblem> problems = fileSystemConfig.validate();
     if (!problems.isEmpty()) {
@@ -137,27 +139,32 @@ public class FileSystemStorage implements IStorage {
         meta.getExtraParams().get("dir"),
         FileSystemConfig.Fields.data,
         StorageConfig.Fields.root);
-    Configs.put(
-        reshaped,
-        meta.getExtraParams().get("dummy_dir"),
-        FileSystemConfig.Fields.dummy,
-        StorageConfig.Fields.root);
-    Configs.put(
-        reshaped,
-        meta.getExtraParams().get("embedded_prefix"),
-        FileSystemConfig.Fields.dummy,
-        StorageConfig.Fields.config,
-        FileTreeConfig.Fields.prefix);
+//    Configs.put(
+//        reshaped,
+//        meta.getExtraParams().get("dummy_dir"),
+//        FileSystemConfig.Fields.dummy,
+//        StorageConfig.Fields.root);
+//    Configs.put(
+//        reshaped,
+//        meta.getExtraParams().get("embedded_prefix"),
+//        FileSystemConfig.Fields.dummy,
+//        StorageConfig.Fields.config,
+//        FileTreeConfig.Fields.prefix);
     Configs.putIfAbsent(
         reshaped,
         FileSystemConfig.DEFAULT_DATA_STRUCT,
         FileSystemConfig.Fields.data,
         StorageConfig.Fields.struct);
-    Configs.putIfAbsent(
-        reshaped,
-        FileSystemConfig.DEFAULT_DUMMY_STRUCT,
-        FileSystemConfig.Fields.dummy,
-        StorageConfig.Fields.struct);
+//    Configs.putIfAbsent(
+//        reshaped,
+//        FileSystemConfig.DEFAULT_DUMMY_STRUCT,
+//        FileSystemConfig.Fields.dummy,
+//        StorageConfig.Fields.struct);
+    String dummyFileString = meta.getExtraParams().get(INIT_INFO_DUMMY_FILE_DIR);
+    String dummyParquetString = meta.getExtraParams().get(INIT_INFO_DUMMY_PARQUET_DIR);
+
+
+
 
     Config config = ConfigFactory.parseMap(reshaped, "storage engine initialization parameters");
 
@@ -172,6 +179,7 @@ public class FileSystemStorage implements IStorage {
 
     return config;
   }
+
 
   @Override
   public TaskExecuteResult executeProject(Project project, DataArea dataArea) {

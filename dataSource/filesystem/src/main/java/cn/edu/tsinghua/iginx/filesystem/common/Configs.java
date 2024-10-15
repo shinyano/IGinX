@@ -37,4 +37,10 @@ public class Configs {
     String joinedPath = String.join(".", path);
     return map.putIfAbsent(joinedPath, value);
   }
+
+  public static Object putIfAbsent(Map<String, Object> map, Object value, String... path) {
+    String joinedPath = String.join(".", path);
+    return map.putIfAbsent(joinedPath, value);
+  }
+
 }

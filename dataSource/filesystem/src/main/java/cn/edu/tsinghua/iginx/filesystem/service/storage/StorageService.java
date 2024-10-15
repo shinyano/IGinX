@@ -19,6 +19,7 @@ package cn.edu.tsinghua.iginx.filesystem.service.storage;
 
 import cn.edu.tsinghua.iginx.engine.shared.data.read.RowStream;
 import cn.edu.tsinghua.iginx.engine.shared.data.write.DataView;
+import cn.edu.tsinghua.iginx.filesystem.common.Configs;
 import cn.edu.tsinghua.iginx.filesystem.common.DataUnits;
 import cn.edu.tsinghua.iginx.filesystem.common.FileSystemException;
 import cn.edu.tsinghua.iginx.filesystem.service.Service;
@@ -37,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,35 +49,41 @@ public class StorageService implements Service {
   private static final String IGINX_DATA_PREFIX = "iginx_";
 
   private final StorageConfig dataConfig;
-  private final StorageConfig dummyConfig;
+  private static DummyConfigs dummyConfigs;
+
+  // <prefix, <path ...>>
+  private static Map<String, List<String>> dummyPrefixMap;
 
   private final FileStructure dataStructure;
-  private final FileStructure dummyStructure;
+  private static Map<String, FileStructure> dummyStructures;
 
   private final Closeable dataShared;
-  private final Closeable dummyShared;
+  private static Map<String, Closeable> dummySharedMap;
 
   @GuardedBy("this")
   private final ConcurrentHashMap<DataUnit, FileManager> managers = new ConcurrentHashMap<>();
 
   private volatile boolean closed = false;
 
-  public StorageService(@Nullable StorageConfig dataConfig, @Nullable StorageConfig dummyConfig)
+  public StorageService(@Nullable StorageConfig dataConfig, @Nullable DummyConfigs dummyConfigs)
       throws FileSystemException {
     this.dataConfig = dataConfig;
-    this.dummyConfig = dummyConfig;
+    this.dummyConfigs = dummyConfigs;
+    if (dummyConfigs != null) {
+      this.dummyPrefixMap = dummyConfigs.prefixMap;
+    }
 
     LOGGER.debug("dataConfig: {}", dataConfig);
-    LOGGER.debug("dummyConfig: {}", dummyConfig);
+    LOGGER.debug("dummyConfigs: {}", dummyConfigs);
 
     this.dataStructure = getFileStructure(dataConfig);
-    this.dummyStructure = getFileStructure(dummyConfig);
+    this.dummyStructures = getFileStructures(dummyConfigs);
 
     LOGGER.debug("dataStructure: {}", dataStructure);
-    LOGGER.debug("dummyStructure: {}", dummyStructure);
+    LOGGER.debug("dummyStructure: {}", dummyStructures);
 
     this.dataShared = getShared(dataConfig, dataStructure);
-    this.dummyShared = getShared(dummyConfig, dummyStructure);
+    this.dummySharedMap = getSharedMap(dummyConfigs, dummyStructures);
 
     try {
       initManager();
@@ -100,6 +108,23 @@ public class StorageService implements Service {
   }
 
   @Nullable
+  private static Map<String, FileStructure> getFileStructures(@Nullable DummyConfigs dummyConfigs)
+          throws FileSystemException{
+    if (dummyConfigs == null) {
+      return null;
+    }
+    Map<String, StorageConfig> map = dummyConfigs.dummyConfigMap;
+    if (map == null || map.isEmpty()) {
+      return null;
+    }
+    Map<String, FileStructure> res = new HashMap<>();
+    for (Map.Entry<String, StorageConfig> entry : map.entrySet()) {
+      res.put(entry.getKey(), getFileStructure(entry.getValue()));
+    }
+    return res;
+  }
+
+  @Nullable
   private static Closeable getShared(@Nullable StorageConfig config, FileStructure structure)
       throws FileSystemException {
     if (config == null) {
@@ -113,6 +138,27 @@ public class StorageService implements Service {
     }
   }
 
+  @Nullable
+  private static Map<String, Closeable> getSharedMap(
+          @Nullable DummyConfigs dummyConfigs,
+          @Nullable Map<String, FileStructure> dummyStructures) throws FileSystemException {
+    if (dummyConfigs == null) {
+      return null;
+    }
+    Map<String, StorageConfig> map = dummyConfigs.dummyConfigMap;
+    if (map == null || map.isEmpty()) {
+      return null;
+    }
+    if (dummyStructures == null || dummyStructures.isEmpty()) {
+      return null;
+    }
+    Map<String, Closeable> res = new HashMap<>();
+    for (String key : map.keySet()) {
+      res.put(key, getShared(map.get(key), dummyStructures.get(key)));
+    }
+    return res;
+  }
+
   private void initManager() throws IOException {
     if (dataConfig != null) {
       for (String unitName : getUnitsIn(Paths.get(dataConfig.getRoot()))) {
@@ -120,19 +166,23 @@ public class StorageService implements Service {
       }
     }
 
-    if (dummyConfig != null) {
-      if (dummyStructure.supportWrite()) {
-        FileManager mergedDummyManager = new UnitsMerger(this::getNamedDummyUnits);
-        managers.put(DataUnits.of(true, null), mergedDummyManager);
-      } else {
-        getOrCreateManager(DataUnits.of(true, null));
+    if (dummyStructures != null) {
+      for (Map.Entry<String, FileStructure> entry : dummyStructures.entrySet()) {
+        if (entry.getValue().supportWrite()) {
+          FileManager mergedDummyManager = new UnitsMerger(this::getNamedDummyUnits);
+          managers.put(DataUnits.of(true, null, entry.getKey()), mergedDummyManager);
+        } else {
+          getOrCreateManager(DataUnits.of(true, null, entry.getKey()));
+        }
       }
     }
   }
 
   private TreeMap<DataUnit, FileManager> getNamedDummyUnits() throws IOException {
-    for (String unitName : getUnitsIn(Paths.get(dummyConfig.getRoot()))) {
-      getOrCreateManager(DataUnits.of(true, unitName));
+    for (StorageConfig dummyConfig : dummyConfigs.getConfigs()) {
+      for (String unitName : getUnitsIn(Paths.get(dummyConfig.getRoot()))) {
+        getOrCreateManager(DataUnits.of(true, unitName));
+      }
     }
     TreeMap<DataUnit, FileManager> dummyManagers =
         new TreeMap<>(Comparator.comparing(DataUnit::getName));

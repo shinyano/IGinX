@@ -19,6 +19,7 @@ package cn.edu.tsinghua.iginx.filesystem.common;
 
 import cn.edu.tsinghua.iginx.filesystem.thrift.DataUnit;
 import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 
 public class DataUnits {
 
@@ -27,6 +28,13 @@ public class DataUnits {
   public static DataUnit of(boolean dummy, @Nullable String name) {
     DataUnit unit = new DataUnit(dummy);
     unit.setName(name);
+    return unit;
+  }
+
+  public static DataUnit of(boolean dummy, @Nullable String name, String dummyPath) {
+    DataUnit unit = new DataUnit(dummy);
+    unit.setName(name);
+    unit.setDummyPath(dummyPath);
     return unit;
   }
 }
