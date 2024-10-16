@@ -15,7 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+<<<<<<<< HEAD:core/src/main/java/cn/edu/tsinghua/iginx/engine/physical/memory/execute/compute/scalar/expression/CallNode.java
 package cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.scalar.expression;
+========
+package cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.function.expression;
+>>>>>>>> 70c4ce540 (binary & unary expression implementation):core/src/main/java/cn/edu/tsinghua/iginx/engine/physical/memory/execute/compute/function/expression/CallNode.java
 
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.scalar.ScalarFunction;
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.util.exception.ComputeException;
