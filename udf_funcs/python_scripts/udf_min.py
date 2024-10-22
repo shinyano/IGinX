@@ -15,12 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
+
+import time
 class UDFMin:
     def __init__(self):
         pass
 
     def transform(self, data, args, kvargs):
+        start = time.perf_counter()
         res = self.buildHeader(data)
 
         minRow = []
@@ -35,6 +37,8 @@ class UDFMin:
                         min = num
             minRow.append(min)
         res.append(minRow)
+        end = time.perf_counter()
+        print(f"[PYTHON] compute took{(end - start)*1000}ms")
         return res
 
     def buildHeader(self, data):
