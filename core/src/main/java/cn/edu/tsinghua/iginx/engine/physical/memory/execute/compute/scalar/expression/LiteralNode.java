@@ -15,11 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-<<<<<<<< HEAD:core/src/main/java/cn/edu/tsinghua/iginx/engine/physical/memory/execute/compute/scalar/expression/LiteralNode.java
 package cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.scalar.expression;
-========
-package cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.function.expression;
->>>>>>>> 70c4ce540 (binary & unary expression implementation):core/src/main/java/cn/edu/tsinghua/iginx/engine/physical/memory/execute/compute/function/expression/LiteralNode.java
 
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.util.exception.ComputeException;
 import cn.edu.tsinghua.iginx.engine.shared.data.arrow.ConstantVectors;
