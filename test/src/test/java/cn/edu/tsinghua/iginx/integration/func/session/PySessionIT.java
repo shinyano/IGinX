@@ -66,6 +66,7 @@ public class PySessionIT {
 
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
   private static final String pythonCMD = config.getPythonCMD();
+  private static String pythonPaths = config.getPythonPaths();
 
   private static boolean isAbleToDelete = true;
   private static PythonInterpreter interpreter;
@@ -74,8 +75,13 @@ public class PySessionIT {
     ConfLoader conf = new ConfLoader(Controller.CONFIG_FILE);
     DBConf dbConf = conf.loadDBConf(conf.getStorageType());
     isAbleToDelete = dbConf.getEnumValue(DBConf.DBConfType.isAbleToDelete);
+    if (pythonPaths == null || pythonPaths.isEmpty()) {
+      pythonPaths = PATH;
+    } else {
+      pythonPaths = PATH + File.pathSeparator + pythonPaths;
+    }
     PythonInterpreterConfig config =
-        PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).addPythonPaths(PATH).build();
+        PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).addPythonPaths(pythonPaths).build();
     interpreter = new PythonInterpreter(config);
     interpreter.exec("import tests");
     interpreter.exec("t = tests.Tests()");

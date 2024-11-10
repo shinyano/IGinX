@@ -77,7 +77,16 @@ public class FunctionManager {
   private static final String PATH =
       String.join(File.separator, config.getDefaultUDFDir(), "python_scripts");
 
+
+  private static final String pythonCMD = config.getPythonCMD();
+  private static String pythonPaths = config.getPythonPaths();
+
   private FunctionManager() {
+    if (pythonPaths == null || pythonPaths.isEmpty()) {
+      pythonPaths = PATH;
+    } else {
+      pythonPaths = PATH + File.pathSeparator + pythonPaths;
+    }
     this.functions = new HashMap<>();
     this.initSystemFunctions();
     if (config.isNeedInitBasicUDFFunctions()) {
@@ -195,9 +204,8 @@ public class FunctionManager {
           String.format("UDF %s not registered in node ip=%s", identifier, config.getIp()));
     }
 
-    String pythonCMD = config.getPythonCMD();
     PythonInterpreterConfig config =
-        PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).addPythonPaths(PATH).build();
+        PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).addPythonPaths(pythonPaths).build();
 
     String fileName = taskMeta.getFileName();
     String moduleName;

@@ -166,6 +166,8 @@ public class Config {
 
   private String pythonCMD = "python3";
 
+  private String pythonPaths = "";
+
   private int transformTaskThreadPoolSize = 10;
 
   private int transformMaxRetryTimes = 3;
@@ -775,6 +777,14 @@ public class Config {
 
   public void setPythonCMD(String pythonCMD) {
     this.pythonCMD = pythonCMD;
+  }
+
+  public String getPythonPaths() {
+    return pythonPaths;
+  }
+
+  public void setPythonPaths(String pythonPaths) {
+    this.pythonPaths = pythonPaths;
   }
 
   public int getTransformTaskThreadPoolSize() {
