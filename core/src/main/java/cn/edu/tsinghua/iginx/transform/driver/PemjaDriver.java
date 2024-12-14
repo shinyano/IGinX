@@ -20,6 +20,7 @@ package cn.edu.tsinghua.iginx.transform.driver;
 
 import cn.edu.tsinghua.iginx.conf.Config;
 import cn.edu.tsinghua.iginx.conf.ConfigDescriptor;
+import cn.edu.tsinghua.iginx.engine.shared.function.manager.ThreadInterpreterManager;
 import cn.edu.tsinghua.iginx.metadata.DefaultMetaManager;
 import cn.edu.tsinghua.iginx.metadata.IMetaManager;
 import cn.edu.tsinghua.iginx.metadata.entity.TransformTaskMeta;
@@ -66,11 +67,7 @@ public class PemjaDriver {
           String.format("UDF %s not registered in node ip=%s", identifier, config.getIp()));
     }
 
-    String pythonCMD = config.getPythonCMD();
-    PythonInterpreterConfig config =
-        PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).addPythonPaths(PATH).build();
-
-    PythonInterpreter interpreter = new PythonInterpreter(config);
+    PythonInterpreter interpreter = ThreadInterpreterManager.getInterpreter();
     String fileName = taskMeta.getFileName();
     String moduleName = fileName.substring(0, fileName.indexOf(PY_SUFFIX));
     String className = taskMeta.getClassName();

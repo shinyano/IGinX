@@ -23,18 +23,9 @@ import cn.edu.tsinghua.iginx.conf.Config;
 import cn.edu.tsinghua.iginx.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iginx.engine.shared.function.Function;
 import cn.edu.tsinghua.iginx.engine.shared.function.FunctionUtils;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.ArithmeticExpr;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.Avg;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.Count;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.First;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.FirstValue;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.Last;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.LastValue;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.Max;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.Min;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.Ratio;
-import cn.edu.tsinghua.iginx.engine.shared.function.system.Sum;
+import cn.edu.tsinghua.iginx.engine.shared.function.system.*;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.python.PyUDAF;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.python.PyUDF;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.python.PyUDSF;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.python.PyUDTF;
 import cn.edu.tsinghua.iginx.metadata.DefaultMetaManager;
@@ -73,12 +64,27 @@ public class FunctionManager {
   private static final String PATH =
       String.join(File.separator, config.getDefaultUDFDir(), "python_scripts");
 
+  private final PythonInterpreterConfig INTERPRETER_CONFIG;
+
+  private final PythonInterpreter interpreter;
+
+  private static final String PythonCMD = "python";
+
   private FunctionManager() {
     this.functions = new HashMap<>();
+    this.INTERPRETER_CONFIG =
+        PythonInterpreterConfig.newBuilder().setPythonExec(PythonCMD).addPythonPaths(PATH).build();
+    // 这是主线程的interpreter，用于删除UDF，UDF运行时使用线程池
+    this.interpreter = new PythonInterpreter(getConfig());
+    ThreadInterpreterManager.setInterpreter(interpreter);
     this.initSystemFunctions();
     if (config.isNeedInitBasicUDFFunctions()) {
       this.initBasicUDFFunctions();
     }
+  }
+
+  public PythonInterpreterConfig getConfig() {
+    return INTERPRETER_CONFIG;
   }
 
   public static FunctionManager getInstance() {
@@ -172,6 +178,14 @@ public class FunctionManager {
   }
 
   public void removeFunction(String identifier) {
+    if (functions.containsKey(identifier)) {
+      PyUDF function = (PyUDF) functions.get(identifier);
+      try {
+        function.close(identifier, interpreter);
+      } catch (Exception e) {
+        LOGGER.error("Failed to remove UDF {}.", identifier, e);
+      }
+    }
     functions.remove(identifier);
   }
 
@@ -186,10 +200,6 @@ public class FunctionManager {
           String.format("UDF %s not registered in node ip=%s", identifier, config.getIp()));
     }
 
-    String pythonCMD = config.getPythonCMD();
-    PythonInterpreterConfig config =
-        PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).addPythonPaths(PATH).build();
-
     String fileName = taskMeta.getFileName();
     String moduleName;
     String className = taskMeta.getClassName();
@@ -203,31 +213,19 @@ public class FunctionManager {
       className = className.substring(className.lastIndexOf(".") + 1);
     }
 
-    // init the python udf
-    BlockingQueue<PythonInterpreter> queue = new LinkedBlockingQueue<>();
-    for (int i = 0; i < INTERPRETER_NUM; i++) {
-      PythonInterpreter interpreter = new PythonInterpreter(config);
-      interpreter.exec(String.format("import %s", moduleName));
-      interpreter.exec(String.format("t = %s.%s()", moduleName, className));
-      queue.add(interpreter);
-    }
-
     if (taskMeta.getType().equals(UDFType.UDAF)) {
-      PyUDAF udaf = new PyUDAF(queue, identifier);
+      PyUDAF udaf = new PyUDAF(identifier, moduleName, className);
       functions.put(identifier, udaf);
       return udaf;
     } else if (taskMeta.getType().equals(UDFType.UDTF)) {
-      PyUDTF udtf = new PyUDTF(queue, identifier);
+      PyUDTF udtf = new PyUDTF(identifier, moduleName, className);
       functions.put(identifier, udtf);
       return udtf;
     } else if (taskMeta.getType().equals(UDFType.UDSF)) {
-      PyUDSF udsf = new PyUDSF(queue, identifier);
+      PyUDSF udsf = new PyUDSF(identifier, moduleName, className);
       functions.put(identifier, udsf);
       return udsf;
     } else {
-      while (!queue.isEmpty()) {
-        queue.poll().close();
-      }
       throw new IllegalArgumentException(
           String.format("UDF %s registered in type %s", identifier, taskMeta.getType()));
     }
@@ -238,10 +236,14 @@ public class FunctionManager {
     String reqFilePath = String.join(File.separator, PATH, rootPath, "requirements.txt");
     File file = new File(reqFilePath);
     if (file.exists()) {
-      runCommand(config.getPythonCMD(), "-m", "pip", "install", "-r", reqFilePath);
+      runCommand(PythonCMD, "-m", "pip", "install", "-r", reqFilePath);
     } else {
       LOGGER.warn("No requirement document provided for python module {}.", rootPath);
     }
+  }
+
+  public PythonInterpreter getInterpreter() {
+    return interpreter;
   }
 
   public boolean hasFunction(String identifier) {

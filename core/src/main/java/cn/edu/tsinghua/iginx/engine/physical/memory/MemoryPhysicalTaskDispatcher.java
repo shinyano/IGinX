@@ -44,7 +44,7 @@ public class MemoryPhysicalTaskDispatcher {
   private MemoryPhysicalTaskDispatcher() {
     taskQueue = new MemoryPhysicalTaskQueueImpl();
     taskExecuteThreadPool =
-        Executors.newFixedThreadPool(
+        new MemoryTaskThreadPoolExecutor(
             ConfigDescriptor.getInstance().getConfig().getMemoryTaskThreadPoolSize());
     taskDispatcher = Executors.newSingleThreadExecutor();
   }
