@@ -15,26 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
-import pandas as pd
+
+import torch
 import numpy as np
 
-
-class RowSumTransformer:
+class TensorTest():
+    """
+    测试用的UDF，注意调用时data只能有一列
+    """
     def __init__(self):
         pass
 
-    def transform(self, rows):
-        df = pd.DataFrame(rows[1:], columns=rows[0])
-        ret = np.zeros((df.shape[0], 2), dtype=np.integer)
-        for index, row in df.iterrows():
-            row_sum = 0
-            for num in row[1:]:
-                row_sum += num
-            ret[index][0] = row.iloc[0]
-            ret[index][1] = row_sum
-
-        df = pd.DataFrame(ret, columns=['key', 'sum'])
-        ret = df.values.tolist()
-        ret.insert(0, df.keys().values.tolist())
-        return ret
+    def transform(self, data, args, kvargs):
+        some_zeros = np.zeros(40)
+        tensor = torch.tensor(some_zeros)
+        res = [[f"tensorTest({data[0][1]})"], ["DOUBLE"], [tensor[0].item()]]
+        return res
