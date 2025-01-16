@@ -1,37 +1,45 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.transform.pojo;
 
+import cn.edu.tsinghua.iginx.notice.EmailNotifier;
 import cn.edu.tsinghua.iginx.thrift.*;
 import cn.edu.tsinghua.iginx.transform.api.Stage;
 import cn.edu.tsinghua.iginx.transform.data.*;
+import cn.edu.tsinghua.iginx.utils.EmailFromYAML;
 import cn.edu.tsinghua.iginx.utils.JobFromYAML;
 import cn.edu.tsinghua.iginx.utils.TaskFromYAML;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Data;
+import org.apache.commons.mail.EmailException;
 import org.quartz.Trigger;
 import org.quartz.TriggerBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Data
 public class Job {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Job.class);
 
   private long jobId;
 
@@ -49,6 +57,7 @@ public class Job {
 
   private final List<Task> taskList;
   private final List<Stage> stageList;
+  private EmailNotifier notifier = null;
 
   private boolean scheduled = false;
   private String scheduleStr = null;
@@ -172,6 +181,41 @@ public class Job {
       scheduleStr = jobFromYAML.getSchedule();
     } else {
       trigger = TriggerBuilder.newTrigger().startNow().build();
+    }
+
+    if (jobFromYAML.getNotification() != null) {
+      EmailFromYAML emailFromYAML = jobFromYAML.getNotification().getEmail();
+      if (emailFromYAML != null) {
+        notifier =
+            new EmailNotifier(
+                emailFromYAML.getHostName(),
+                emailFromYAML.getSmtpPort(),
+                emailFromYAML.getUserName(),
+                emailFromYAML.getPassword(),
+                emailFromYAML.getFrom(),
+                emailFromYAML.getTo());
+      }
+    }
+  }
+
+  public void setState(JobState state) {
+    this.state = state;
+    switch (state) {
+      case JOB_FINISHED:
+      case JOB_FAILED:
+        try {
+          sendEmail();
+        } catch (Exception e) {
+          LOGGER.error(
+              "Fail to send email notification for job {} to {}, because", jobId, notifier, e);
+        }
+    }
+  }
+
+  public void sendEmail() throws EmailException {
+    EmailNotifier emailNotifier = getNotifier();
+    if (emailNotifier != null) {
+      emailNotifier.send(this);
     }
   }
 

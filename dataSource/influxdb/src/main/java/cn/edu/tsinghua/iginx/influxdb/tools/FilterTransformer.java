@@ -1,32 +1,31 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.influxdb.tools;
 
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.AndFilter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.Filter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.KeyFilter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.NotFilter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.Op;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.OrFilter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.PathFilter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.ValueFilter;
+import cn.edu.tsinghua.iginx.engine.shared.data.Value;
+import cn.edu.tsinghua.iginx.engine.shared.operator.filter.*;
 import cn.edu.tsinghua.iginx.influxdb.query.entity.InfluxDBSchema;
 import cn.edu.tsinghua.iginx.thrift.DataType;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class FilterTransformer {
 
@@ -47,6 +46,8 @@ public class FilterTransformer {
         return toString((KeyFilter) filter);
       case Path:
         return toString((PathFilter) filter);
+      case In:
+        return toString((InFilter) filter);
       default:
         return "";
     }
@@ -69,7 +70,7 @@ public class FilterTransformer {
   }
 
   private static String toString(NotFilter filter) {
-    return "not " + filter.toString();
+    return "not " + toString(filter.getChild());
   }
 
   private static String toString(KeyFilter filter) {
@@ -84,10 +85,7 @@ public class FilterTransformer {
     // path 获取的是 table.field，需要删掉.前面的table名。
     InfluxDBSchema schema = new InfluxDBSchema(filter.getPath());
     String path = schema.getFieldString();
-    String value =
-        filter.getValue().getDataType() == DataType.BINARY
-            ? "\"" + filter.getValue().getBinaryVAsString() + "\""
-            : filter.getValue().getValue().toString();
+    String value = valueToString(filter.getValue());
 
     switch (filter.getOp()) {
       case LIKE:
@@ -132,5 +130,26 @@ public class FilterTransformer {
         + " r[\""
         + pathB
         + "\"]";
+  }
+
+  private static String toString(InFilter filter) {
+    Set<Value> valueSet = filter.getValues();
+    List<Filter> filters = new ArrayList<>();
+
+    for (Value value : valueSet) {
+      filters.add(new ValueFilter(filter.getPath(), Op.E, value));
+    }
+    if (filter.getInOp().isNotOp()) {
+      return toString(new NotFilter(new OrFilter(filters)));
+    }
+
+    return toString(new OrFilter(filters));
+  }
+
+  private static String valueToString(Value value) {
+    if (value.getDataType() == DataType.BINARY) {
+      return "\"" + value.getBinaryVAsString() + "\"";
+    }
+    return value.toString();
   }
 }

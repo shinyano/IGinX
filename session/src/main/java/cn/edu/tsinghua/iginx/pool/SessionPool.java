@@ -1,21 +1,22 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.pool;
 
 import static cn.edu.tsinghua.iginx.constant.GlobalConstant.KEY_MAX_VAL;
@@ -483,17 +484,17 @@ public class SessionPool {
     }
   }
 
-  public void removeHistoryDataSource(List<RemovedStorageEngineInfo> removedStorageEngineList)
+  public void removeStorageEngine(List<RemovedStorageEngineInfo> removedStorageEngineList)
       throws SessionException {
     for (int i = 0; i < RETRY; i++) {
       Session session = getSession();
       try {
-        session.removeHistoryDataSource(removedStorageEngineList);
+        session.removeStorageEngine(removedStorageEngineList);
         putBack(session);
         return;
       } catch (SessionException e) {
         // TException means the connection is broken, remove it and get a new one.
-        LOGGER.warn("removeHistoryDataSource failed", e);
+        LOGGER.warn("remove storage engine failed", e);
         cleanSessionAndMayThrowConnectionException(session, i, e);
       } catch (RuntimeException e) {
         putBack(session);
@@ -1280,8 +1281,8 @@ public class SessionPool {
     return ret;
   }
 
-  public List<Long> showEligibleJob(JobState jobState) throws SessionException {
-    List<Long> ret = null;
+  public Map<JobState, List<Long>> showEligibleJob(JobState jobState) throws SessionException {
+    Map<JobState, List<Long>> ret = null;
     for (int i = 0; i < RETRY; i++) {
       Session session = getSession();
       try {

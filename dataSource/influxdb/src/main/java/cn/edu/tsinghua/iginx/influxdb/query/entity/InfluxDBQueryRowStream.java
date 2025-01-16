@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.influxdb.query.entity;
 
@@ -50,6 +52,8 @@ public class InfluxDBQueryRowStream implements RowStream {
 
   private final List<FluxTable> tables;
 
+  private final Map<FluxTable, String> table2Bucket; // 与tables一一对应
+
   private final int[] indices;
 
   private int hasMoreRecords = 0;
@@ -67,13 +71,23 @@ public class InfluxDBQueryRowStream implements RowStream {
   private Row cachedRow = null;
 
   public InfluxDBQueryRowStream(List<FluxTable> tables, Project project, Filter filter) {
+    this(tables, project, filter, new ArrayList<>());
+  }
+
+  public InfluxDBQueryRowStream(
+      List<FluxTable> tables, Project project, Filter filter, List<String> bucketsNames) {
     List<Boolean> filterList = new ArrayList<>();
     this.filterByTags = project.getTagFilter() != null;
     this.tables =
         tables.stream()
             .filter(e -> e.getRecords().size() > 0)
             .collect(Collectors.toList()); // 只保留还有数据的二维表
-
+    table2Bucket = new HashMap<>();
+    if (!bucketsNames.isEmpty()) {
+      for (int i = 0; i < tables.size(); i++) {
+        table2Bucket.put(tables.get(i), bucketsNames.get(i));
+      }
+    }
     this.tableFieldIndex = new ArrayList<>();
     List<Field> fields = new ArrayList<>();
     for (FluxTable table : this.tables) {
@@ -90,7 +104,7 @@ public class InfluxDBQueryRowStream implements RowStream {
     this.filter = filter;
   }
 
-  private static boolean isPivotFluxTable(FluxTable table) {
+  public static boolean isPivotFluxTable(FluxTable table) {
     return !(table.getColumns().get(5).getLabel().equals("_value")
         && !table.getColumns().get(5).isGroup()
         && table.getColumns().get(6).getLabel().equals("_field")
@@ -112,6 +126,11 @@ public class InfluxDBQueryRowStream implements RowStream {
               + "."
               + table.getRecords().get(0).getField();
     }
+
+    if (table2Bucket.get(table) != null) {
+      path = table2Bucket.get(table) + "." + path;
+    }
+
     for (int i = 8; i < table.getColumns().size(); i++) {
       String key = table.getColumns().get(i).getLabel();
       String val = (String) table.getRecords().get(0).getValueByKey(key);
@@ -175,6 +194,10 @@ public class InfluxDBQueryRowStream implements RowStream {
                   + table.getColumns().get(i).getLabel();
         }
 
+        if (table2Bucket.get(table) != null) {
+          path = table2Bucket.get(table) + "." + path;
+        }
+
         // 获取dataType
         DataType dataType = fromInfluxDB(table.getColumns().get(i).getDataType());
 
@@ -211,82 +234,83 @@ public class InfluxDBQueryRowStream implements RowStream {
   }
 
   private void cacheOneRow() throws SQLException, PhysicalException {
-    if (this.hasMoreRecords == 0) {
-      cachedRow = null;
-      hasCachedRow = false;
-      return;
-    }
+    while (true) {
+      if (this.hasMoreRecords == 0) {
+        cachedRow = null;
+        hasCachedRow = false;
+        return;
+      }
 
-    long timestamp = Long.MAX_VALUE;
-    for (int i = 0; i < this.tables.size(); i++) {
-      if (filterMap.get(i)) {
-        continue;
+      long timestamp = Long.MAX_VALUE;
+      for (int i = 0; i < this.tables.size(); i++) {
+        if (filterMap.get(i)) {
+          continue;
+        }
+        int index = indices[i];
+        FluxTable table = this.tables.get(i);
+        List<FluxRecord> records = table.getRecords();
+        if (index == records.size()) { // 数据已经消费完毕了
+          continue;
+        }
+        FluxRecord record = records.get(index);
+        timestamp = Math.min(instantToNs(record.getTime()), timestamp);
       }
-      int index = indices[i];
-      FluxTable table = this.tables.get(i);
-      List<FluxRecord> records = table.getRecords();
-      if (index == records.size()) { // 数据已经消费完毕了
-        continue;
+      if (timestamp == Long.MAX_VALUE) {
+        cachedRow = null;
+        hasCachedRow = false;
+        return;
       }
-      FluxRecord record = records.get(index);
-      timestamp = Math.min(instantToNs(record.getTime()), timestamp);
-    }
-    if (timestamp == Long.MAX_VALUE) {
-      cachedRow = null;
-      hasCachedRow = false;
-      return;
-    }
-    Object[] values = new Object[this.header.getFieldSize()];
-    for (int i = 0; i < this.tables.size(); i++) {
-      if (filterMap.get(i)) {
-        continue;
-      }
-      int index = indices[i];
-      FluxTable table = this.tables.get(i);
-      List<FluxRecord> records = table.getRecords();
-      if (index == records.size()) { // 数据已经消费完毕了
-        continue;
-      }
-      FluxRecord record = records.get(index);
+      Object[] values = new Object[this.header.getFieldSize()];
+      for (int i = 0; i < this.tables.size(); i++) {
+        if (filterMap.get(i)) {
+          continue;
+        }
+        int index = indices[i];
+        FluxTable table = this.tables.get(i);
+        List<FluxRecord> records = table.getRecords();
+        if (index == records.size()) { // 数据已经消费完毕了
+          continue;
+        }
+        FluxRecord record = records.get(index);
 
-      if (instantToNs(record.getTime()) == timestamp) {
-        if (!isPivotFluxTable(this.tables.get(i))) {
-          DataType dataType = header.getField(i).getType();
-          Object value = record.getValue();
-          if (dataType == DataType.BINARY) {
-            value = ((String) value).getBytes();
-          }
-          values[this.tableFieldIndex.get(i)] = value;
-        } else {
-          int tableFieldIndex = this.tableFieldIndex.get(i);
-          for (int j = 6; j < table.getColumns().size(); j++) {
-            // 仅取column，column的isGroup为false，tag的isGroup为true。
-            if (!table.getColumns().get(j).isGroup()) {
-              DataType dataType = fromInfluxDB(table.getColumns().get(j).getDataType());
-              Object value = record.getValueByIndex(j);
-              if (value != null && dataType == DataType.BINARY) {
-                value = ((String) value).getBytes();
+        if (instantToNs(record.getTime()) == timestamp) {
+          if (!isPivotFluxTable(this.tables.get(i))) {
+            DataType dataType = header.getField(i).getType();
+            Object value = record.getValue();
+            if (dataType == DataType.BINARY) {
+              value = ((String) value).getBytes();
+            }
+            values[this.tableFieldIndex.get(i)] = value;
+          } else {
+            int tableFieldIndex = this.tableFieldIndex.get(i);
+            for (int j = 6; j < table.getColumns().size(); j++) {
+              // 仅取column，column的isGroup为false，tag的isGroup为true。
+              if (!table.getColumns().get(j).isGroup()) {
+                DataType dataType = fromInfluxDB(table.getColumns().get(j).getDataType());
+                Object value = record.getValueByIndex(j);
+                if (value != null && dataType == DataType.BINARY) {
+                  value = ((String) value).getBytes();
+                }
+                values[tableFieldIndex] = value;
+                tableFieldIndex++;
               }
-              values[tableFieldIndex] = value;
-              tableFieldIndex++;
             }
           }
-        }
-        indices[i]++;
-        if (indices[i] == records.size()) {
-          hasMoreRecords--;
+          indices[i]++;
+          if (indices[i] == records.size()) {
+            hasMoreRecords--;
+          }
         }
       }
-    }
-    Row row = new Row(header, timestamp, values);
-    // 这里filter如果是null, 则不过滤，直接返回。
-    if (filter == null || FilterUtils.validate(filter, row)) {
-      cachedRow = row;
-      hasCachedRow = true;
-    } else {
+      Row row = new Row(header, timestamp, values);
+      // 这里filter如果是null, 则不过滤，直接返回。
+      if (filter == null || FilterUtils.validate(filter, row)) {
+        cachedRow = row;
+        hasCachedRow = true;
+        return;
+      }
       // 如果不满足过滤条件，继续缓存下一行，直到满足过滤条件。
-      // 如果一直不满足，则会在最后一次调用时，因为hasMoreRecords为0，而返回null。
-      cacheOneRow();
+      // 如果一直不满足，则会在最后一次调用时，因为hasMoreRecords为0，而返回null.
     }
   }
 

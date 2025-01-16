@@ -1,25 +1,26 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.mongodb.dummy;
 
+import cn.edu.tsinghua.iginx.engine.logical.utils.LogicalFilterUtils;
 import cn.edu.tsinghua.iginx.engine.shared.operator.filter.Filter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.FilterType;
 import cn.edu.tsinghua.iginx.engine.shared.operator.filter.PathFilter;
 import cn.edu.tsinghua.iginx.engine.shared.operator.filter.ValueFilter;
 import cn.edu.tsinghua.iginx.mongodb.MongoDBStorage;
@@ -34,7 +35,6 @@ import java.util.Map;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonValue;
-import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,27 +95,25 @@ public class QueryUtils {
     return pathTree.getChildren();
   }
 
-  static Bson getPredicate(Filter filter) {
-    try {
-      Filter removedKey = FilterUtils.tryIgnore(filter, f -> f.getType().equals(FilterType.Key));
-      Filter removedNumberPath =
-          FilterUtils.tryIgnore(
-              removedKey,
-              f -> {
-                switch (f.getType()) {
-                  case Value:
-                    return NameUtils.containNumberNode(((ValueFilter) f).getPath());
-                  case Path:
-                    return NameUtils.containNumberNode(((PathFilter) f).getPathA())
-                        || NameUtils.containNumberNode(((PathFilter) f).getPathB());
-                }
-                return false;
-              });
-      return FilterUtils.toBson(removedNumberPath);
-    } catch (Exception e) {
-      LOGGER.debug("failed to convert filter to Bson", e);
-      return new Document();
-    }
+  public static Bson getPredicate(Filter filter) {
+    Filter removedUnsupportedFilter =
+        LogicalFilterUtils.superSetPushDown(
+            filter,
+            f -> {
+              switch (f.getType()) {
+                case Value:
+                  return NameUtils.containNumberNode(((ValueFilter) f).getPath());
+                case Path:
+                  return NameUtils.containNumberNode(((PathFilter) f).getPathA())
+                      || NameUtils.containNumberNode(((PathFilter) f).getPathB());
+                case Key:
+                case In:
+                case Expr:
+                  return true;
+              }
+              return false;
+            });
+    return FilterUtils.toBson(removedUnsupportedFilter);
   }
 
   static Bson getProjection(PathTree tree) {

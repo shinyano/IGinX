@@ -1,21 +1,22 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.integration.func.rest;
 
 import static cn.edu.tsinghua.iginx.integration.controller.Controller.clearAllData;
@@ -141,18 +142,18 @@ public class RestIT {
     StringBuilder ret = new StringBuilder();
     if (type.equals(TYPE.DELETE_METRIC)) {
       ret.append("curl -XDELETE");
-      ret.append(" http://127.0.0.1:6666/api/v1/metric/{");
+      ret.append(" http://127.0.0.1:7888/api/v1/metric/{");
       ret.append(json);
       ret.append("}");
     } else {
       ret.append("curl -XPOST -H\"Content-Type: application/json\" -d @");
       ret.append(json);
       if (type.equals(TYPE.QUERY)) {
-        ret.append(" http://127.0.0.1:6666/api/v1/datapoints/query");
+        ret.append(" http://127.0.0.1:7888/api/v1/datapoints/query");
       } else if (type.equals(TYPE.INSERT)) {
-        ret.append(" http://127.0.0.1:6666/api/v1/datapoints");
+        ret.append(" http://127.0.0.1:7888/api/v1/datapoints");
       } else if (type.equals(TYPE.DELETE)) {
-        ret.append(" http://127.0.0.1:6666/api/v1/datapoints/delete");
+        ret.append(" http://127.0.0.1:7888/api/v1/datapoints/delete");
       }
     }
     return ret.toString();

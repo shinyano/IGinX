@@ -1,21 +1,22 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.engine;
 
 import static cn.edu.tsinghua.iginx.constant.GlobalConstant.CLEAR_DUMMY_DATA_CAUTION;
@@ -33,6 +34,7 @@ import cn.edu.tsinghua.iginx.engine.physical.PhysicalEngine;
 import cn.edu.tsinghua.iginx.engine.physical.PhysicalEngineImpl;
 import cn.edu.tsinghua.iginx.engine.physical.exception.PhysicalException;
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.Table;
+import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.util.Batch;
 import cn.edu.tsinghua.iginx.engine.physical.task.PhysicalTask;
 import cn.edu.tsinghua.iginx.engine.physical.task.visitor.TaskInfoVisitor;
 import cn.edu.tsinghua.iginx.engine.shared.RequestContext;
@@ -61,6 +63,7 @@ import cn.edu.tsinghua.iginx.thrift.AggregateType;
 import cn.edu.tsinghua.iginx.thrift.DataType;
 import cn.edu.tsinghua.iginx.thrift.Status;
 import cn.edu.tsinghua.iginx.utils.Bitmap;
+import cn.edu.tsinghua.iginx.utils.ByteUtils;
 import cn.edu.tsinghua.iginx.utils.DataTypeInferenceUtils;
 import cn.edu.tsinghua.iginx.utils.DataTypeUtils;
 import cn.edu.tsinghua.iginx.utils.RpcUtils;
@@ -74,6 +77,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.VarBinaryVector;
+import org.apache.arrow.vector.VectorSchemaRoot;
 import org.apache.arrow.vector.ipc.ArrowStreamWriter;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -246,6 +250,16 @@ public class StatementExecutor {
       after(ctx, postExecuteProcessors);
     } catch (ResourceException e) {
       ctx.setResult(new Result(e.getStatus()));
+      if (ctx.isFromSQL()) {
+        ctx.getResult().setSqlType(ctx.getSqlType());
+      }
+    } catch (PhysicalException e) {
+      ctx.setResult(
+          new Result(RpcUtils.status(StatusCode.STATEMENT_EXECUTION_ERROR, e.toString())));
+      LOGGER.debug("statement execution failed: ", e);
+      if (ctx.isFromSQL()) {
+        ctx.getResult().setSqlType(ctx.getSqlType());
+      }
     }
   }
 
@@ -274,6 +288,9 @@ public class StatementExecutor {
 
   public void executeStatement(RequestContext ctx) {
     try {
+      if (ctx.isFromSQL()) {
+        LOGGER.debug("Execute statement: {}", ctx.getSql());
+      }
       Statement statement = ctx.getStatement();
       if (statement instanceof DataStatement) {
         StatementType type = statement.getType();
@@ -313,6 +330,8 @@ public class StatementExecutor {
     } catch (StatementExecutionException | PhysicalException | IOException e) {
       if (e.getCause() != null) {
         LOGGER.error("Execute Error: ", e);
+      } else {
+        LOGGER.debug("statement execution failed: ", e);
       }
       StatusCode statusCode = StatusCode.STATEMENT_EXECUTION_ERROR;
       ctx.setResult(new Result(RpcUtils.status(statusCode, e.getMessage())));
@@ -353,14 +372,11 @@ public class StatementExecutor {
         if (type == StatementType.SELECT) {
           SelectStatement selectStatement = (SelectStatement) ctx.getStatement();
           if (selectStatement.isNeedPhysicalExplain()) {
-            while (true) {
-              try (Batch batch = stream.getNext()) {
-                if (batch == null) {
-                  break; // 确保语句执行完毕
-                }
+            try (BatchStream ignore = stream) {
+              while (stream.hasNext()) {
+                stream.getNext().close();
               }
             }
-            stream.close();
             processExplainPhysicalStatement(ctx);
             return;
           }
@@ -725,17 +741,14 @@ public class StatementExecutor {
     ctx.setStatement(statement);
     process(ctx);
 
-    // TODO: refactor this part
-    throw new UnsupportedOperationException("Not implemented yet");
-    //    Result result = ctx.getResult();
-    //    long pointsNum = 0;
-    //    if (ctx.getResult().getValuesList() != null) {
-    //      Object[] row =
-    //          ByteUtils.getValuesByDataType(result.getValuesList().get(0), result.getDataTypes());
-    //      pointsNum = Arrays.stream(row).mapToLong(e -> (Long) e).sum();
-    //    }
+    long pointsNum = 0;
+    ByteUtils.DataSet dataSet = ByteUtils.getDataFromArrowData(ctx.getResult().getArrowData());
+    if (dataSet.getValues() != null) {
+      Object[] row = dataSet.getValues().get(0).toArray();
+      pointsNum = Arrays.stream(row).mapToLong(e -> (Long) e).sum();
+    }
 
-    //    ctx.getResult().setPointsNum(pointsNum);
+    ctx.getResult().setPointsNum(pointsNum);
   }
 
   private void processDeleteColumns(RequestContext ctx)
@@ -814,13 +827,11 @@ public class StatementExecutor {
 
     List<ByteBuffer> dataList = new ArrayList<>();
     try (BatchStream batchStream = stream) {
-      while (true) {
+      while (batchStream.hasNext()) {
         try (Batch batch = batchStream.getNext()) {
-          if (batch == null) {
-            break;
-          }
-          try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-              ArrowStreamWriter writer = new ArrowStreamWriter(batch.raw(), null, out)) {
+          try (VectorSchemaRoot flattened = batch.flattened(ctx.getAllocator());
+              ByteArrayOutputStream out = new ByteArrayOutputStream();
+              ArrowStreamWriter writer = new ArrowStreamWriter(flattened, null, out)) {
             writer.start();
             writer.writeBatch();
             writer.end();
@@ -857,11 +868,8 @@ public class StatementExecutor {
     List<DataType> types = new ArrayList<>();
 
     try (BatchStream batchStream = stream) {
-      while (true) {
+      while (batchStream.hasNext()) {
         try (Batch batch = batchStream.getNext()) {
-          if (batch == null) {
-            break;
-          }
           int rowCnt = batch.getRowCount();
           List<FieldVector> vectors = batch.getVectors();
           if (vectors.size() != 2) {
@@ -884,12 +892,9 @@ public class StatementExecutor {
     }
 
     Result result = new Result(RpcUtils.SUCCESS);
-    // TODO: refactor this part
-    throw new UnsupportedOperationException("Not implemented yet");
-    //    result.setPaths(paths);
-    //    result.setTagsList(tagsList);
-    //    result.setDataTypes(types);
-    //    ctx.setResult(result);
+    result.setPaths(paths);
+    result.setDataTypes(types);
+    ctx.setResult(result);
   }
 
   private void parseOldTagsFromHeader(Header header, InsertStatement insertStatement)

@@ -1,24 +1,27 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.engine.shared.data.read;
 
 import cn.edu.tsinghua.iginx.engine.physical.exception.PhysicalException;
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.Table;
+import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.util.Batch;
 import cn.edu.tsinghua.iginx.thrift.DataType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,7 +120,7 @@ class RowStreamToBatchStreamWrapperTest {
             Assertions.assertEquals(
                 Math.min(batchSize, scale - batchIndex * batchSize), batch.getRowCount());
             try (org.apache.arrow.vector.table.Table table =
-                new org.apache.arrow.vector.table.Table(batch.raw())) {
+                new org.apache.arrow.vector.table.Table(batch.getData())) {
               org.apache.arrow.vector.table.Row arrowRow = table.immutableRow();
               for (int rowIndex = 0; rowIndex < batch.getRowCount(); rowIndex++) {
                 int globalRowIndex = batchIndex * batchSize + rowIndex;
@@ -160,7 +163,7 @@ class RowStreamToBatchStreamWrapperTest {
             }
           }
         }
-        Assertions.assertNull(batchStream.getNext());
+        Assertions.assertFalse(batchStream.hasNext());
       }
     }
   }

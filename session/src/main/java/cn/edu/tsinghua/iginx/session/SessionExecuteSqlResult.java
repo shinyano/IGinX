@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.session;
 
@@ -40,7 +42,7 @@ public class SessionExecuteSqlResult {
   private List<RegisterTaskInfo> registerTaskInfos;
   private long jobId;
   private JobState jobState;
-  private List<Long> jobIdList;
+  private Map<JobState, List<Long>> jobStateMap;
   private Map<String, String> configs;
   private String loadCsvPath;
   private String UDFModulePath;
@@ -86,11 +88,9 @@ public class SessionExecuteSqlResult {
         this.values = dataSet.getValues();
         break;
       case ShowColumns:
-        // TODO: refactor this part
-        throw new UnsupportedOperationException("Not implemented yet");
-        // this.paths = resp.getPaths();
-        // this.dataTypeList = resp.getDataTypeList();
-        // break;
+        this.paths = resp.getPaths();
+        this.dataTypeList = resp.getDataTypeList();
+        break;
       case ShowClusterInfo:
         this.iginxInfos = resp.getIginxInfos();
         this.storageEngineInfos = resp.getStorageEngineInfos();
@@ -107,7 +107,7 @@ public class SessionExecuteSqlResult {
         this.jobState = resp.getJobState();
         break;
       case ShowEligibleJob:
-        this.jobIdList = resp.getJobIdList();
+        this.jobStateMap = resp.getJobStateMap();
         break;
       case ShowConfig:
         this.configs = resp.getConfigs();
@@ -194,9 +194,9 @@ public class SessionExecuteSqlResult {
       case CountPoints:
         return "Points num: " + pointsNum + "\n";
       case CommitTransformJob:
-        return "job id: " + jobId;
+        return "job id: " + jobId + "\n";
       case ShowJobStatus:
-        return "Job status: " + jobState;
+        return "Job status: " + jobState + "\n";
       default:
         return "No data to print." + "\n";
     }
@@ -214,13 +214,13 @@ public class SessionExecuteSqlResult {
   private List<List<String>> cacheArrowResult(boolean needFormatTime, String timePrecision) {
     // TODO: time format
     List<List<String>> cache = new ArrayList<>();
-    boolean hasKey = keys.length > 0;
+    boolean hasKey = paths.get(0).equals(GlobalConstant.KEY_NAME);
     for (int index = 0; index < values.size(); index++) {
       List<String> rowCache = new ArrayList<>();
       if (hasKey) {
         rowCache.add(String.valueOf(keys[index]));
       }
-      boolean isNull = true;
+      boolean isNull = !values.get(index).isEmpty();
       for (Object o : values.get(index)) {
         String rowValue = FormatUtils.valueToString(o);
         rowCache.add(rowValue);
@@ -269,7 +269,7 @@ public class SessionExecuteSqlResult {
       }
 
       List<Object> rowData = values.get(i);
-      boolean isNull = true; // TODO 该行除系统级时间序列之外全部为空
+      boolean isNull = !rowData.isEmpty();
       for (int j = 0; j < rowData.size(); j++) {
         if (j == annotationPathIndex) {
           continue;
@@ -375,15 +375,19 @@ public class SessionExecuteSqlResult {
       builder.append("Functions info:").append("\n");
       List<List<String>> cache = new ArrayList<>();
       cache.add(
-          new ArrayList<>(Arrays.asList("NAME", "CLASS_NAME", "FILE_NAME", "IP", "UDF_TYPE")));
+          new ArrayList<>(Arrays.asList("NAME", "CLASS_NAME", "FILE_NAME", "IP:PORT", "UDF_TYPE")));
       for (RegisterTaskInfo info : registerTaskInfos) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (IpPortPair p : info.getIpPortPair()) {
+          joiner.add(String.format("%s:%d", p.getIp(), p.getPort()));
+        }
         cache.add(
             new ArrayList<>(
                 Arrays.asList(
                     info.getName(),
                     info.getClassName(),
                     info.getFileName(),
-                    info.getIp(),
+                    joiner.toString(),
                     info.getType().toString())));
       }
       builder.append(FormatUtils.formatResult(cache));
@@ -457,12 +461,15 @@ public class SessionExecuteSqlResult {
   private String buildShowEligibleJobResult() {
     StringBuilder builder = new StringBuilder();
 
-    if (jobIdList != null) {
+    if (jobStateMap != null) {
       builder.append("Transform Id List:").append("\n");
       List<List<String>> cache = new ArrayList<>();
-      cache.add(new ArrayList<>(Collections.singletonList("JobIdList")));
-      for (long jobId : jobIdList) {
-        cache.add(new ArrayList<>(Collections.singletonList(String.valueOf(jobId))));
+      cache.add(new ArrayList<>(Arrays.asList("Job State", "JobIdList")));
+      for (Map.Entry<JobState, List<Long>> entry : jobStateMap.entrySet()) {
+        JobState state = entry.getKey();
+        for (long jobId : entry.getValue()) {
+          cache.add(new ArrayList<>(Arrays.asList(state.toString(), String.valueOf(jobId))));
+        }
       }
       builder.append(FormatUtils.formatResult(cache));
     }
@@ -477,15 +484,19 @@ public class SessionExecuteSqlResult {
 
     if (registerTaskInfos != null && !registerTaskInfos.isEmpty()) {
       resList.add(
-          new ArrayList<>(Arrays.asList("NAME", "CLASS_NAME", "FILE_NAME", "IP", "UDF_TYPE")));
+          new ArrayList<>(Arrays.asList("NAME", "CLASS_NAME", "FILE_NAME", "IP:PORT", "UDF_TYPE")));
       for (RegisterTaskInfo info : registerTaskInfos) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (IpPortPair p : info.getIpPortPair()) {
+          joiner.add(String.format("%s:%d", p.getIp(), p.getPort()));
+        }
         resList.add(
             new ArrayList<>(
                 Arrays.asList(
                     info.getName(),
                     info.getClassName(),
                     info.getFileName(),
-                    info.getIp(),
+                    joiner.toString(),
                     info.getType().toString())));
       }
     }

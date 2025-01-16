@@ -58,7 +58,7 @@ class Tests:
             self.session.add_storage_engine(
                 "127.0.0.1",
                 6670,
-                StorageEngineType.filestore,
+                StorageEngineType.filesystem,
                 {
                     "dummy_dir": f"{os.getcwd()}/pq/dummy",
                     "iginx_port": "6888",
@@ -70,7 +70,7 @@ class Tests:
             cluster_info = self.session.get_cluster_info()
             retStr += str(cluster_info) + "\n"
             # 删除加入的存储引擎
-            self.session.execute_sql('REMOVE HISTORYDATASOURCE  ("127.0.0.1", 6670, "", "");')
+            self.session.execute_sql('REMOVE STORAGEENGINE  ("127.0.0.1", 6670, "", "");')
             # 删除后输出所有存储引擎
             cluster_info = self.session.get_cluster_info()
             retStr += str(cluster_info) + "\n"
@@ -78,7 +78,7 @@ class Tests:
             pq_engine = StorageEngine(
                 "127.0.0.1",
                 6670,
-                StorageEngineType.filestore,
+                StorageEngineType.filesystem,
                 {
                     "dummy_dir": f"{os.getcwd()}/pq/dummy",
                     "iginx_port": "6888",
@@ -89,7 +89,7 @@ class Tests:
             fs_engine = StorageEngine(
                 "127.0.0.1",
                 6671,
-                StorageEngineType.filestore,
+                StorageEngineType.filesystem,
                 {
                     "dummy_dir": f"{os.getcwd()}/fs/dummy",
                     "iginx_port": "6888",
@@ -102,8 +102,8 @@ class Tests:
             cluster_info = self.session.get_cluster_info()
             retStr += str(cluster_info) + "\n"
             # 删除加入的存储引擎
-            self.session.execute_sql('REMOVE HISTORYDATASOURCE  ("127.0.0.1", 6670, "", "");')
-            self.session.execute_sql('REMOVE HISTORYDATASOURCE  ("127.0.0.1", 6671, "", "");')
+            self.session.execute_sql('REMOVE STORAGEENGINE  ("127.0.0.1", 6670, "", "");')
+            self.session.execute_sql('REMOVE STORAGEENGINE  ("127.0.0.1", 6671, "", "");')
             # 删除新建的parquet文件
             os.remove('pq/dummy/example.parquet')
             # 删除新建的文件夹

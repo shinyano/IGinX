@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.influxdb.query.entity;
 
@@ -31,9 +33,30 @@ public class InfluxDBSchema {
   private final Map<String, String> tags;
 
   public InfluxDBSchema(String path, Map<String, String> tags) {
+    this(path, tags, false);
+  }
+
+  public InfluxDBSchema(String path, Map<String, String> tags, boolean isDummy) {
     int index = path.indexOf(".");
-    this.measurement = path.substring(0, index);
-    this.field = path.substring(index + 1);
+    if (isDummy) {
+      String last = path.substring(index + 1);
+      if (last.equals("*")) {
+        this.measurement = "*";
+        this.field = "*";
+      } else {
+        int index2 = path.indexOf(".", index + 1);
+        if (index2 == -1) {
+          this.measurement = path.substring(index + 1);
+          this.field = "";
+        } else {
+          this.measurement = path.substring(index + 1, index2);
+          this.field = path.substring(index2 + 1);
+        }
+      }
+    } else {
+      this.measurement = path.substring(0, index);
+      this.field = path.substring(index + 1);
+    }
 
     if (tags == null) {
       this.tags = Collections.emptyMap();

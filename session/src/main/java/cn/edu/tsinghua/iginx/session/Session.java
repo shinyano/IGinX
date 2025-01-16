@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.session;
 
@@ -1027,33 +1029,25 @@ public class Session {
     executeWithCheck(() -> (ref.resp = client.executeStatement(req)).status);
 
     long queryId = ref.resp.getQueryId();
-    List<String> columns = ref.resp.getColumns();
-    List<DataType> dataTypes = ref.resp.getDataTypeList();
-    QueryDataSetV2 dataSetV2 = ref.resp.getQueryDataSet();
+    ByteUtils.DataSet dataSet = ByteUtils.getDataFromArrowData(ref.resp.getQueryArrowData());
+    //    List<String> columns = dataset.getPaths();
+    //    List<DataType> dataTypes = dataset.getDataTypeList();
+
+    //    QueryDataSetV2 dataSetV2 = ref.resp.getQueryDataSet();
     String warningMessage = ref.resp.getWarningMsg();
     String dir = ref.resp.getExportStreamDir();
     ExportCSV exportCSV = ref.resp.getExportCSV();
 
-    return new QueryDataSet(
-        this,
-        queryId,
-        columns,
-        dataTypes,
-        fetchSize,
-        dataSetV2.valuesList,
-        dataSetV2.bitmapList,
-        warningMessage,
-        dir,
-        exportCSV);
+    return new QueryDataSet(this, queryId, fetchSize, dataSet, warningMessage, dir, exportCSV);
   }
 
-  Pair<QueryDataSetV2, Boolean> fetchResult(long queryId, int fetchSize) throws SessionException {
+  Pair<List<ByteBuffer>, Boolean> fetchResult(long queryId, int fetchSize) throws SessionException {
     FetchResultsReq req = new FetchResultsReq(sessionId, queryId);
     req.setFetchSize(fetchSize);
     Reference<FetchResultsResp> ref = new Reference<>();
     executeWithCheck(() -> (ref.resp = client.fetchResults(req)).status);
 
-    return new Pair<>(ref.resp.getQueryDataSet(), ref.resp.isHasMoreResults());
+    return new Pair<>(ref.resp.getQueryArrowData(), ref.resp.isHasMoreResults());
   }
 
   public Pair<List<String>, Long> executeLoadCSV(String statement, ByteBuffer csvFile)
@@ -1148,11 +1142,13 @@ public class Session {
     return ref.resp.getJobState();
   }
 
-  public List<Long> showEligibleJob(JobState jobState) throws SessionException {
-    ShowEligibleJobReq req = new ShowEligibleJobReq(sessionId, jobState);
+  /** { jobState : [jobId, jobId,...]} */
+  public Map<JobState, List<Long>> showEligibleJob(JobState jobState) throws SessionException {
+    ShowEligibleJobReq req = new ShowEligibleJobReq(sessionId);
+    req.setJobState(jobState);
     Reference<ShowEligibleJobResp> ref = new Reference<>();
     executeWithCheck(() -> (ref.resp = client.showEligibleJob(req)).status);
-    return ref.resp.getJobIdList();
+    return ref.resp.getJobStateMap();
   }
 
   public void cancelTransformJob(long jobId) throws SessionException {
@@ -1170,11 +1166,10 @@ public class Session {
     return new CurveMatchResult(ref.resp.getMatchedKey(), ref.resp.getMatchedPath());
   }
 
-  public void removeHistoryDataSource(List<RemovedStorageEngineInfo> removedStorageEngineList)
+  public void removeStorageEngine(List<RemovedStorageEngineInfo> removedStorageEngineList)
       throws SessionException {
-    RemoveHistoryDataSourceReq req =
-        new RemoveHistoryDataSourceReq(sessionId, removedStorageEngineList);
-    executeWithCheck(() -> client.removeHistoryDataSource(req));
+    RemoveStorageEngineReq req = new RemoveStorageEngineReq(sessionId, removedStorageEngineList);
+    executeWithCheck(() -> client.removeStorageEngine(req));
   }
 
   public String getUsername() {

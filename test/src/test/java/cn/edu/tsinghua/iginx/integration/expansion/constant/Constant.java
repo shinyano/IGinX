@@ -1,21 +1,22 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.integration.expansion.constant;
 
 import cn.edu.tsinghua.iginx.integration.controller.Controller;
@@ -34,11 +35,11 @@ public class Constant {
   public static final String IGINX_DATA_PATH_PREFIX_NAME = "iginx_";
 
   // port
-  public static int oriPort = 6667;
+  public static int oriPort = 6668;
 
-  public static int expPort = 6668;
+  public static int expPort = 6669;
 
-  public static int readOnlyPort = 6669;
+  public static int readOnlyPort = 6670;
 
   public static int oriPortIginx = 6888;
 
@@ -130,7 +131,7 @@ public class Constant {
   // key list
   public static List<Long> INIT_KEYS_LIST = Arrays.asList(1L, (long) Integer.MAX_VALUE);
 
-  // for filestore & influxdb
+  // for filesystem & influxdb
   public static Map<Integer, String> PORT_TO_ROOT =
       new HashMap<Integer, String>() {
         {
@@ -144,9 +145,9 @@ public class Constant {
   public static final Map<Integer, Integer> PORT_TO_RESTPORT =
       new HashMap<Integer, Integer>() {
         {
-          put(oriPort, 6666);
-          put(expPort, 6665);
-          put(readOnlyPort, 6664);
+          put(oriPort, 7888);
+          put(expPort, 7889);
+          put(readOnlyPort, 7890);
         }
       };
 

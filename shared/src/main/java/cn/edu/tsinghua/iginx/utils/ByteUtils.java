@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.utils;
 
@@ -457,7 +459,7 @@ public class ByteUtils {
       case BINARY:
         buffer = ByteBuffer.allocate(4 + ((byte[]) value).length);
         buffer.putInt(((byte[]) value).length);
-        buffer.put(((byte[]) value));
+        buffer.put((byte[]) value);
         break;
       default:
         throw new UnsupportedOperationException(dataType.toString());
@@ -514,7 +516,50 @@ public class ByteUtils {
     }
   }
 
+  public static byte[] getBytesFromValueByDataType(Object value, DataType dataType) {
+    byte[] bytes;
+    switch (dataType) {
+      case BOOLEAN:
+        bytes = new byte[1];
+        bytes[0] = (byte) ((boolean) value ? 0x01 : 0x00);
+        return bytes;
+      case INTEGER:
+        bytes = new byte[4];
+        for (int i = 0; i < 4; i++) {
+          bytes[i] = (byte) (((int) value >>> 8 * i) & 0xff);
+        }
+        return bytes;
+      case LONG:
+        bytes = new byte[8];
+        for (int i = 0; i < 8; i++) {
+          bytes[i] = (byte) (((long) value >>> 8 * i) & 0xff);
+        }
+        return bytes;
+      case FLOAT:
+        int valueInt = Float.floatToIntBits((float) value);
+        bytes = new byte[4];
+        for (int i = 0; i < 4; i++) {
+          bytes[i] = (byte) ((valueInt >>> 8 * i) & 0xff);
+        }
+        return bytes;
+      case DOUBLE:
+        long valueLong = Double.doubleToRawLongBits((double) value);
+        bytes = new byte[8];
+        for (int i = 0; i < 8; i++) {
+          bytes[i] = (byte) ((valueLong >>> 8 * i) & 0xff);
+        }
+        return bytes;
+      case BINARY:
+        return (byte[]) value;
+      default:
+        throw new UnsupportedOperationException(dataType.toString());
+    }
+  }
+
   public static DataSet getDataFromArrowData(List<ByteBuffer> dataList) {
+    if (dataList == null) {
+      return null;
+    }
     List<Long> keys = new ArrayList<>();
     List<String> paths = new ArrayList<>();
     List<DataType> dataTypeList = new ArrayList<>();
@@ -574,6 +619,8 @@ public class ByteUtils {
     private final List<DataType> dataTypeList;
     private final List<Map<String, String>> tagsList;
     private final List<List<Object>> values;
+    private final int rowSize;
+    private final int colSize;
 
     public DataSet(
         List<Long> keys,
@@ -586,6 +633,8 @@ public class ByteUtils {
       this.dataTypeList = dataTypeList;
       this.tagsList = tagsList;
       this.values = values;
+      this.rowSize = values.size();
+      this.colSize = dataTypeList.size();
     }
 
     public long[] getKeys() {
@@ -606,6 +655,14 @@ public class ByteUtils {
 
     public List<List<Object>> getValues() {
       return values;
+    }
+
+    public int getRowSize() {
+      return rowSize;
+    }
+
+    public int getColSize() {
+      return colSize;
     }
   }
 }

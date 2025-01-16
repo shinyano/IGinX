@@ -1,24 +1,27 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.engine.shared.data.read;
 
+import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.util.Schemas;
+import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.util.Batch;
 import cn.edu.tsinghua.iginx.engine.shared.Constants;
-import cn.edu.tsinghua.iginx.engine.shared.data.arrow.Schemas;
 import cn.edu.tsinghua.iginx.thrift.DataType;
 import java.util.*;
 import javax.annotation.Nullable;
@@ -37,9 +40,24 @@ public class BatchSchema {
   private final Schema schema;
   private final Map<String, Integer> indexMap;
 
-  protected BatchSchema(Schema schema, Map<String, Integer> indexMap) {
+  protected BatchSchema(Schema schema) {
     this.schema = Objects.requireNonNull(schema);
-    this.indexMap = Objects.requireNonNull(indexMap);
+    this.indexMap = new HashMap<>();
+    for (int i = 0; i < schema.getFields().size(); i++) {
+      indexMap.put(schema.getFields().get(i).getName(), i);
+    }
+  }
+
+  public static BatchSchema of(Schema schema) {
+    BatchSchema.Builder builder = new BatchSchema.Builder();
+    for (Field field : schema.getFields()) {
+      builder.addField(field);
+    }
+    return builder.build();
+  }
+
+  public static BatchSchema empty() {
+    return new BatchSchema(new Schema(Collections.emptyList()));
   }
 
   public boolean hasKey() {
@@ -52,7 +70,7 @@ public class BatchSchema {
   }
 
   public Batch emptyBatch(BufferAllocator allocator) {
-    try (Batch.Builder builder = new Batch.Builder(allocator, this)) {
+    try (BatchBuilder builder = new BatchBuilder(allocator, this)) {
       return builder.build(0);
     }
   }
@@ -124,13 +142,15 @@ public class BatchSchema {
   }
 
   public int getKeyIndex() {
+    if (!hasKey()) {
+      return -1;
+    }
     return 0;
   }
 
   public static class Builder {
 
     protected final List<Field> fields = new ArrayList<>();
-    private final Map<String, Integer> indexMap = new HashMap<>();
 
     protected Builder() {}
 
@@ -144,12 +164,6 @@ public class BatchSchema {
         } else if (!field.equals(KEY)) {
           throw new IllegalStateException(
               "Key field must be defined as " + KEY + " but was " + field);
-        }
-      }
-      if (field.getFieldType().getMetadata().isEmpty()) {
-        Integer oldIndex = indexMap.put(name, fields.size());
-        if (oldIndex != null) {
-          throw new IllegalStateException("Field " + name + " is already defined");
         }
       }
       fields.add(field);
@@ -182,7 +196,7 @@ public class BatchSchema {
     }
 
     public BatchSchema build() {
-      return new BatchSchema(new Schema(fields), indexMap);
+      return new BatchSchema(new Schema(fields));
     }
   }
 }

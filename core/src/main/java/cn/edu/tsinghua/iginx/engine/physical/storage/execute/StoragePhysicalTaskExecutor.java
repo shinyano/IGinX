@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.engine.physical.storage.execute;
 
@@ -22,7 +24,6 @@ import cn.edu.tsinghua.iginx.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iginx.engine.physical.exception.NonExecutablePhysicalTaskException;
 import cn.edu.tsinghua.iginx.engine.physical.exception.PhysicalException;
 import cn.edu.tsinghua.iginx.engine.physical.exception.TooManyPhysicalTasksException;
-import cn.edu.tsinghua.iginx.engine.physical.exception.UnexpectedOperatorException;
 import cn.edu.tsinghua.iginx.engine.physical.memory.MemoryPhysicalTaskDispatcher;
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.OperatorMemoryExecutor;
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.OperatorMemoryExecutorFactory;
@@ -33,7 +34,10 @@ import cn.edu.tsinghua.iginx.engine.physical.storage.domain.Column;
 import cn.edu.tsinghua.iginx.engine.physical.storage.domain.DataArea;
 import cn.edu.tsinghua.iginx.engine.physical.storage.queue.StoragePhysicalTaskQueue;
 import cn.edu.tsinghua.iginx.engine.physical.task.*;
+import cn.edu.tsinghua.iginx.engine.physical.task.memory.MemoryPhysicalTask;
+import cn.edu.tsinghua.iginx.engine.shared.data.read.FetchMetricsRowStream;
 import cn.edu.tsinghua.iginx.engine.shared.data.read.RowStream;
+import cn.edu.tsinghua.iginx.engine.shared.data.read.RowStreams;
 import cn.edu.tsinghua.iginx.engine.shared.operator.*;
 import cn.edu.tsinghua.iginx.engine.shared.operator.type.OperatorType;
 import cn.edu.tsinghua.iginx.metadata.DefaultMetaManager;
@@ -43,6 +47,7 @@ import cn.edu.tsinghua.iginx.metadata.entity.StorageEngineMeta;
 import cn.edu.tsinghua.iginx.metadata.entity.StorageUnitMeta;
 import cn.edu.tsinghua.iginx.metadata.hook.StorageEngineChangeHook;
 import cn.edu.tsinghua.iginx.metadata.hook.StorageUnitHook;
+import cn.edu.tsinghua.iginx.migration.MigrationPhysicalExecutor;
 import cn.edu.tsinghua.iginx.monitor.HotSpotMonitor;
 import cn.edu.tsinghua.iginx.monitor.RequestsMonitor;
 import cn.edu.tsinghua.iginx.utils.Pair;
@@ -113,8 +118,9 @@ public class StoragePhysicalTaskExecutor {
                       task.setStorageUnit(id);
                       task.setDummyStorageUnit(isDummy);
                       if (pair.v.getQueue().size() > maxCachedPhysicalTaskPerStorage) {
-                        task.setResult(
-                            new TaskResult(new TooManyPhysicalTasksException(storageId)));
+                        setResult(
+                            task,
+                            new TaskExecuteResult(new TooManyPhysicalTasksException(storageId)));
                         continue;
                       }
                       if (isCancelled(task.getContext().getSessionId())) {
@@ -238,11 +244,11 @@ public class StoragePhysicalTaskExecutor {
                             }
                             long span = System.nanoTime() - startTime;
                             task.getMetrics().accumulateCpuTime(span);
-                            task.setResult(result);
+                            setResult(task, result);
                             if (task.getFollowerTask() != null
                                 && task.isSync()) { // 只有同步任务才会影响后续任务的执行
-                              MemoryPhysicalTask followerTask =
-                                  (MemoryPhysicalTask) task.getFollowerTask();
+                              MemoryPhysicalTask<?> followerTask =
+                                  (MemoryPhysicalTask<?>) task.getFollowerTask();
                               boolean isFollowerTaskReady = followerTask.notifyParentReady();
                               if (isFollowerTaskReady) {
                                 memoryTaskExecutor.addMemoryTask(followerTask);
@@ -255,7 +261,7 @@ public class StoragePhysicalTaskExecutor {
                                         + task
                                         + " will not broadcasting to replicas for the sake of exception",
                                     result.getException());
-                                task.setResult(new TaskResult(result.getException()));
+                                setResult(task, new TaskExecuteResult(result.getException()));
                               } else {
                                 StorageUnitMeta masterStorageUnit =
                                     task.getTargetFragment().getMasterStorageUnit();
@@ -336,25 +342,34 @@ public class StoragePhysicalTaskExecutor {
     storageTaskQueues.get(storageUnitId).addTask(task);
   }
 
-  public TaskResult executeGlobalTask(GlobalPhysicalTask task) {
+  public void executeGlobalTask(GlobalPhysicalTask task) {
     switch (task.getOperator().getType()) {
       case ShowColumns:
         long startTime = System.nanoTime();
         TaskExecuteResult result = executeShowColumns((ShowColumns) task.getOperator());
         long span = System.nanoTime() - startTime;
         task.getMetrics().accumulateCpuTime(span);
-        task.setResult(result);
+        setResult(task, result);
         if (task.getFollowerTask() != null) {
-          MemoryPhysicalTask followerTask = (MemoryPhysicalTask) task.getFollowerTask();
+          MemoryPhysicalTask<?> followerTask = (MemoryPhysicalTask<?>) task.getFollowerTask();
           boolean isFollowerTaskReady = followerTask.notifyParentReady();
           if (isFollowerTaskReady) {
             memoryTaskExecutor.addMemoryTask(followerTask);
           }
         }
-        return task.getResult();
+        break;
+      case Migration:
+        try {
+          RowStream stream =
+              MigrationPhysicalExecutor.getInstance()
+                  .execute(task.getContext(), (Migration) task.getOperator(), this);
+          setResult(task, new TaskExecuteResult(stream));
+        } catch (PhysicalException e) {
+          setResult(task, new TaskExecuteResult(e));
+        }
+        break;
       default:
-        return new TaskResult(
-            new UnexpectedOperatorException("unknown op: " + task.getOperator().getType()));
+        throw new UnsupportedOperationException("unknown op: " + task.getOperator().getType());
     }
   }
 
@@ -443,5 +458,23 @@ public class StoragePhysicalTaskExecutor {
 
   public StorageManager getStorageManager() {
     return storageManager;
+  }
+
+  private static void setResult(PhysicalTask<RowStream> task, TaskExecuteResult result) {
+    if (result != null) {
+      if (result.getException() != null) {
+        task.setResult(new TaskResult<>(result.getException()));
+        return;
+      }
+      RowStream sourceRowStream = result.getRowStream();
+      if (sourceRowStream != null) {
+        RowStream rowStream =
+            new FetchMetricsRowStream(
+                sourceRowStream, task.getMetrics(), task.getContext().getBatchRowCount());
+        task.setResult(new TaskResult<>(rowStream));
+        return;
+      }
+    }
+    task.setResult(new TaskResult<>(RowStreams.empty()));
   }
 }

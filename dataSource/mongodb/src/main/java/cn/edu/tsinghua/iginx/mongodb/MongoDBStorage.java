@@ -1,21 +1,22 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.mongodb;
 
 import cn.edu.tsinghua.iginx.engine.physical.exception.PhysicalException;
@@ -59,25 +60,15 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.BulkWriteOptions;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.InsertManyOptions;
-import com.mongodb.client.model.ReplaceOneModel;
-import com.mongodb.client.model.ReplaceOptions;
-import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.model.*;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.bson.BsonDocument;
 import org.bson.BsonInt64;
 import org.bson.BsonValue;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,6 +134,31 @@ public class MongoDBStorage implements IStorage {
   }
 
   @Override
+  public boolean testConnection(StorageEngineMeta meta) {
+    String defaultConnection = String.format("mongodb://%s:%d", meta.getIp(), meta.getPort());
+    String connectionString =
+        meta.getExtraParams().getOrDefault(CONNECTION_STRING, defaultConnection);
+
+    MongoClientSettings settings =
+        MongoClientSettings.builder()
+            .applyToConnectionPoolSettings(
+                builder ->
+                    builder
+                        .maxWaitTime(MAX_WAIT_TIME, TimeUnit.SECONDS)
+                        .maxSize(SESSION_POOL_MAX_SIZE)
+                        .maxConnectionIdleTime(60, TimeUnit.SECONDS))
+            .applyConnectionString(new ConnectionString(connectionString))
+            .build();
+    try (MongoClient mongoClient = MongoClients.create(settings)) {
+      mongoClient.getDatabase("admin").runCommand(new Document("ping", 1));
+      return true;
+    } catch (Exception e) {
+      LOGGER.error("Failed to connect MongoDB {}: e", meta, e);
+      return false;
+    }
+  }
+
+  @Override
   public boolean isSupportProjectWithSelect() {
     return true;
   }
@@ -181,10 +197,10 @@ public class MongoDBStorage implements IStorage {
         result = new DummyQuery(this.client).query(patterns, unionFilter);
       }
       return new TaskExecuteResult(result);
-    } catch (Exception e) {
-      LOGGER.error("dummy project {} where {}", patterns, filter);
-      LOGGER.error("failed to dummy query ", e);
-      return new TaskExecuteResult(new PhysicalException("failed to query dummy", e));
+    } catch (PhysicalException | MongoException e) {
+      LOGGER.error("dummy project {} where {} failed", patterns, filter, e);
+      return new TaskExecuteResult(
+          e instanceof PhysicalException ? (PhysicalException) e : new PhysicalException(e));
     }
   }
 
@@ -194,11 +210,11 @@ public class MongoDBStorage implements IStorage {
     List<String> patterns = project.getPatterns();
     TagFilter tagFilter = project.getTagFilter();
 
-    try {
-      MongoDatabase db = this.getDatabase(unit);
-      List<Field> fieldList = NameUtils.match(getFields(db), patterns, tagFilter);
+    MongoDatabase db = this.getDatabase(unit);
+    List<Field> fieldList = NameUtils.match(getFields(db), patterns, tagFilter);
 
-      RowStream result;
+    RowStream result;
+    try {
       if (filter == null) {
         result = new ColumnQuery(db).query(fieldList, range);
       } else {
@@ -206,15 +222,17 @@ public class MongoDBStorage implements IStorage {
         result = new JoinQuery(db).query(fieldList, unionFilter);
         result = new FilterRowStreamWrapper(result, filter);
       }
-      return new TaskExecuteResult(result);
-    } catch (Exception e) {
-      String message = String.format("project %s from %s[%s]", patterns, unit, range);
-      if (tagFilter != null) {
-        message += " with " + tagFilter;
-      }
-      LOGGER.error(message, e);
-      return new TaskExecuteResult(new PhysicalException("failed to project", e));
+    } catch (MongoException e) {
+      LOGGER.error(
+          "project {} where {} and range [{},{}) failed",
+          patterns,
+          filter,
+          range.getStartKey(),
+          range.getEndKey(),
+          e);
+      return new TaskExecuteResult(new PhysicalException(e));
     }
+    return new TaskExecuteResult(result);
   }
 
   private static Filter rangeUnionWithFilter(KeyInterval range, Filter filter) {
@@ -233,22 +251,16 @@ public class MongoDBStorage implements IStorage {
     List<KeyRange> ranges = delete.getKeyRanges();
 
     MongoDatabase db = this.getDatabase(unit);
-    try {
-      List<Field> fieldList = NameUtils.match(getFields(db), patterns, tagFilter);
-      for (Field field : fieldList) {
-        String collName = NameUtils.getCollectionName(field);
-        MongoCollection<BsonDocument> coll = db.getCollection(collName, BsonDocument.class);
-        if (ranges == null || ranges.isEmpty()) {
-          coll.drop();
-        } else {
-          Bson filter = FilterUtils.ranges(ranges);
-          coll.deleteMany(filter);
-        }
+    List<Field> fieldList = NameUtils.match(getFields(db), patterns, tagFilter);
+    for (Field field : fieldList) {
+      String collName = NameUtils.getCollectionName(field);
+      MongoCollection<BsonDocument> coll = db.getCollection(collName, BsonDocument.class);
+      if (ranges == null || ranges.isEmpty()) {
+        coll.drop();
+      } else {
+        Bson filter = FilterUtils.ranges(ranges);
+        coll.deleteMany(filter);
       }
-    } catch (Exception e) {
-      LOGGER.error("delete {} from {} where {} with {}", patterns, unit, ranges, tagFilter);
-      LOGGER.error("failed to delete", e);
-      return new TaskExecuteResult(new PhysicalException("failed to delete", e));
     }
     return new TaskExecuteResult();
   }
@@ -271,12 +283,13 @@ public class MongoDBStorage implements IStorage {
         if (existedColumnTypes.containsKey(field.getName())) {
           DataType existedType = existedColumnTypes.get(field.getName());
           if (!existedType.equals(field.getType())) {
-            throw new PhysicalException(
-                "data type ("
-                    + field.getType()
-                    + ") not match existed column type ("
-                    + existedType
-                    + ")");
+            return new TaskExecuteResult(
+                new PhysicalException(
+                    "data type ("
+                        + field.getType()
+                        + ") not match existed column type ("
+                        + existedType
+                        + ")"));
           }
         }
 
@@ -311,9 +324,8 @@ public class MongoDBStorage implements IStorage {
           collection.bulkWrite(writeModels, new BulkWriteOptions().ordered(false));
         }
       }
-    } catch (Exception e) {
-      LOGGER.error("failed to insert", e);
-      return new TaskExecuteResult(new PhysicalException("failed to insert", e));
+    } catch (MongoException e) {
+      return new TaskExecuteResult(new PhysicalException(e));
     }
     return new TaskExecuteResult();
   }

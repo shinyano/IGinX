@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 grammar Sql;
 
@@ -45,8 +47,8 @@ statement
    | COMMIT TRANSFORM JOB filePath = stringLiteral # commitTransformJobStatement
    | SHOW TRANSFORM JOB STATUS jobId = INT # showJobStatusStatement
    | CANCEL TRANSFORM JOB jobId = INT # cancelJobStatement
-   | SHOW jobStatus TRANSFORM JOB # showEligibleJobStatement
-   | REMOVE HISTORYDATASOURCE removedStorageEngine (COMMA removedStorageEngine)* # removeHistoryDataSourceStatement
+   | SHOW (jobStatus)? TRANSFORM JOBS # showEligibleJobStatement
+   | REMOVE STORAGEENGINE removedStorageEngine (COMMA removedStorageEngine)* # removeStorageEngineStatement
    | SET CONFIG configName = stringLiteral configValue = stringLiteral # setConfigStatement
    | SHOW CONFIG (configName = stringLiteral)? # showConfigStatement
    | SHOW SESSIONID # showSessionIDStatement
@@ -100,7 +102,7 @@ queryClause
    ;
 
 select
-   : selectClause fromClause whereClause? withClause? specialClause?
+   : selectClause (fromClause whereClause? withClause? specialClause?)?
    ;
 
 selectClause
@@ -109,7 +111,16 @@ selectClause
    ;
 
 selectSublist
-   : expression asClause?
+   : KEY (asClause | asKeyClause)
+   | (expression | sequence) (asClause | asKeyClause)?
+   ;
+
+sequence
+   : SEQUENCE LR_BRACKET (start = constant COMMA increment = constant)? RR_BRACKET
+   ;
+
+asKeyClause
+   : AS KEY
    ;
 
 expression
@@ -125,7 +136,7 @@ expression
    ;
 
 function
-   : functionName LR_BRACKET (ALL | DISTINCT)? path (COMMA path)* (COMMA param)* RR_BRACKET
+   : functionName LR_BRACKET (ALL | DISTINCT)? expression (COMMA expression)* (COMMA param)* RR_BRACKET
    ;
 
 param
@@ -139,16 +150,16 @@ functionName
    ;
 
 caseSpecification
-   : simipleCase
+   : simpleCase
    | searchedCase
    ;
 
-simipleCase
+simpleCase
    : CASE expression simpleWhenClause (simpleWhenClause)* elseClause? END
    ;
 
 simpleWhenClause
-   : WHEN ((comparisonOperator? value = expression) | (OPERATOR_NOT? stringLikeOperator regex = stringLiteral)) THEN result = expression
+   : WHEN ((comparisonOperator? value = expression) | ((NOT | EXCLAMATION)? stringLikeOperator regex = stringLiteral)) THEN result = expression
    ;
 
 searchedCase
@@ -176,27 +187,32 @@ andExpression
    ;
 
 predicate
-   : (KEY | path | functionName LR_BRACKET path RR_BRACKET) comparisonOperator constant
-   | constant comparisonOperator (KEY | path | functionName LR_BRACKET path RR_BRACKET)
+   : (KEY | path) comparisonOperator constant
+   | constant comparisonOperator (KEY | path)
+   | (path | functionName LR_BRACKET path RR_BRACKET) inOperator array
    | path comparisonOperator path
-   | path OPERATOR_NOT? stringLikeOperator regex = stringLiteral
-   | OPERATOR_NOT? LR_BRACKET orExpression RR_BRACKET
+   | path (NOT | EXCLAMATION)? stringLikeOperator regex = stringLiteral
+   | (NOT | EXCLAMATION)? LR_BRACKET orExpression RR_BRACKET
    | predicateWithSubquery
    | expression comparisonOperator expression
    ;
 
 predicateWithSubquery
-   : OPERATOR_NOT? EXISTS subquery
-   | (path | constant | functionName LR_BRACKET path RR_BRACKET) OPERATOR_NOT? IN subquery
-   | (path | constant | functionName LR_BRACKET path RR_BRACKET) comparisonOperator quantifier subquery
-   | (path | constant | functionName LR_BRACKET path RR_BRACKET) comparisonOperator subquery
-   | subquery comparisonOperator (path | constant | functionName LR_BRACKET path RR_BRACKET)
+   : NOT? EXISTS subquery
+   | (path | constant | expression) inOperator subquery
+   | (path | constant | expression) comparisonOperator quantifier subquery
    | subquery comparisonOperator subquery
+   | (path | constant | expression) comparisonOperator subquery
+   | subquery comparisonOperator (path | constant | expression)
    ;
 
 quantifier
    : all
    | some
+   ;
+
+array
+   : LR_BRACKET (constant (COMMA constant)*)? RR_BRACKET
    ;
 
 all
@@ -263,7 +279,7 @@ fromClause
 joinPart
    : COMMA tableReference
    | CROSS JOIN tableReference
-   | join tableReference (ON orExpression | USING colList)?
+   | join tableReference (ON orExpression | USING (KEY | colList))?
    ;
 
 tableReference
@@ -292,7 +308,12 @@ specialClause
    ;
 
 groupByClause
-   : GROUP BY path (COMMA path)*
+   : GROUP BY groupByItem (COMMA groupByItem)*
+   ;
+
+groupByItem
+   : path
+   | expression
    ;
 
 havingClause
@@ -304,7 +325,7 @@ orderByClause
    ;
 
 orderItem
-   : path (DESC | ASC)?
+   : (path | expression) (DESC | ASC)?
    ;
 
 downsampleClause
@@ -402,6 +423,15 @@ stringLikeOperator
    | type = OPERATOR_LIKE_OR
    ;
 
+inOperator
+   : type = IN
+   | type = OPERATOR_IN_AND
+   | type = OPERATOR_IN_OR
+   | type = OPERATOR_NOT_IN
+   | type = OPERATOR_NOT_IN_AND
+   | type = OPERATOR_NOT_IN_OR
+   ;
+
 insertColumnsSpec
    : LR_BRACKET KEY (COMMA insertPath)+ RR_BRACKET
    ;
@@ -449,6 +479,7 @@ jobStatus
    : UNKNOWN
    | FINISHED
    | CREATED
+   | IDLE
    | RUNNING
    | FAILING
    | FAILED
@@ -505,6 +536,7 @@ keyWords
    | FUNCTIONS
    | COMMIT
    | JOB
+   | JOBS
    | STATUS
    | AS
    | udfType
@@ -531,7 +563,6 @@ keyWords
    | RANGE
    | STEP
    | REMOVE
-   | HISTORYDATASOURCE
    | COMPACT
    | EXPLAIN
    | LOGICAL
@@ -819,6 +850,10 @@ JOB
    : J O B
    ;
 
+JOBS
+   : J O B S
+   ;
+
 STATUS
    : S T A T U S
    ;
@@ -885,6 +920,10 @@ FUNCTIONS
 
 CREATED
    : C R E A T E D
+   ;
+
+IDLE
+   : I D L E
    ;
 
 RUNNING
@@ -965,10 +1004,6 @@ STEP
 
 REMOVE
    : R E M O V E
-   ;
-
-HISTORYDATASOURCE
-   : H I S T O R Y D A T A S O U R C E
    ;
 
 COMPACT
@@ -1126,6 +1161,14 @@ ELSE
 END
    : E N D
    ;
+
+SEQUENCE
+   : S E Q U E N C E
+   ;
+
+NOT
+   : N O T
+   ;
    //============================
    
    // End of the keywords list
@@ -1214,10 +1257,6 @@ OPERATOR_NEQ_OR
    : '|' OPERATOR_NEQ
    ;
 
-OPERATOR_IN
-   : I N
-   ;
-
 OPERATOR_LIKE
    : L I K E
    ;
@@ -1242,13 +1281,32 @@ OPERATOR_OR
    | '||'
    ;
 
-OPERATOR_NOT
-   : N O T
-   | '!'
+EXCLAMATION
+   : '!'
    ;
 
 OPERATOR_CONTAINS
    : C O N T A I N S
+   ;
+
+OPERATOR_NOT_IN
+   : N O T WS IN
+   ;
+
+OPERATOR_IN_AND
+   : '&' IN
+   ;
+
+OPERATOR_IN_OR
+   : '|' IN
+   ;
+
+OPERATOR_NOT_IN_AND
+   : '&' OPERATOR_NOT_IN
+   ;
+
+OPERATOR_NOT_IN_OR
+   : '|' OPERATOR_NOT_IN
    ;
 
 MINUS

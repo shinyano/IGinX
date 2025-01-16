@@ -1,21 +1,22 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.mongodb.dummy;
 
 import cn.edu.tsinghua.iginx.thrift.DataType;
@@ -57,12 +58,6 @@ class ResultColumn {
     }
 
     ResultColumn build() {
-      if (type != null) {
-        if (type == DataType.BINARY) {
-          return buildAsBinary();
-        }
-        return buildByConvertToNotBinary(type);
-      }
       try {
         return buildByConvert();
       } catch (Exception e) {
@@ -80,43 +75,56 @@ class ResultColumn {
     }
 
     private ResultColumn buildByConvert() {
-      BsonType bsonType = analysisType();
-      DataType type = TypeUtils.convert(bsonType);
+      DataType type = analysisType();
       if (type == DataType.BINARY) {
         return buildAsBinary();
       }
       Map<Long, Object> data = new HashMap<>();
       for (SimpleImmutableEntry<Long, BsonValue> bsonValue : values) {
-        BsonValue convertedBsonValue = TypeUtils.convertTo(bsonValue.getValue(), bsonType);
-        if (convertedBsonValue != null) {
-          Object value = TypeUtils.convert(convertedBsonValue);
-          data.put(bsonValue.getKey(), value);
+        Object convertedValue = TypeUtils.convertTo(bsonValue.getValue(), type);
+        if (convertedValue != null) {
+          data.put(bsonValue.getKey(), convertedValue);
         }
       }
       return new ResultColumn(type, data);
     }
 
-    private BsonType analysisType() {
+    private DataType analysisType() {
       Map<BsonType, Long> typeNum =
           values.stream()
               .map(Map.Entry::getValue)
               .collect(Collectors.groupingBy(BsonValue::getBsonType, Collectors.counting()));
 
-      BsonType majorType =
-          typeNum.entrySet().stream()
-              .max(Map.Entry.comparingByValue())
-              .orElseThrow(() -> new IllegalArgumentException("can't build empty column!"))
-              .getKey();
+      typeNum.remove(BsonType.STRING);
+      typeNum.remove(BsonType.DOCUMENT);
+      typeNum.remove(BsonType.ARRAY);
+      typeNum.remove(BsonType.BINARY);
+      typeNum.remove(BsonType.UNDEFINED);
+      typeNum.remove(BsonType.NULL);
+      typeNum.remove(BsonType.JAVASCRIPT);
+      typeNum.remove(BsonType.JAVASCRIPT_WITH_SCOPE);
+      typeNum.remove(BsonType.REGULAR_EXPRESSION);
+      typeNum.remove(BsonType.SYMBOL);
 
-      BsonType resultType = majorType;
-      switch (majorType) {
-        case INT32:
+      DataType expectedType = type;
+      if (expectedType == null) {
+        BsonType majorType =
+            typeNum.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .orElseGet(() -> new SimpleImmutableEntry<>(BsonType.BINARY, 0L))
+                .getKey();
+        expectedType = TypeUtils.convert(majorType);
+      }
+
+      DataType resultType = expectedType;
+      switch (expectedType) {
+        case INTEGER:
           if (typeNum.containsKey(BsonType.INT64)) {
-            resultType = BsonType.INT64;
+            resultType = DataType.LONG;
           }
-        case INT64:
+        case LONG:
           if (typeNum.containsKey(BsonType.DOUBLE)) {
-            resultType = BsonType.DOUBLE;
+            resultType = DataType.DOUBLE;
           }
       }
       return resultType;

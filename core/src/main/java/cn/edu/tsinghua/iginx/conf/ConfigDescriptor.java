@@ -1,19 +1,21 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package cn.edu.tsinghua.iginx.conf;
 
@@ -85,7 +87,7 @@ public class ConfigDescriptor {
       config.setDatabaseClassNames(
           properties.getProperty(
               "databaseClassNames",
-              "iotdb12=cn.edu.tsinghua.iginx.iotdb.IoTDBStorage,influxdb=cn.edu.tsinghua.iginx.influxdb.InfluxDBStorage,relational=cn.edu.tsinghua.iginx.relational.RelationalStorage,mongodb=cn.edu.tsinghua.iginx.mongodb.MongoDBStorage,redis=cn.edu.tsinghua.iginx.redis.RedisStorage,filestore=cn.edu.tsinghua.iginx.filestore.FileStorage"));
+              "iotdb12=cn.edu.tsinghua.iginx.iotdb.IoTDBStorage,influxdb=cn.edu.tsinghua.iginx.influxdb.InfluxDBStorage,relational=cn.edu.tsinghua.iginx.relational.RelationalStorage,mongodb=cn.edu.tsinghua.iginx.mongodb.MongoDBStorage,redis=cn.edu.tsinghua.iginx.redis.RedisStorage,filesystem=cn.edu.tsinghua.iginx.filesystem.FileSystemStorage"));
 
       config.setPolicyClassName(
           properties.getProperty(
@@ -124,7 +126,7 @@ public class ConfigDescriptor {
           Integer.parseInt(properties.getProperty("statisticsLogInterval", "5000")));
 
       config.setRestIp(properties.getProperty("restIp", "127.0.0.1"));
-      config.setRestPort(Integer.parseInt(properties.getProperty("restPort", "6666")));
+      config.setRestPort(Integer.parseInt(properties.getProperty("restPort", "7888")));
 
       config.setDisorderMargin(Long.parseLong(properties.getProperty("disorderMargin", "10")));
       config.setAsyncRestThreadPool(
@@ -203,10 +205,8 @@ public class ConfigDescriptor {
           Integer.parseInt(properties.getProperty("transformTaskThreadPoolSize", "10")));
       config.setTransformMaxRetryTimes(
           Integer.parseInt(properties.getProperty("transformMaxRetryTimes", "3")));
-
       config.setNeedInitBasicUDFFunctions(
           Boolean.parseBoolean(properties.getProperty("needInitBasicUDFFunctions", "false")));
-
       config.setHistoricalPrefixList(properties.getProperty("historicalPrefixList", ""));
       config.setExpectedStorageUnitNum(
           Integer.parseInt(properties.getProperty("expectedStorageUnitNum", "0")));
@@ -226,20 +226,14 @@ public class ConfigDescriptor {
           Integer.parseInt(properties.getProperty("parallelGroupByPoolNum", "5")));
       config.setStreamParallelGroupByWorkerNum(
           Integer.parseInt(properties.getProperty("streamParallelGroupByWorkerNum", "5")));
+      config.setPipelineParallelism(
+          Integer.parseInt(properties.getProperty("pipelineParallelism", "5")));
       config.setBatchSizeImportCsv(
           Integer.parseInt(properties.getProperty("batchSizeImportCsv", "10000")));
       config.setRuleBasedOptimizer(
           properties.getProperty(
               "ruleBasedOptimizer",
               "NotFilterRemoveRule=on,FragmentPruningByFilterRule=on,ColumnPruningRule=on,FragmentPruningByPatternRule=on"));
-      config.setEnableEmailNotification(
-          Boolean.parseBoolean(properties.getProperty("enableEmailNotification", "false")));
-      config.setMailSmtpHost(properties.getProperty("mailSmtpHost", ""));
-      config.setMailSmtpPort(Integer.parseInt(properties.getProperty("mailSmtpPort", "465")));
-      config.setMailSmtpUser(properties.getProperty("mailSmtpUser", ""));
-      config.setMailSmtpPassword(properties.getProperty("mailSmtpPassword", ""));
-      config.setMailSender(properties.getProperty("mailSender", ""));
-      config.setMailRecipient(properties.getProperty("mailRecipient", ""));
     } catch (IOException e) {
       config.setUTTestEnv(true);
       config.setNeedInitBasicUDFFunctions(false);
@@ -361,19 +355,13 @@ public class ConfigDescriptor {
     config.setStreamParallelGroupByWorkerNum(
         EnvUtils.loadEnv(
             "streamParallelGroupByWorkerNum", config.getStreamParallelGroupByWorkerNum()));
+    config.setPipelineParallelism(
+        EnvUtils.loadEnv("pipelineParallelism", config.getPipelineParallelism()));
     config.setBatchSizeImportCsv(
         EnvUtils.loadEnv("batchSizeImportCsv", config.getBatchSizeImportCsv()));
     config.setUTTestEnv(EnvUtils.loadEnv("utTestEnv", config.isUTTestEnv()));
     config.setRuleBasedOptimizer(
         EnvUtils.loadEnv("ruleBasedOptimizer", config.getRuleBasedOptimizer()));
-    config.setEnableEmailNotification(
-        Boolean.parseBoolean(EnvUtils.loadEnv("enableEmailNotification", "false")));
-    config.setMailSmtpHost(EnvUtils.loadEnv("mailSmtpHost", ""));
-    config.setMailSmtpPort(Integer.parseInt(EnvUtils.loadEnv("mailSmtpPort", "465")));
-    config.setMailSmtpUser(EnvUtils.loadEnv("mailSmtpUser", ""));
-    config.setMailSmtpPassword(EnvUtils.loadEnv("mailSmtpPassword", ""));
-    config.setMailSender(EnvUtils.loadEnv("mailSender", ""));
-    config.setMailRecipient(EnvUtils.loadEnv("mailRecipient", ""));
   }
 
   private void loadUDFListFromFile() {

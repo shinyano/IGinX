@@ -1,36 +1,34 @@
 /*
  * IGinX - the polystore system with high performance
  * Copyright (C) Tsinghua University
+ * TSIGinX@gmail.com
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package cn.edu.tsinghua.iginx.mongodb.dummy;
 
-import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.or;
 
 import cn.edu.tsinghua.iginx.engine.shared.data.Value;
 import cn.edu.tsinghua.iginx.engine.shared.operator.filter.*;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.AndFilter;
-import cn.edu.tsinghua.iginx.engine.shared.operator.filter.NotFilter;
-import cn.edu.tsinghua.iginx.thrift.DataType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.bson.BsonString;
+import org.bson.BsonSymbol;
 import org.bson.BsonValue;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -107,8 +105,6 @@ public class FilterUtils {
         return toBson((AndFilter) filter);
       case Or:
         return toBson((OrFilter) filter);
-      case Not:
-        return toBson((NotFilter) filter);
       default:
         throw new IllegalArgumentException("unsupported filter: " + filter);
     }
@@ -120,13 +116,18 @@ public class FilterUtils {
     BsonValue value = TypeUtils.convert(filter.getValue());
     Bson filterBson =
         cn.edu.tsinghua.iginx.mongodb.tools.FilterUtils.fieldValueOp(filter.getOp(), path, value);
-    if (filter.getValue().getDataType() == DataType.BINARY && !value.isString()) {
-      Bson rawFilter =
-          cn.edu.tsinghua.iginx.mongodb.tools.FilterUtils.fieldValueOp(
-              filter.getOp(), path, new BsonString(Arrays.toString(value.asBinary().getData())));
-      return or(rawFilter, filterBson);
+    if (value.isString()) {
+      return filterBson;
     }
-    return filterBson;
+
+    String strValue = TypeUtils.toJson(value);
+    Bson strFilter =
+        cn.edu.tsinghua.iginx.mongodb.tools.FilterUtils.fieldValueOp(
+            filter.getOp(), path, new BsonString(strValue));
+    Bson symFilter =
+        cn.edu.tsinghua.iginx.mongodb.tools.FilterUtils.fieldValueOp(
+            filter.getOp(), path, new BsonSymbol(strValue));
+    return or(filterBson, strFilter, symFilter);
   }
 
   private static Bson toBson(PathFilter filter) {
@@ -142,7 +143,7 @@ public class FilterUtils {
     if (filter.isTrue()) {
       return new Document();
     } else {
-      return nor(new Document());
+      throw new IllegalArgumentException("bool filter should be true");
     }
   }
 
@@ -150,7 +151,7 @@ public class FilterUtils {
     List<Bson> subFilterList =
         filter.getChildren().stream().map(FilterUtils::toBson).collect(Collectors.toList());
     if (subFilterList.isEmpty()) {
-      return new Document();
+      throw new IllegalArgumentException("and filter should have at least one child");
     }
     return and(subFilterList);
   }
@@ -159,44 +160,14 @@ public class FilterUtils {
     List<Bson> subFilterList =
         filter.getChildren().stream().map(FilterUtils::toBson).collect(Collectors.toList());
     if (subFilterList.isEmpty()) {
-      return new Document();
+      throw new IllegalArgumentException("or filter should have at least one child");
     }
     return or(subFilterList);
-  }
-
-  private static Bson toBson(NotFilter filter) {
-    Bson childFilter = toBson(filter.getChild());
-    return nor(childFilter);
   }
 
   private static void checkPath(String path) {
     if (NameUtils.containNumberNode(path)) {
       throw new IllegalArgumentException("path contain number");
     }
-  }
-
-  public static Filter tryIgnore(Filter filter, Predicate<Filter> matcher) {
-    switch (filter.getType()) {
-      case And:
-        {
-          List<Filter> children =
-              ((AndFilter) filter)
-                  .getChildren().stream()
-                      .filter(f -> !matcher.test(f))
-                      .map(f -> tryIgnore(f, matcher))
-                      .collect(Collectors.toList());
-          return new AndFilter(children);
-        }
-      case Or:
-        {
-          List<Filter> children =
-              ((OrFilter) filter)
-                  .getChildren().stream()
-                      .map(f -> tryIgnore(f, matcher))
-                      .collect(Collectors.toList());
-          return new OrFilter(children);
-        }
-    }
-    return filter;
   }
 }
