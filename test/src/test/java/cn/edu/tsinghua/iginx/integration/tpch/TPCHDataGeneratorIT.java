@@ -90,6 +90,7 @@ public class TPCHDataGeneratorIT {
     session.closeSession();
   }
 
+  @Test
   public void prepare() {
     List<String> tableList =
         Arrays.asList(

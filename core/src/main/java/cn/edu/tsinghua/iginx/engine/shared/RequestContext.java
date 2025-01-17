@@ -33,6 +33,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import lombok.Data;
 import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.vector.BaseValueVector;
 
 @Data
 public class RequestContext implements TaskContext {
@@ -87,7 +88,7 @@ public class RequestContext implements TaskContext {
    * @see org.apache.arrow.vector.BaseValueVector#INITIAL_VALUE_ALLOCATION
    */
   //  private volatile int batchRowCount = BaseValueVector.INITIAL_VALUE_ALLOCATION;
-  private volatile int batchRowCount = 8000;
+  private volatile int batchRowCount = 600600;
 
   private int groupByInitialGroupBufferCapacity = BaseValueVector.INITIAL_VALUE_ALLOCATION >> 7;
 

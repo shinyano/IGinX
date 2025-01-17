@@ -19,14 +19,14 @@ package cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.pipe
 
 import cn.edu.tsinghua.iginx.conf.Config;
 import cn.edu.tsinghua.iginx.conf.ConfigDescriptor;
-import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.scalar.BinaryFunction;
-import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.scalar.expression.PhysicalExpression;
-import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.util.ComputeException;
-import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.util.NotAllowArgumentTypeException;
-import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.ExecutorContext;
-import cn.edu.tsinghua.iginx.engine.shared.data.arrow.ConstantVectors;
-import cn.edu.tsinghua.iginx.engine.shared.data.arrow.ValueVectors;
-import cn.edu.tsinghua.iginx.engine.shared.data.read.Batch;
+//import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.scalar.BinaryFunction;
+//import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.scalar.expression.PhysicalExpression;
+//import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.util.ComputeException;
+//import cn.edu.tsinghua.iginx.engine.physical.memory.execute.compute.util.NotAllowArgumentTypeException;
+//import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.ExecutorContext;
+//import cn.edu.tsinghua.iginx.engine.shared.data.arrow.ConstantVectors;
+//import cn.edu.tsinghua.iginx.engine.shared.data.arrow.ValueVectors;
+//import cn.edu.tsinghua.iginx.engine.shared.data.read.Batch;
 import cn.edu.tsinghua.iginx.engine.shared.data.read.BatchSchema;
 import cn.edu.tsinghua.iginx.thrift.DataType;
 import cn.edu.tsinghua.iginx.utils.Pair;
@@ -51,7 +51,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pemja.core.PythonInterpreter;
 
-public class FilterExecutor extends PipelineExecutor {
+public class FilterExecutor  {
+
+  /*
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FilterExecutor.class);
 
@@ -157,7 +159,7 @@ public class FilterExecutor extends PipelineExecutor {
     try (ArrowArrayStream arrowArrayStream = ArrowArrayStream.wrap(addr)) {
       start = System.nanoTime();
       ArrowRecordBatch batch =
-          new VectorUnloader(root, /* includeNullCount */ true, /* alignBuffers */ true)
+          new VectorUnloader(root, true, true)
               .getRecordBatch();
       ArrowReader reader =
           new InMemoryArrowReader(
@@ -459,4 +461,5 @@ public class FilterExecutor extends PipelineExecutor {
       return result;
     }
   }
+   */
 }

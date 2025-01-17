@@ -1,11 +1,16 @@
 package cn.edu.tsinghua.iginx.engine.physical.memory.execute;
 
 import static cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.pipeline.FilterExecutor.*;
+import static cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.stateless.ProjectExecutor.invokePythonNew;
+import static cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.stateless.ProjectExecutor.invokePythonNewJvm;
+import static cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.stateless.ProjectExecutor.invokePythonOrigin;
 import static org.junit.Assert.assertEquals;
 
-import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.pipeline.FilterExecutor;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.stateless.FilterExecutor;
+import cn.edu.tsinghua.iginx.engine.physical.memory.execute.executor.unary.stateless.ProjectExecutor;
 import org.apache.arrow.memory.BufferAllocator;
 import org.apache.arrow.memory.RootAllocator;
 import org.apache.arrow.vector.*;
@@ -18,12 +23,16 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pemja.core.PythonInterpreter;
 import pemja.core.PythonInterpreterConfig;
 
 public class Batch2ListTest {
   private BufferAllocator allocator;
   private VectorSchemaRoot root;
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(Batch2ListTest.class);
 
   private static final String PYTHON_PATH =
       "E:\\IGinX_Lab\\local\\IGinX\\udf_funcs\\python_scripts";
@@ -44,6 +53,7 @@ public class Batch2ListTest {
             .addPythonPaths(PYTHON_PATH)
             //                    .setExcType(PythonInterpreterConfig.ExecType.SUB_INTERPRETER)
             .build();
+    interpreter = new PythonInterpreter(config);
     allocator = new RootAllocator(Long.MAX_VALUE);
 
     // Create schema
@@ -138,7 +148,7 @@ public class Batch2ListTest {
   @Ignore
   @Test
   public void testVectorSchemaRootTo2DList() {
-    List<List<Object>> result = FilterExecutor.Root2DataList(root);
+    List<List<Object>> result = ProjectExecutor.Root2DataList(root);
 
     assertEquals(5, result.size()); // 2 header rows + 3 data rows
 
@@ -154,6 +164,17 @@ public class Batch2ListTest {
     assertEquals(Arrays.asList(1, 1000000000000L, 1.1f, 1.11, "a", true), result.get(2));
     assertEquals(Arrays.asList(2, 2000000000000L, 2.2f, 2.22, "b", false), result.get(3));
     assertEquals(Arrays.asList(3, 3000000000000L, 3.3f, 3.33, "c", true), result.get(4));
+  }
+
+  @Test
+  public void testTimeoffset() {
+    interpreter.exec("import timeoffsettest");
+    interpreter.exec("t=timeoffsettest.Test()");
+    long time = System.currentTimeMillis();
+    long endTime = (long) interpreter.invokeMethod("t", "test");
+    LOGGER.info(String.valueOf(time));
+    LOGGER.info(String.valueOf(endTime));
+    LOGGER.info("{}", endTime - time);
   }
 
   @Test

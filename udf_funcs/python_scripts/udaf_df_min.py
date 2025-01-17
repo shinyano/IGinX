@@ -48,32 +48,35 @@ class UDFMin():
             print(f"[PYTHON] read arrow data took {(end - start)*1000}ms")
             # print(res)
             start = time.perf_counter()
-            df = res.to_pandas(types_mapper=pd.ArrowDtype)
+            # df = res.to_pandas(types_mapper=pd.ArrowDtype)
+            print(type(res))
             end = time.perf_counter()
             print(f"[PYTHON] arrow2pandas took {(end - start)*1000}ms")
-            # print(df)
-        return df
+            # print(df.shape)
+            print(res.schema)
+        return res
 
     def transform(self, addr, arg, kvargs):
         df = self.read_data_import(addr)
-
-        res = self.eval(df)
-        start = time.perf_counter()
-        batch = pa.RecordBatch.from_pandas(res)
-        end = time.perf_counter()
-        print(f"[PYTHON] computing res df took {(end - start)*1000}ms")
-        # print("ressssssssssssssssssssss")
-        # print(batch)
-        # print("ressssssssssssssssssssss")
-        start = time.perf_counter()
-        reader = pa.RecordBatchReader.from_batches(batch.schema, [batch])
-        self.c_stream = arrow_c.new("struct ArrowArrayStream*")
-        c_stream_ptr = int(arrow_c.cast("uintptr_t", self.c_stream))
-        reader._export_to_c(c_stream_ptr)
-        end = time.perf_counter()
-        print(f"[PYTHON] exporting results took {(end - start)*1000}ms")
-        return c_stream_ptr
-        # 在这里将batch传回给__array_address
+        return int(time.time() * 1000)
+        #
+        # res = self.eval(df)
+        # start = time.perf_counter()
+        # batch = pa.RecordBatch.from_pandas(res)
+        # end = time.perf_counter()
+        # print(f"[PYTHON] computing res df took {(end - start)*1000}ms")
+        # # print("ressssssssssssssssssssss")
+        # # print(batch)
+        # # print("ressssssssssssssssssssss")
+        # start = time.perf_counter()
+        # reader = pa.RecordBatchReader.from_batches(batch.schema, [batch])
+        # self.c_stream = arrow_c.new("struct ArrowArrayStream*")
+        # c_stream_ptr = int(arrow_c.cast("uintptr_t", self.c_stream))
+        # reader._export_to_c(c_stream_ptr)
+        # end = time.perf_counter()
+        # print(f"[PYTHON] exporting results took {(end - start)*1000}ms")
+        # return c_stream_ptr
+        # # 在这里将batch传回给__array_address
 
     def eval(self, data : pd.DataFrame, weight_a=1, weight_b=1) -> pd.DataFrame:
         # 使用itertuples遍历DataFrame的每一行
