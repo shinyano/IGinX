@@ -214,6 +214,31 @@ public class ConfigDescriptor {
           properties.getProperty("defaultScheduledTransformJobDir", "transform_jobs"));
       config.setNeedInitBasicUDFFunctions(
           Boolean.parseBoolean(properties.getProperty("needInitBasicUDFFunctions", "false")));
+      config.setUdfPoolEnabled(
+          Boolean.parseBoolean(properties.getProperty("udfPoolEnabled", "true")));
+      config.setUdfPoolMinThreads(
+          Integer.parseInt(properties.getProperty("udfPoolMinThreads", "2")));
+      config.setUdfPoolMaxThreads(
+          Integer.parseInt(
+              properties.getProperty(
+                  "udfPoolMaxThreads",
+                  String.valueOf(Runtime.getRuntime().availableProcessors() * 2))));
+      config.setUdfPoolInitialThreads(
+          Integer.parseInt(properties.getProperty("udfPoolInitialThreads", "4")));
+      config.setUdfPoolKeepAliveSeconds(
+          Long.parseLong(properties.getProperty("udfPoolKeepAliveSeconds", "30")));
+      config.setUdfPoolExpandThreshold(
+          Integer.parseInt(properties.getProperty("udfPoolExpandThreshold", "5")));
+      config.setUdfPoolShrinkThreshold(
+          Integer.parseInt(properties.getProperty("udfPoolShrinkThreshold", "1")));
+      config.setUdfPoolCpuHighThreshold(
+          Double.parseDouble(properties.getProperty("udfPoolCpuHighThreshold", "0.85")));
+      config.setUdfPoolCpuLowThreshold(
+          Double.parseDouble(properties.getProperty("udfPoolCpuLowThreshold", "0.3")));
+      config.setUdfPoolScheduleIntervalMs(
+          Long.parseLong(properties.getProperty("udfPoolScheduleIntervalMs", "2000")));
+      config.setUdfPoolCooldownMs(
+          Long.parseLong(properties.getProperty("udfPoolCooldownMs", "5000")));
       config.setHistoricalPrefixList(properties.getProperty("historicalPrefixList", ""));
       config.setExpectedStorageUnitNum(
           Integer.parseInt(properties.getProperty("expectedStorageUnitNum", "0")));
@@ -350,6 +375,27 @@ public class ConfigDescriptor {
             "defaultScheduledTransformJobDir", config.getDefaultScheduledTransformJobDir()));
     config.setNeedInitBasicUDFFunctions(
         EnvUtils.loadEnv("needInitBasicUDFFunctions", config.isNeedInitBasicUDFFunctions()));
+    config.setUdfPoolEnabled(EnvUtils.loadEnv("udfPoolEnabled", config.isUdfPoolEnabled()));
+    config.setUdfPoolMinThreads(
+        EnvUtils.loadEnv("udfPoolMinThreads", config.getUdfPoolMinThreads()));
+    config.setUdfPoolMaxThreads(
+        EnvUtils.loadEnv("udfPoolMaxThreads", config.getUdfPoolMaxThreads()));
+    config.setUdfPoolInitialThreads(
+        EnvUtils.loadEnv("udfPoolInitialThreads", config.getUdfPoolInitialThreads()));
+    config.setUdfPoolKeepAliveSeconds(
+        EnvUtils.loadEnv("udfPoolKeepAliveSeconds", config.getUdfPoolKeepAliveSeconds()));
+    config.setUdfPoolExpandThreshold(
+        EnvUtils.loadEnv("udfPoolExpandThreshold", config.getUdfPoolExpandThreshold()));
+    config.setUdfPoolShrinkThreshold(
+        EnvUtils.loadEnv("udfPoolShrinkThreshold", config.getUdfPoolShrinkThreshold()));
+    config.setUdfPoolCpuHighThreshold(
+        EnvUtils.loadEnv("udfPoolCpuHighThreshold", config.getUdfPoolCpuHighThreshold()));
+    config.setUdfPoolCpuLowThreshold(
+        EnvUtils.loadEnv("udfPoolCpuLowThreshold", config.getUdfPoolCpuLowThreshold()));
+    config.setUdfPoolScheduleIntervalMs(
+        EnvUtils.loadEnv("udfPoolScheduleIntervalMs", config.getUdfPoolScheduleIntervalMs()));
+    config.setUdfPoolCooldownMs(
+        EnvUtils.loadEnv("udfPoolCooldownMs", config.getUdfPoolCooldownMs()));
     config.setHistoricalPrefixList(
         EnvUtils.loadEnv("historicalPrefixList", config.getHistoricalPrefixList()));
     config.setExpectedStorageUnitNum(

@@ -179,6 +179,29 @@ public class Config {
 
   private List<String> udfList = new ArrayList<>();
 
+  // Adaptive UDF thread pool configuration
+  private boolean udfPoolEnabled = true;
+
+  private int udfPoolMinThreads = 2;
+
+  private int udfPoolMaxThreads = Runtime.getRuntime().availableProcessors() * 2;
+
+  private int udfPoolInitialThreads = 4;
+
+  private long udfPoolKeepAliveSeconds = 30;
+
+  private int udfPoolExpandThreshold = 5;
+
+  private int udfPoolShrinkThreshold = 1;
+
+  private double udfPoolCpuHighThreshold = 0.85;
+
+  private double udfPoolCpuLowThreshold = 0.3;
+
+  private long udfPoolScheduleIntervalMs = 2000;
+
+  private long udfPoolCooldownMs = 5000;
+
   private String historicalPrefixList = "";
 
   private int expectedStorageUnitNum = 0;
@@ -820,6 +843,94 @@ public class Config {
 
   public void setUdfList(List<String> udfList) {
     this.udfList = udfList;
+  }
+
+  public boolean isUdfPoolEnabled() {
+    return udfPoolEnabled;
+  }
+
+  public void setUdfPoolEnabled(boolean udfPoolEnabled) {
+    this.udfPoolEnabled = udfPoolEnabled;
+  }
+
+  public int getUdfPoolMinThreads() {
+    return udfPoolMinThreads;
+  }
+
+  public void setUdfPoolMinThreads(int udfPoolMinThreads) {
+    this.udfPoolMinThreads = udfPoolMinThreads;
+  }
+
+  public int getUdfPoolMaxThreads() {
+    return udfPoolMaxThreads;
+  }
+
+  public void setUdfPoolMaxThreads(int udfPoolMaxThreads) {
+    this.udfPoolMaxThreads = udfPoolMaxThreads;
+  }
+
+  public int getUdfPoolInitialThreads() {
+    return udfPoolInitialThreads;
+  }
+
+  public void setUdfPoolInitialThreads(int udfPoolInitialThreads) {
+    this.udfPoolInitialThreads = udfPoolInitialThreads;
+  }
+
+  public long getUdfPoolKeepAliveSeconds() {
+    return udfPoolKeepAliveSeconds;
+  }
+
+  public void setUdfPoolKeepAliveSeconds(long udfPoolKeepAliveSeconds) {
+    this.udfPoolKeepAliveSeconds = udfPoolKeepAliveSeconds;
+  }
+
+  public int getUdfPoolExpandThreshold() {
+    return udfPoolExpandThreshold;
+  }
+
+  public void setUdfPoolExpandThreshold(int udfPoolExpandThreshold) {
+    this.udfPoolExpandThreshold = udfPoolExpandThreshold;
+  }
+
+  public int getUdfPoolShrinkThreshold() {
+    return udfPoolShrinkThreshold;
+  }
+
+  public void setUdfPoolShrinkThreshold(int udfPoolShrinkThreshold) {
+    this.udfPoolShrinkThreshold = udfPoolShrinkThreshold;
+  }
+
+  public double getUdfPoolCpuHighThreshold() {
+    return udfPoolCpuHighThreshold;
+  }
+
+  public void setUdfPoolCpuHighThreshold(double udfPoolCpuHighThreshold) {
+    this.udfPoolCpuHighThreshold = udfPoolCpuHighThreshold;
+  }
+
+  public double getUdfPoolCpuLowThreshold() {
+    return udfPoolCpuLowThreshold;
+  }
+
+  public void setUdfPoolCpuLowThreshold(double udfPoolCpuLowThreshold) {
+    this.udfPoolCpuLowThreshold = udfPoolCpuLowThreshold;
+  }
+
+  public long getUdfPoolScheduleIntervalMs() {
+    return udfPoolScheduleIntervalMs;
+  }
+
+  public void setUdfPoolScheduleIntervalMs(long udfPoolScheduleIntervalMs) {
+    this.udfPoolScheduleIntervalMs = udfPoolScheduleIntervalMs;
+  }
+
+  public long getUdfPoolCooldownMs() {
+    return udfPoolCooldownMs;
+  }
+
+  public void setUdfPoolCooldownMs(long udfPoolCooldownMs) {
+    this.udfPoolCooldownMs = udfPoolCooldownMs;
   }
 
   public String getHistoricalPrefixList() {
