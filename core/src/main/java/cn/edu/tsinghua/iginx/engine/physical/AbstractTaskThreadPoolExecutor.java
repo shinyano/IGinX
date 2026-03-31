@@ -36,11 +36,27 @@ public class AbstractTaskThreadPoolExecutor extends ThreadPoolExecutor {
   protected final PythonInterpreterConfig config;
 
   private static class TaskThreadFactory implements ThreadFactory {
-    private final ThreadFactory defaultFactory = Executors.defaultThreadFactory();
+    private static final java.util.concurrent.atomic.AtomicInteger THREAD_NUM =
+        new java.util.concurrent.atomic.AtomicInteger(1);
 
     @Override
     public Thread newThread(@NotNull Runnable r) {
-      Thread thread = defaultFactory.newThread(r);
+      Thread thread =
+          new Thread(
+              () -> {
+                try {
+                  r.run();
+                } finally {
+                  if (ThreadInterpreterManager.isInterpreterSet()) {
+                    try {
+                      ThreadInterpreterManager.getInterpreter().close();
+                    } catch (Exception e) {
+                      LOGGER.warn("Failed to close PythonInterpreter on thread exit", e);
+                    }
+                  }
+                }
+              },
+              "task-pool-thread-" + THREAD_NUM.getAndIncrement());
       thread.setUncaughtExceptionHandler(
           (t, e) -> {
             LOGGER.error("Uncaught exception in thread: {}", t.getName(), e);
