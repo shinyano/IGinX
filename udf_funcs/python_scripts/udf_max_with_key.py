@@ -18,7 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-
+import pandas as pd
 from iginx_udf import UDAFWrapper
 
 @UDAFWrapper
@@ -26,27 +26,13 @@ class UDFMaxWithKey:
     def __init__(self):
         pass
 
-    # only take one column, return max value and its key
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-
-        max = None
-        maxKey = None
-        for row in data[2:]:
-            num = row[1]
-            key = row[0]
-            if num is not None:
-                if max is None:
-                    max = num
-                    maxKey = key
-                elif max < num:
-                    max = num
-                    maxKey = key
-        res.append([maxKey, max])
-        return res
-
-    def buildHeader(self, data):
-        colNames = ["key"]
-        for name in data[0][1:]:
-            colNames.append("udf_max_with_key(" + name + ")")
-        return [colNames, data[1]]
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        val_col = cols[0]
+        idx = data[val_col].idxmax()
+        max_key = data.loc[idx, "key"]
+        max_val = data.loc[idx, val_col]
+        return pd.DataFrame({
+            "key": [max_key],
+            "udf_max_with_key(" + val_col + ")": [max_val],
+        })

@@ -50,7 +50,7 @@ public class ThreadInterpreterManager {
         setConfig(FunctionManager.getInstance().getConfig());
       }
       interpreter = new PythonInterpreter(configThreadLocal.get());
-      initialize(interpreter);
+      //      initialize(interpreter);
       interpreterThreadLocal.set(interpreter);
     }
     return interpreterThreadLocal.get();

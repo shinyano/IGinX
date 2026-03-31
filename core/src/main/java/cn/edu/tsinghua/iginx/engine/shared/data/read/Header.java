@@ -331,7 +331,8 @@ public final class Header {
       if (StringUtils.isPattern(pattern)) {
         for (int i = 0; i < fields.size(); i++) {
           Field field = getField(i);
-          if (StringUtils.match(field.getName(), pattern)) {
+          if (!RESERVED_COLS.contains(field.getName())
+              && StringUtils.match(field.getName(), pattern)) {
             matchedFields.add(new Pair<>(field, i));
           }
         }
@@ -339,7 +340,7 @@ public final class Header {
         Set<String> patternSet = new HashSet<>();
         for (int i = 0; i < fields.size(); i++) {
           Field field = getField(i);
-          if (pattern.equals(field.getName())) {
+          if (!RESERVED_COLS.contains(field.getName()) && pattern.equals(field.getName())) {
             if (patternSet.contains(field.getFullName())) {
               throw new PhysicalException(String.format("Column '%s' is ambiguous.", pattern));
             }

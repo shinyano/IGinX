@@ -28,7 +28,10 @@ setup(
     description="UDF tools for IGinX UDFs",
     author='THU IGinX',
     author_email='TSIginX@gmail.com',
-    packages=find_packages(where="src"),  # 搜索 src 下的包
-    package_dir={"": "src"},              # 指定源码根目录
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     python_requires=">=3.8",
+    install_requires=[
+        "pandas",
+    ],
 )

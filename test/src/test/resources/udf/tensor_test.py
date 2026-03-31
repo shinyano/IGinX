@@ -18,19 +18,18 @@
 
 import torch
 import numpy as np
+import pandas as pd
 
 from iginx_udf import UDSFWrapper
 
 @UDSFWrapper
 class TensorTest():
-    """
-    测试用的UDF，注意调用时data只能有一列
-    """
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
+    def eval(self, data, *args, **kwargs):
         some_zeros = np.zeros(40)
         tensor = torch.tensor(some_zeros)
-        res = [[f"tensorTest({data[0][1]})"], ["DOUBLE"], [tensor[0].item()]]
-        return res
+        cols = [c for c in data.columns if c != "key"]
+        col_name = "tensorTest(" + cols[0] + ")"
+        return pd.DataFrame({col_name: [tensor[0].item()]})

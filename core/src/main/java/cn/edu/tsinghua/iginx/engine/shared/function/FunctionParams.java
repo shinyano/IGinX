@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iginx.engine.shared.function;
 
 import cn.edu.tsinghua.iginx.engine.physical.memory.execute.utils.ExprUtils;
+import cn.edu.tsinghua.iginx.engine.shared.RequestContext;
 import cn.edu.tsinghua.iginx.engine.shared.expr.Expression;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,6 +40,10 @@ public class FunctionParams {
   private final Map<String, Object> kwargs;
 
   private boolean isDistinct;
+
+  private String callSiteId;
+
+  private transient RequestContext requestContext;
 
   public FunctionParams(Expression expression) {
     this(Collections.singletonList(expression), null, null, false);
@@ -100,6 +105,22 @@ public class FunctionParams {
 
   public void setDistinct(boolean distinct) {
     isDistinct = distinct;
+  }
+
+  public String getCallSiteId() {
+    return callSiteId;
+  }
+
+  public void setCallSiteId(String callSiteId) {
+    this.callSiteId = callSiteId;
+  }
+
+  public RequestContext getRequestContext() {
+    return requestContext;
+  }
+
+  public void setRequestContext(RequestContext requestContext) {
+    this.requestContext = requestContext;
   }
 
   protected FunctionParams copy() {

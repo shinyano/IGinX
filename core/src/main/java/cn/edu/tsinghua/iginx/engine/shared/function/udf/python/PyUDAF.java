@@ -26,6 +26,8 @@ import cn.edu.tsinghua.iginx.engine.shared.function.FunctionParams;
 import cn.edu.tsinghua.iginx.engine.shared.function.FunctionType;
 import cn.edu.tsinghua.iginx.engine.shared.function.MappingType;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.UDAF;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.schema.SchemaGuard;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.schema.SchemaViolationException;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.CheckUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.DataUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.RowUtils;
@@ -78,9 +80,20 @@ public class PyUDAF extends PyUDF implements UDAF {
       return Row.EMPTY_ROW;
     }
 
-    // [["key", col1, col2 ....],
-    // ["LONG", type1, type2 ...],
-    // [key1, val11, val21 ...]]
+    // Schema Guard
+    if (params.getRequestContext() != null && params.getCallSiteId() != null) {
+      try {
+        res =
+            SchemaGuard.ensureSchema(
+                params.getRequestContext().getSchemaRegistry(),
+                params.getCallSiteId(),
+                res,
+                SchemaGuard.Policy.ALIGN_COMPATIBLE);
+      } catch (SchemaViolationException e) {
+        throw new Exception("UDF schema violation in " + funcName + ": " + e.getMessage(), e);
+      }
+    }
+
     boolean hasKey = res.get(0).get(0).equals("key");
     long key = -1;
     if (hasKey) {

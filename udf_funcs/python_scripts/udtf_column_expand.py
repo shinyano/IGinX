@@ -18,6 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+import pandas as pd
 from iginx_udf import UDTFWrapper
 
 @UDTFWrapper
@@ -25,25 +26,12 @@ class UDFColumnExpand:
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-        newRow = []
-        for num in data[2][1:]:
-            newRow.append(num)
-            newRow.append(num + 1.5)
-            newRow.append(num * 2)
-        res.append(newRow)
-        return res
-
-    def buildHeader(self, data):
-        colNames = []
-        colTypes = []
-        for i in range(1, len(data[0])):
-            colNames.append("column_expand(" + data[0][i] + ")")
-            colTypes.append(data[1][i])
-            colNames.append("column_expand(" + data[0][i] + "+1.5)")
-            colTypes.append("DOUBLE")
-            colNames.append("column_expand(" + data[0][i] + "*2)")
-            colTypes.append(data[1][i])
-
-        return [colNames, colTypes]
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        result = {}
+        for col in cols:
+            val = data[col].iloc[0]
+            result["column_expand(" + col + ")"] = [val]
+            result["column_expand(" + col + "+1.5)"] = [val + 1.5]
+            result["column_expand(" + col + "*2)"] = [val * 2]
+        return pd.DataFrame(result)

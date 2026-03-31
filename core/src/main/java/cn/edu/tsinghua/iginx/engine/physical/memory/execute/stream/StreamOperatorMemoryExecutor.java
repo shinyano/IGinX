@@ -75,6 +75,14 @@ public class StreamOperatorMemoryExecutor implements OperatorMemoryExecutor {
 
   private StreamOperatorMemoryExecutor() {}
 
+  private static void injectRequestContext(
+      java.util.List<FunctionCall> functionCalls, RequestContext context) {
+    if (context == null || functionCalls == null) return;
+    for (FunctionCall fc : functionCalls) {
+      fc.getParams().setRequestContext(context);
+    }
+  }
+
   public static StreamOperatorMemoryExecutor getInstance() {
     return StreamOperatorMemoryExecutor.StreamOperatorMemoryExecutorHolder.INSTANCE;
   }
@@ -97,15 +105,19 @@ public class StreamOperatorMemoryExecutor implements OperatorMemoryExecutor {
         result = executeLimit((Limit) operator, stream);
         break;
       case Downsample:
+        injectRequestContext(((Downsample) operator).getFunctionCallList(), context);
         result = executeDownsample((Downsample) operator, stream);
         break;
       case RowTransform:
+        injectRequestContext(((RowTransform) operator).getFunctionCallList(), context);
         result = executeRowTransform((RowTransform) operator, stream);
         break;
       case SetTransform:
+        injectRequestContext(((SetTransform) operator).getFunctionCallList(), context);
         result = executeSetTransform((SetTransform) operator, stream);
         break;
       case MappingTransform:
+        injectRequestContext(((MappingTransform) operator).getFunctionCallList(), context);
         result = executeMappingTransform((MappingTransform) operator, stream);
         break;
       case Rename:

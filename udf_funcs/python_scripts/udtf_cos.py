@@ -19,6 +19,7 @@
 #
 
 import math
+import pandas as pd
 from iginx_udf import UDTFWrapper
 
 @UDTFWrapper
@@ -26,18 +27,9 @@ class UDFCos:
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-        cosRow = []
-        for num in data[2][1:]:
-            cosRow.append(math.cos(num))
-        res.append(cosRow)
-        return res
-
-    def buildHeader(self, data):
-        colNames = []
-        colTypes = []
-        for name in data[0][1:]:
-            colNames.append("cos(" + name + ")")
-            colTypes.append("DOUBLE")
-        return [colNames, colTypes]
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        result = {}
+        for col in cols:
+            result["cos(" + col + ")"] = [math.cos(data[col].iloc[0])]
+        return pd.DataFrame(result)

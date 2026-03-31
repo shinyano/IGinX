@@ -16,19 +16,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import pandas as pd
 from iginx_udf import UDTFWrapper
 
 @UDTFWrapper
 class NoModUDF():
-    """
-    :return: return the exact same table after replacing column names with "no_mod(${COL_NAME})"
-    """
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
-        for i, element in enumerate(data[0]):
-            if i == 0:
-                continue  # skip key
-            data[0][i] = f"no_mod({element})"
-        return data
+    def eval(self, data, *args, **kwargs):
+        rename_map = {}
+        for col in data.columns:
+            if col != "key":
+                rename_map[col] = "no_mod(" + col + ")"
+        result = data.rename(columns=rename_map)
+
+        return result

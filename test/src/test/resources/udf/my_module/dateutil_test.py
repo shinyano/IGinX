@@ -15,27 +15,28 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
- 
+
 from dateutil import parser
+import pandas as pd
 from iginx_udf import UDSFWrapper
 
 @UDSFWrapper
 class Test:
-    def eval(self, data, args, kvargs):
+    def eval(self, data, *args, **kwargs):
         datetime_string = "2023-04-05 14:30:00"
         parsed_datetime = parser.parse(datetime_string)
 
-        # 验证解析结果
-        if parsed_datetime.year == 2023 and \
-                parsed_datetime.month == 4 and \
-                parsed_datetime.day == 5 and \
-                parsed_datetime.hour == 14 and \
-                parsed_datetime.minute == 30:
-            return [
-                ["year", "month", "day", "hour", "minute"],
-                ["LONG", "LONG", "LONG", "LONG", "LONG"],
-                [parsed_datetime.year, parsed_datetime.month, parsed_datetime.day, parsed_datetime.hour, parsed_datetime.minute]
-            ]
+        if (parsed_datetime.year == 2023 and
+                parsed_datetime.month == 4 and
+                parsed_datetime.day == 5 and
+                parsed_datetime.hour == 14 and
+                parsed_datetime.minute == 30):
+            return pd.DataFrame({
+                "year": [parsed_datetime.year],
+                "month": [parsed_datetime.month],
+                "day": [parsed_datetime.day],
+                "hour": [parsed_datetime.hour],
+                "minute": [parsed_datetime.minute],
+            })
         else:
-            return []
-
+            return pd.DataFrame()

@@ -18,23 +18,20 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+import pandas as pd
 from iginx_udf import UDSFWrapper
 
 @UDSFWrapper
 class UDFReverseRows:
-  def __init__(self):
-    pass
+    def __init__(self):
+        pass
 
-  def eval(self, data, args, kvargs):
-    res = self.buildHeader(data)
-    res.extend(list(reversed(data[2:])))
-    return res
-
-  def buildHeader(self, data):
-    colNames = []
-    for name in data[0]:
-      if name != "key":
-        colNames.append("reverse_rows(" + name + ")")
-      else:
-        colNames.append(name)
-    return [colNames, data[1]]
+    def eval(self, data, *args, **kwargs):
+        rename_map = {}
+        for col in data.columns:
+            if col != "key":
+                rename_map[col] = "reverse_rows(" + col + ")"
+            else:
+                rename_map[col] = col
+        result = data.iloc[::-1].reset_index(drop=True).rename(columns=rename_map)
+        return result

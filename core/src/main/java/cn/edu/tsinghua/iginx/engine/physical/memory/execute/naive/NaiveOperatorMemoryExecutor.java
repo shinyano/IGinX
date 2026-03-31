@@ -105,6 +105,14 @@ public class NaiveOperatorMemoryExecutor implements OperatorMemoryExecutor {
 
   private NaiveOperatorMemoryExecutor() {}
 
+  private static void injectRequestContext(
+      List<FunctionCall> functionCalls, RequestContext context) {
+    if (context == null || functionCalls == null) return;
+    for (FunctionCall fc : functionCalls) {
+      fc.getParams().setRequestContext(context);
+    }
+  }
+
   public static NaiveOperatorMemoryExecutor getInstance() {
     return NaiveOperatorMemoryExecutorHolder.INSTANCE;
   }
@@ -124,12 +132,16 @@ public class NaiveOperatorMemoryExecutor implements OperatorMemoryExecutor {
       case Limit:
         return executeLimit((Limit) operator, table);
       case Downsample:
+        injectRequestContext(((Downsample) operator).getFunctionCallList(), context);
         return executeDownsample((Downsample) operator, table);
       case RowTransform:
+        injectRequestContext(((RowTransform) operator).getFunctionCallList(), context);
         return executeRowTransform((RowTransform) operator, table);
       case SetTransform:
+        injectRequestContext(((SetTransform) operator).getFunctionCallList(), context);
         return executeSetTransform((SetTransform) operator, table);
       case MappingTransform:
+        injectRequestContext(((MappingTransform) operator).getFunctionCallList(), context);
         return executeMappingTransform((MappingTransform) operator, table);
       case Rename:
         return executeRename((Rename) operator, table);

@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import pandas as pd
 from iginx_udf import UDSFWrapper
 
 @UDSFWrapper
@@ -28,10 +29,10 @@ class ClassA:
         obj = SubClassA()
         return obj.print_self()
 
-    def eval(self, data, args, kvargs):
+    def eval(self, data, *args, **kwargs):
         self.print_self()
         self.print_inner()
-        return [["col_outer_a"], ["LONG"], [1]]
+        return pd.DataFrame({"col_outer_a": [1]})
 
 
 @UDSFWrapper
@@ -44,7 +45,7 @@ class ClassB:
         obj = SubClassA()
         return obj.print_self()
 
-    def eval(self, data, args, kvargs):
+    def eval(self, data, *args, **kwargs):
         self.print_self()
         self.print_inner()
-        return [["col_outer_b"], ["LONG"], [1]]
+        return pd.DataFrame({"col_outer_b": [1]})

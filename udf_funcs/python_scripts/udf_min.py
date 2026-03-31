@@ -18,7 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-
+import pandas as pd
 from iginx_udf import UDAFWrapper
 
 @UDAFWrapper
@@ -26,25 +26,9 @@ class UDFMin:
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-
-        minRow = []
-        rows = data[2:]
-        for row in list(zip(*rows))[1:]:
-            min = None
-            for num in row:
-                if num is not None:
-                    if min is None:
-                        min = num
-                    elif min > num:
-                        min = num
-            minRow.append(min)
-        res.append(minRow)
-        return res
-
-    def buildHeader(self, data):
-        colNames = []
-        for name in data[0][1:]:
-            colNames.append("udf_min(" + name + ")")
-        return [colNames, data[1][1:]]
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        result = {}
+        for col in cols:
+            result["udf_min(" + col + ")"] = [data[col].dropna().min()]
+        return pd.DataFrame(result)

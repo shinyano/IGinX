@@ -18,26 +18,18 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+import pandas as pd
 from iginx_udf import UDSFWrapper
 
 @UDSFWrapper
 class UDFTranspose:
-  def __init__(self):
-    pass
+    def __init__(self):
+        pass
 
-  def eval(self, data, args, kvargs):
-    res = self.buildHeader(data)
-    for row in data[2:]:
-      del(row[0])
-    res.extend(list(map(list, zip(*data[2:]))))
-    return res
-
-  def buildHeader(self, data):
-    colNames = []
-    types = []
-    count = 0
-    for i in range(2, len(data)):
-      colNames.append("transpose(" + str(count) + ")")
-      count += 1
-      types.append(data[1][1])
-    return [colNames, types]
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        sub = data[cols]
+        transposed = sub.T
+        transposed.columns = ["transpose(" + str(i) + ")" for i in range(len(transposed.columns))]
+        transposed = transposed.reset_index(drop=True)
+        return transposed

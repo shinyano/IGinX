@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import pandas as pd
 from iginx_udf import UDAFWrapper
 
 @UDAFWrapper
@@ -23,6 +24,5 @@ class MockUDF():
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
-        res = [["col"], ["LONG"], [1]]
-        return res
+    def eval(self, data, *args, **kwargs):
+        return pd.DataFrame({"col": [1]})

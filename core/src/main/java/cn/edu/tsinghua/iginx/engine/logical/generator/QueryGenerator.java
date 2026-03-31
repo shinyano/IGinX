@@ -1023,15 +1023,17 @@ public class QueryGenerator extends AbstractGenerator {
     return MetaUtils.mergeRawData(fragments, dummyFragments, pathList, tagFilter);
   }
 
-  /** 获取对应类型的FunctionCall */
+  /** 获取对应类型的FunctionCall，并为每个调用点分配唯一 callSiteId */
   private static List<FunctionCall> getFunctionCallList(
       UnarySelectStatement selectStatement, MappingType mappingType) {
     List<FunctionCall> functionCallList = new ArrayList<>();
     List<FuncExpression> target = selectStatement.getTargetTypeFuncExprList(mappingType);
+    int[] counter = {0};
     target.forEach(
         expression -> {
           Function function = functionManager.getFunction(expression.getFuncName());
           FunctionParams params = getFunctionParams(expression.getFuncName(), expression);
+          params.setCallSiteId(expression.getFuncName() + "_" + counter[0]++);
           functionCallList.add(new FunctionCall(function, params));
         });
     return functionCallList;

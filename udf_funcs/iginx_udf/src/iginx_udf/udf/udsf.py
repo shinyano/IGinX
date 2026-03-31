@@ -18,8 +18,16 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+import pandas as pd
+
 from .udf_base import UDFWrapper
+
 
 class UDSFWrapper(UDFWrapper):
     def transform(self, data, *args, **kwargs):
-        return self._wrapped.eval(data, *args, **kwargs)
+        df, original_types, has_key = self._list_to_dataframe(data)
+        user_args, user_kwargs = self._unpack_java_params(args)
+        result = self._wrapped.eval(df, *user_args, **user_kwargs)
+        if isinstance(result, pd.DataFrame):
+            return self._dataframe_to_list(result, original_types, has_key)
+        return result

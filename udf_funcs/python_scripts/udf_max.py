@@ -18,7 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-
+import pandas as pd
 from iginx_udf import UDAFWrapper
 
 @UDAFWrapper
@@ -26,25 +26,9 @@ class UDFMax:
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-
-        maxRow = []
-        rows = data[2:]
-        for col in list(zip(*rows))[1:]:
-            max = None
-            for num in col:
-                if num is not None:
-                    if max is None:
-                        max = num
-                    elif max < num:
-                        max = num
-            maxRow.append(max)
-        res.append(maxRow)
-        return res
-
-    def buildHeader(self, data):
-        colNames = []
-        for name in data[0][1:]:
-            colNames.append("udf_max(" + name + ")")
-        return [colNames, data[1][1:]]
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        result = {}
+        for col in cols:
+            result["udf_max(" + col + ")"] = [data[col].dropna().max()]
+        return pd.DataFrame(result)

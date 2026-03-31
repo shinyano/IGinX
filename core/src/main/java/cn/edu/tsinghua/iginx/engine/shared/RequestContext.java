@@ -20,6 +20,7 @@
 package cn.edu.tsinghua.iginx.engine.shared;
 
 import cn.edu.tsinghua.iginx.engine.physical.task.PhysicalTask;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.schema.SchemaRegistry;
 import cn.edu.tsinghua.iginx.sql.statement.Statement;
 import cn.edu.tsinghua.iginx.thrift.SqlType;
 import cn.edu.tsinghua.iginx.thrift.Status;
@@ -65,6 +66,12 @@ public class RequestContext {
   private boolean isRemoteSession;
 
   private String warningMsg;
+
+  private SchemaRegistry schemaRegistry = new SchemaRegistry();
+
+  public SchemaRegistry getSchemaRegistry() {
+    return schemaRegistry;
+  }
 
   private void init() {
     this.id = SnowFlakeUtils.getInstance().nextId();

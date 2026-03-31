@@ -18,6 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+import pandas as pd
 from iginx_udf import UDTFWrapper
 
 @UDTFWrapper
@@ -25,15 +26,9 @@ class UDFKeyAddOne:
     def __init__(self):
         pass
 
-    # key add 1, only for test
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-        rows = [data[2][0] + 1, data[2][1]]
-        res.append(rows)
-        return res
-
-    def buildHeader(self, data):
-        colNames = ["key"]
-        for name in data[0][1:]:
-            colNames.append("key_add_one(" + name + ")")
-        return [colNames, data[1]]
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        result = {"key": [data["key"].iloc[0] + 1]}
+        for col in cols:
+            result["key_add_one(" + col + ")"] = [data[col].iloc[0]]
+        return pd.DataFrame(result)

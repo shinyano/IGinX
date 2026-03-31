@@ -16,21 +16,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import pandas as pd
 from iginx_udf import UDSFWrapper
 
 @UDSFWrapper
 class ClassA:
-    def eval(self, data, args, kvargs):
-        return [["col_outer_a"], ["LONG"], [1]]
+    def eval(self, data, *args, **kwargs):
+        return pd.DataFrame({"col_outer_a": [1]})
 
 
 @UDSFWrapper
 class ClassB:
-    def eval(self, data, args, kvargs):
-        return [["col_outer_b"], ["LONG"], [1]]
+    def eval(self, data, *args, **kwargs):
+        return pd.DataFrame({"col_outer_b": [1]})
 
 
 @UDSFWrapper
 class ClassC:
-    def eval(self, data, args, kvargs):
-        return [["col_outer_c"], ["LONG"], [1]]
+    def eval(self, data, *args, **kwargs):
+        return pd.DataFrame({"col_outer_c": [1]})

@@ -18,32 +18,19 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+import pandas as pd
 from iginx_udf import UDTFWrapper
 
 @UDTFWrapper
 class UDFPow:
-  def __init__(self):
-    self._n = 1
-    pass
+    def __init__(self):
+        self._n = 1
 
-  def eval(self, data, args, kvargs):
-    n = self._n
-    if 'n' in kvargs:
-      n = kvargs['n']
-    elif len(args) == 1:
-      n = args[0]
-
-    res = self.buildHeader(data, n)
-    cosRow = []
-    for num in data[2][1:]:
-      cosRow.append(float(num ** n))
-    res.append(cosRow)
-    return res
-
-  def buildHeader(self, data, n):
-    colNames = []
-    colTypes = []
-    for name in data[0][1:]:
-      colNames.append("pow({col}, {n})".format(col=name, n=n))
-      colTypes.append("DOUBLE")
-    return [colNames, colTypes]
+    def eval(self, data, *args, n=None, **kwargs):
+        if n is None:
+            n = args[0] if len(args) >= 1 else self._n
+        cols = [c for c in data.columns if c != "key"]
+        result = {}
+        for col in cols:
+            result["pow({col}, {n})".format(col=col, n=n)] = [float(data[col].iloc[0] ** n)]
+        return pd.DataFrame(result)

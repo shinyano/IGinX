@@ -19,6 +19,7 @@
 #
 
 import math
+import pandas as pd
 from iginx_udf import UDTFWrapper
 
 @UDTFWrapper
@@ -26,21 +27,12 @@ class UDFArcCos:
     def __init__(self):
         pass
 
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-        arccosRow = []
-        for num in data[2][1:]:
+    def eval(self, data, *args, **kwargs):
+        cols = [c for c in data.columns if c != "key"]
+        result = {}
+        for col in cols:
             try:
-                arccosRow.append(math.acos(num))
+                result["arccos(" + col + ")"] = [math.acos(data[col].iloc[0])]
             except ValueError:
-                arccosRow.append(None)
-        res.append(arccosRow)
-        return res
-
-    def buildHeader(self, data):
-        colNames = []
-        colTypes = []
-        for name in data[0][1:]:
-            colNames.append("arccos(" + name + ")")
-            colTypes.append("DOUBLE")
-        return [colNames, colTypes]
+                result["arccos(" + col + ")"] = [None]
+        return pd.DataFrame(result)
