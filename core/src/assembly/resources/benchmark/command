@@ -1,0 +1,32 @@
+cd /path/to/iginx-core-0.9.0-SNAPSHOT
+conda info --base
+export CONDA_BASE=/root/anaconda3
+export PORTS_TO_CLEAN="6888 7888"
+
+# verify native pemja libraries in each env
+conda activate py313_std
+python -c "import sysconfig, glob; p=sysconfig.get_paths()['purelib']; print(p); print(glob.glob(p + '/pemja_*.so'))"
+conda deactivate
+conda activate py313_ft
+python -c "import sysconfig, glob; p=sysconfig.get_paths()['purelib']; print(p); print(glob.glob(p + '/pemja_*.so'))"
+conda deactivate
+
+/root/anaconda3/envs/py313_std/bin/python  -c "import sysconfig, glob; p=sysconfig.get_paths()['purelib']; print(p); print(glob.glob(p + '/pemja_*.so'))"
+/root/anaconda3/envs/py313_ft/bin/python  -c "import sysconfig, glob; p=sysconfig.get_paths()['purelib']; print(p); print(glob.glob(p + '/pemja_*.so'))"
+
+# smoke test
+export THREADS="1"
+export ROUNDS=1
+bash benchmark/run_udf_throughput_matrix.sh
+
+# full run
+export THREADS="1 2 4 8"
+export ROUNDS=3
+export ROWS=10000
+export COLS=10
+export LOOPS=20
+export INVOCATIONS_PER_THREAD=10
+bash benchmark/run_udf_throughput_matrix.sh
+
+sed -n '1,200p' benchmark/results/logs/gil-t1-r1.log
+sed -n '1,200p' logs/iginx.log

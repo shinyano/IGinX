@@ -1599,7 +1599,7 @@ public class UDFIT {
 
   private boolean pythonNewerThan313() {
     Config config = ConfigDescriptor.getInstance().getConfig();
-    String pythonCMD = config.getPythonCMD();
+    String pythonCMD = "python";
     PythonInterpreterConfig pyConfig =
         PythonInterpreterConfig.newBuilder().setPythonExec(pythonCMD).build();
     try (PythonInterpreter interpreter = new PythonInterpreter(pyConfig)) {

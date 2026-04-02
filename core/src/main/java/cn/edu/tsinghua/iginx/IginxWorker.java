@@ -1115,8 +1115,8 @@ public class IginxWorker implements IService.Iface {
     } catch (Exception e) {
       errorMsg =
           String.format(
-              "Fail to perform safety check for %s. Please check the server log.",
-              sourceFile.getName());
+              "Fail to perform safety check for %s. Please check the server log. %s",
+              sourceFile.getName(), e.getMessage());
       LOGGER.error(errorMsg, e);
       safeDeleteUDF(destFile);
       return new Status(RpcUtils.FAILURE).setMessage(errorMsg);

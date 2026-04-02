@@ -16,27 +16,17 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import pandas as pd
 from iginx_udf import UDSFWrapper
 
 @UDSFWrapper
 class TypeCastTest():
-    """
-    测试用的UDF
-    """
-    def eval(self, data, args, kvargs):
-        res = self.buildHeader(data)
-        values = [
+    def eval(self, data, *args, **kwargs):
+        rows = [
             [1, 23372, 567, 1, 9999],
             [0.5, 2.71828, 9.876, 2.5, 3.1415926535],
             [True, False, True, False, True],
-            ["b", "-453625", "5.327", "false", "aaa"]
+            ["b", "-453625", "5.327", "false", "aaa"],
         ]
-        res.extend(values)
-        return res
-
-    def buildHeader(self, data):
-        colNames = []
-        colTypes = ["INTEGER", "LONG", "DOUBLE", "BOOLEAN", "BINARY"]
-        for colType in colTypes:
-            colNames.append("typeCastTest(us.d1." + colType + ")")
-        return [colNames, colTypes]
+        col_names = ["row0", "row1", "row2", "row3"]
+        return pd.DataFrame(rows).T.set_axis(col_names, axis=1)

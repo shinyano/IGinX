@@ -127,6 +127,7 @@ public class SessionPool {
     sessionNum.add(this.maxSize);
     validSessionSize = sessionNum.size();
     this.waitToGetSessionTimeoutInMs = waitToGetSessionTimeoutInMs;
+    initializeSessionQueues();
   }
 
   public SessionPool(List<IginxInfo> IginxList) {
@@ -176,10 +177,21 @@ public class SessionPool {
     this.sessionNum = sessionNum;
     this.maxSize = max(maxSize, THREAD_NUMBER_MINSIZE);
     this.waitToGetSessionTimeoutInMs = waitToGetSessionTimeoutInMs;
+    initializeSessionQueues();
   }
 
   public List<Long> getSessionIDs() {
     return sessionIDs;
+  }
+
+  private void initializeSessionQueues() {
+    queueList.clear();
+    queueMapIndex.clear();
+    for (int i = 0; i < iginxList.size(); i++) {
+      IginxInfo iginxInfo = iginxList.get(i);
+      queueList.add(new ConcurrentLinkedDeque<>());
+      queueMapIndex.putIfAbsent(new Pair<>(iginxInfo.getHost(), iginxInfo.getPort()), i);
+    }
   }
 
   private Session constructSession(int index) {
@@ -220,18 +232,29 @@ public class SessionPool {
   }
 
   private Session getSessionFromQueue(int index) {
-    int len = iginxList.size(), times = index % len;
+    int len = queueList.size();
+    if (len == 0) {
+      return null;
+    }
+    int preferredIndex = index % len;
     Session session = null;
-    if (queueList.size() == 0) return null;
-    if (queueList.size() > times) {
-      session = queueList.get(times).poll();
+    if (preferredIndex < 0) {
+      preferredIndex += len;
     }
-    for (ConcurrentLinkedDeque<Session> queue : queueList) {
-      session = queue.poll();
-      if (session != null) break;
+    session = queueList.get(preferredIndex).poll();
+    if (session != null) {
+      return session;
     }
-
-    return session;
+    for (int i = 0; i < len; i++) {
+      if (i == preferredIndex) {
+        continue;
+      }
+      session = queueList.get(i).poll();
+      if (session != null) {
+        return session;
+      }
+    }
+    return null;
   }
 
   private Session getSession() throws SessionException {
@@ -355,13 +378,14 @@ public class SessionPool {
   private void putBack(Session session) {
     rLock.lock();
     try {
-      queueList.add(
-          new ConcurrentLinkedDeque<Session>() {
-            {
-              push(session);
-            }
-          });
-      queueMapIndex.putIfAbsent(new Pair<>(session.getHost(), session.getPort()), queueList.size());
+      Pair<String, Integer> queueKey = new Pair<>(session.getHost(), session.getPort());
+      Integer queueIndex = queueMapIndex.get(queueKey);
+      if (queueIndex == null || queueIndex < 0 || queueIndex >= queueList.size()) {
+        queueIndex = queueList.size();
+        queueList.add(new ConcurrentLinkedDeque<>());
+        queueMapIndex.put(queueKey, queueIndex);
+      }
+      queueList.get(queueIndex).push(session);
     } finally {
       rLock.unlock();
     }

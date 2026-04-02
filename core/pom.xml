@@ -171,6 +171,13 @@
         <dependency>
             <groupId>cn.edu.tsinghua.iginx</groupId>
             <artifactId>pemja</artifactId>
+            <exclusions>
+                <!-- 避免 pemja 传递链引入与 log4j-slf4j-impl 不匹配的 slf4j-api 版本 -->
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>

@@ -1,0 +1,5 @@
+mode,round,workload,threads,rows,cols,loopsPerInvocation,invocationsPerThread,totalInvocations,elapsedMs,throughput,pythonVersion,gilEnabled,status,error
+"gil",1,"pure_python",1,10000,10,20,10,10,6713.0462,1.4896,"3.13.12","1","ok",""
+"gil",1,"numpy_vectorized",1,10000,10,20,10,10,3344.7954,2.9897,"3.13.12","1","ok",""
+"ft",1,"pure_python",1,10000,10,20,10,10,7502.0445,1.3330,"3.13.12","0","ok",""
+"ft",1,"numpy_vectorized",1,10000,10,20,10,10,3204.7222,3.1204,"3.13.12","0","ok",""

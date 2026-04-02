@@ -41,13 +41,18 @@ public class SQLExecutor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SQLExecutor.class);
 
-  private final ExecutorService pool = Executors.newFixedThreadPool(30);
+  private final ExecutorService pool;
 
   private final MultiConnection conn;
 
   private boolean needCompareResult = true;
 
   public SQLExecutor(MultiConnection session) {
+    this(session, 30);
+  }
+
+  public SQLExecutor(MultiConnection session, int poolSize) {
+    this.pool = Executors.newFixedThreadPool(poolSize);
     this.conn = session;
   }
 
@@ -56,7 +61,11 @@ public class SQLExecutor {
   }
 
   public void close() throws SessionException {
-    conn.closeSession();
+    try {
+      conn.closeSession();
+    } finally {
+      pool.shutdownNow();
+    }
   }
 
   public void setNeedCompareResult(boolean needCompareResult) {
@@ -81,6 +90,11 @@ public class SQLExecutor {
         LOGGER.error("Statement: \"{}\" execute fail. Caused by: ", statement, e);
         fail();
       }
+    }
+
+    if (res == null) {
+      fail();
+      return null;
     }
 
     if (res.getParseErrorMsg() != null && !res.getParseErrorMsg().equals("")) {

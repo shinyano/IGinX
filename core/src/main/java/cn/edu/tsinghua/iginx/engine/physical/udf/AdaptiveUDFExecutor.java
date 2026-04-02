@@ -42,44 +42,69 @@ public class AdaptiveUDFExecutor {
   private final boolean enabled;
 
   private AdaptiveUDFExecutor() {
-    Config config = ConfigDescriptor.getInstance().getConfig();
-    this.enabled = config.isUdfPoolEnabled();
+    this(initializeFromConfig());
+  }
+
+  private AdaptiveUDFExecutor(ExecutorComponents components) {
+    this.pool = components.pool;
+    this.scheduler = components.scheduler;
+    this.metricsService = components.metricsService;
+    this.enabled = components.enabled;
+
+    if (scheduler != null) {
+      scheduler.start();
+    }
 
     if (enabled) {
-      this.metricsService = new DefaultSystemMetricsService();
-      this.metricsService.start();
-
-      this.pool =
-          new AdaptiveUDFThreadPoolExecutor(
-              config.getUdfPoolInitialThreads(),
-              config.getUdfPoolMinThreads(),
-              config.getUdfPoolMaxThreads(),
-              config.getUdfPoolKeepAliveSeconds());
-
-      this.scheduler =
-          new AdaptiveScheduler(
-              pool,
-              metricsService,
-              config.getUdfPoolExpandThreshold(),
-              config.getUdfPoolShrinkThreshold(),
-              config.getUdfPoolCpuHighThreshold(),
-              config.getUdfPoolCpuLowThreshold(),
-              config.getUdfPoolScheduleIntervalMs(),
-              config.getUdfPoolCooldownMs());
-      scheduler.start();
-
-      LOGGER.info(
-          "AdaptiveUDFExecutor initialized: initial={}, min={}, max={}, keepAlive={}s",
-          config.getUdfPoolInitialThreads(),
-          config.getUdfPoolMinThreads(),
-          config.getUdfPoolMaxThreads(),
-          config.getUdfPoolKeepAliveSeconds());
+      if (components.logConfigSummary) {
+        Config config = ConfigDescriptor.getInstance().getConfig();
+        LOGGER.info(
+            "AdaptiveUDFExecutor initialized: initial={}, min={}, max={}, keepAlive={}s",
+            config.getUdfPoolInitialThreads(),
+            config.getUdfPoolMinThreads(),
+            config.getUdfPoolMaxThreads(),
+            config.getUdfPoolKeepAliveSeconds());
+      } else if (pool != null) {
+        LOGGER.info(
+            "AdaptiveUDFExecutor initialized for tests: poolSize={}", pool.getCorePoolSize());
+      }
     } else {
-      this.pool = null;
-      this.scheduler = null;
-      this.metricsService = null;
       LOGGER.info("AdaptiveUDFExecutor disabled, UDF runs on caller thread");
     }
+  }
+
+  static AdaptiveUDFExecutor createForTests(AdaptiveUDFThreadPoolExecutor pool) {
+    return new AdaptiveUDFExecutor(new ExecutorComponents(pool, null, null, true, false));
+  }
+
+  private static ExecutorComponents initializeFromConfig() {
+    Config config = ConfigDescriptor.getInstance().getConfig();
+    if (!config.isUdfPoolEnabled()) {
+      return new ExecutorComponents(null, null, null, false, true);
+    }
+
+    SystemMetricsService metricsService = new DefaultSystemMetricsService();
+    metricsService.start();
+
+    AdaptiveUDFThreadPoolExecutor pool =
+        new AdaptiveUDFThreadPoolExecutor(
+            config.getUdfPoolInitialThreads(),
+            config.getUdfPoolMinThreads(),
+            config.getUdfPoolMaxThreads(),
+            config.getUdfPoolKeepAliveSeconds());
+
+    AdaptiveScheduler scheduler =
+        new AdaptiveScheduler(
+            pool,
+            metricsService,
+            config.getUdfPoolExpandThreshold(),
+            config.getUdfPoolShrinkThreshold(),
+            config.getUdfPoolCpuHighThreshold(),
+            config.getUdfPoolCpuLowThreshold(),
+            config.getUdfPoolScheduleIntervalMs(),
+            config.getUdfPoolCooldownMs());
+
+    return new ExecutorComponents(pool, scheduler, metricsService, true, true);
   }
 
   public static AdaptiveUDFExecutor getInstance() {
@@ -150,5 +175,26 @@ public class AdaptiveUDFExecutor {
 
   private static class Holder {
     private static final AdaptiveUDFExecutor INSTANCE = new AdaptiveUDFExecutor();
+  }
+
+  private static class ExecutorComponents {
+    private final AdaptiveUDFThreadPoolExecutor pool;
+    private final AdaptiveScheduler scheduler;
+    private final SystemMetricsService metricsService;
+    private final boolean enabled;
+    private final boolean logConfigSummary;
+
+    private ExecutorComponents(
+        AdaptiveUDFThreadPoolExecutor pool,
+        AdaptiveScheduler scheduler,
+        SystemMetricsService metricsService,
+        boolean enabled,
+        boolean logConfigSummary) {
+      this.pool = pool;
+      this.scheduler = scheduler;
+      this.metricsService = metricsService;
+      this.enabled = enabled;
+      this.logConfigSummary = logConfigSummary;
+    }
   }
 }

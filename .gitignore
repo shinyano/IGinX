@@ -49,3 +49,30 @@ hs_err_pid*
 
 **/.flattened-pom.xml
 /dependency/src/main/resources/dameng-jdbc-1.8-SNAPSHOT.jar
+
+*.pyc
+**/__pycache__/
+pics/
+session_py/
+udf_funcs/
+tpc/
+# 虚拟环境
+env311/
+
+*.jar
+*.exe
+*.bat
+
+tmp/
+zzzplayground/
+downloads/
+
+.vscode/
+
+# 密钥
+*.key
+
+processed_images/
+**/local_model/
+
+docs/

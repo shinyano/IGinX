@@ -1,0 +1,50 @@
+#
+# IGinX - the polystore system with high performance
+# Copyright (C) Tsinghua University
+# TSIGinX@gmail.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 3 of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+
+import pandas as pd
+from iginx_udf import UDSFWrapper
+
+
+def _normalize_loops(loops):
+    if isinstance(loops, (bytes, bytearray)):
+        loops = loops.decode()
+    if isinstance(loops, str):
+        loops = loops.strip()
+    if isinstance(loops, float):
+        loops = int(loops)
+    return int(loops)
+
+
+def _value_columns(data):
+    return [column for column in data.columns if column != "key"]
+
+
+@UDSFWrapper
+class NumpyBenchmark:
+    def eval(self, data, loops=20, *args, **kwargs):
+        import numpy as np
+
+        loops = _normalize_loops(loops)
+        columns = _value_columns(data)
+        values = data[columns].to_numpy(dtype=np.float64, copy=False)
+        total = 0.0
+        for _ in range(loops):
+            total += float(np.sum(values * values))
+        return pd.DataFrame({"result": [total]})
