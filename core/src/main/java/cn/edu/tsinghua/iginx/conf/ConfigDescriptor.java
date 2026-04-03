@@ -216,6 +216,8 @@ public class ConfigDescriptor {
           Boolean.parseBoolean(properties.getProperty("needInitBasicUDFFunctions", "false")));
       config.setUdfPoolEnabled(
           Boolean.parseBoolean(properties.getProperty("udfPoolEnabled", "true")));
+      config.setPythonUdfLegacyExecutionEnabled(
+          Boolean.parseBoolean(properties.getProperty("pythonUdfLegacyExecutionEnabled", "false")));
       config.setUdfPoolMinThreads(
           Integer.parseInt(properties.getProperty("udfPoolMinThreads", "2")));
       config.setUdfPoolMaxThreads(
@@ -376,6 +378,9 @@ public class ConfigDescriptor {
     config.setNeedInitBasicUDFFunctions(
         EnvUtils.loadEnv("needInitBasicUDFFunctions", config.isNeedInitBasicUDFFunctions()));
     config.setUdfPoolEnabled(EnvUtils.loadEnv("udfPoolEnabled", config.isUdfPoolEnabled()));
+    config.setPythonUdfLegacyExecutionEnabled(
+        EnvUtils.loadEnv(
+            "pythonUdfLegacyExecutionEnabled", config.isPythonUdfLegacyExecutionEnabled()));
     config.setUdfPoolMinThreads(
         EnvUtils.loadEnv("udfPoolMinThreads", config.getUdfPoolMinThreads()));
     config.setUdfPoolMaxThreads(

@@ -49,6 +49,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
@@ -59,6 +61,7 @@ import pemja.core.PythonInterpreterConfig;
 public class FunctionManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(FunctionManager.class);
+  private static final int LEGACY_UDF_INTERPRETER_NUM = 5;
 
   private final Map<String, Function> functions;
 
@@ -247,6 +250,10 @@ public class FunctionManager {
       className = className.substring(className.lastIndexOf(".") + 1);
     }
 
+    if (config.isPythonUdfLegacyExecutionEnabled()) {
+      return loadUDFWithLegacyExecution(identifier, functionMeta.getType(), moduleName, className);
+    }
+
     if (functionMeta.getType().equals(UDFType.UDAF)) {
       PyUDAF udaf = new PyUDAF(identifier, moduleName, className);
       functions.put(identifier, udaf);
@@ -263,6 +270,55 @@ public class FunctionManager {
       throw new IllegalArgumentException(
           String.format("UDF %s registered in type %s", identifier, functionMeta.getType()));
     }
+  }
+
+  private Function loadUDFWithLegacyExecution(
+      String identifier, UDFType udfType, String moduleName, String className) {
+    BlockingQueue<PythonInterpreter> queue = new LinkedBlockingQueue<>();
+    try {
+      for (int i = 0; i < LEGACY_UDF_INTERPRETER_NUM; i++) {
+        PythonInterpreter legacyInterpreter = new PythonInterpreter(getConfig());
+        try {
+          legacyInterpreter.exec(String.format("import %s", moduleName));
+          legacyInterpreter.exec(String.format("t = %s.%s()", moduleName, className));
+          queue.add(legacyInterpreter);
+        } catch (Exception e) {
+          legacyInterpreter.close();
+          throw e;
+        }
+      }
+
+      if (udfType.equals(UDFType.UDAF)) {
+        PyUDAF udaf = new PyUDAF(queue, identifier, moduleName, className);
+        functions.put(identifier, udaf);
+        return udaf;
+      } else if (udfType.equals(UDFType.UDTF)) {
+        PyUDTF udtf = new PyUDTF(queue, identifier, moduleName, className);
+        functions.put(identifier, udtf);
+        return udtf;
+      } else if (udfType.equals(UDFType.UDSF)) {
+        PyUDSF udsf = new PyUDSF(queue, identifier, moduleName, className);
+        functions.put(identifier, udsf);
+        return udsf;
+      }
+    } catch (Exception e) {
+      while (!queue.isEmpty()) {
+        PythonInterpreter interpreter = queue.poll();
+        if (interpreter != null) {
+          interpreter.close();
+        }
+      }
+      throw new RuntimeException("Failed to initialize legacy Python UDF: " + identifier, e);
+    }
+
+    while (!queue.isEmpty()) {
+      PythonInterpreter interpreter = queue.poll();
+      if (interpreter != null) {
+        interpreter.close();
+      }
+    }
+    throw new IllegalArgumentException(
+        String.format("UDF %s registered in type %s", identifier, udfType));
   }
 
   // use pip to install requirements.txt in module root dir

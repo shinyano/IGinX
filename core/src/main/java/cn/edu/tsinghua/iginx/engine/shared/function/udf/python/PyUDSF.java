@@ -32,6 +32,8 @@ import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.CheckUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.DataUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.RowUtils;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import pemja.core.PythonInterpreter;
 
 public class PyUDSF extends PyUDF implements UDSF {
 
@@ -41,6 +43,15 @@ public class PyUDSF extends PyUDF implements UDSF {
 
   public PyUDSF(String funcName, String moduleName, String className) {
     super(moduleName, className);
+    this.funcName = funcName;
+  }
+
+  public PyUDSF(
+      BlockingQueue<PythonInterpreter> interpreters,
+      String funcName,
+      String moduleName,
+      String className) {
+    super(interpreters, moduleName, className);
     this.funcName = funcName;
   }
 

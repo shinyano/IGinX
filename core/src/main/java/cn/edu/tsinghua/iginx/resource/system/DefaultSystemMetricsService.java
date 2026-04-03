@@ -23,6 +23,8 @@ import cn.hutool.system.oshi.OshiUtil;
 import com.google.common.util.concurrent.AtomicDouble;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import oshi.hardware.GlobalMemory;
 
 public class DefaultSystemMetricsService implements SystemMetricsService {
@@ -43,6 +45,8 @@ public class DefaultSystemMetricsService implements SystemMetricsService {
 
   private final ExecutorService exec;
 
+  private final AtomicBoolean running;
+
   private int index = 0;
 
   public DefaultSystemMetricsService() {
@@ -51,28 +55,43 @@ public class DefaultSystemMetricsService implements SystemMetricsService {
     cpuUsages = new double[SAMPLE_SIZE];
     memoryUsage = new double[SAMPLE_SIZE];
     exec = Executors.newSingleThreadExecutor();
+    running = new AtomicBoolean(false);
   }
 
   @Override
   public void start() {
+    if (!running.compareAndSet(false, true)) {
+      return;
+    }
     exec.execute(
         () -> {
-          cpuUsages[index] = (100.0 - OshiUtil.getCpuInfo(STATISTICS_INTERVAL).getFree()) / 100.0;
-          GlobalMemory memory = OshiUtil.getMemory();
-          memoryUsage[index] =
-              (memory.getTotal() - memory.getAvailable()) * 1.0 / memory.getTotal();
-          index++;
-          if (index % UPDATE_PER_SAMPLE == 0) {
-            recentCpuUsage.set(avg(cpuUsages));
-            recentMemoryUsage.set(avg(memoryUsage));
+          while (running.get() && !Thread.currentThread().isInterrupted()) {
+            cpuUsages[index] = (100.0 - OshiUtil.getCpuInfo(STATISTICS_INTERVAL).getFree()) / 100.0;
+            GlobalMemory memory = OshiUtil.getMemory();
+            memoryUsage[index] =
+                (memory.getTotal() - memory.getAvailable()) * 1.0 / memory.getTotal();
+            recentCpuUsage.set(cpuUsages[index]);
+            recentMemoryUsage.set(memoryUsage[index]);
+            index++;
+            if (index % UPDATE_PER_SAMPLE == 0) {
+              recentCpuUsage.set(avg(cpuUsages));
+              recentMemoryUsage.set(avg(memoryUsage));
+            }
+            index %= SAMPLE_SIZE;
           }
-          index %= SAMPLE_SIZE;
         });
   }
 
   @Override
   public void stop() {
+    running.set(false);
     exec.shutdown();
+    try {
+      exec.awaitTermination(2, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      exec.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
   }
 
   @Override

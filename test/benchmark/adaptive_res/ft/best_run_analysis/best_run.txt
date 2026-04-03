@@ -1,0 +1,26 @@
+====
+    IGinX - the polystore system with high performance
+    Copyright (C) Tsinghua University
+    TSIGinX@gmail.com
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 3 of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this program; if not, write to the Free Software Foundation,
+    Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+====
+
+best_round=round_2
+score=87.6845
+selected_experiment_start_epoch_ms=1775146723831
+selected_rows=210
+avg_throughput=33.4556
+reason=phase2_expand(1.0), phase3_recovery(0.8571), phase5_shrink(0.9643), phase4_rebound(0.8571), stability(0.625)

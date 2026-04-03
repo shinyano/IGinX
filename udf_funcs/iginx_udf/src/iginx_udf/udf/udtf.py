@@ -24,11 +24,20 @@ from .udf_base import UDFWrapper
 
 
 class UDTFWrapper(UDFWrapper):
+    def get_udf_type(self) -> str:
+        return "udtf"
+
     def transform(self, data, *args, **kwargs):
         df, original_types, has_key = self._list_to_dataframe(data)
+        input_rows = len(df)
         user_args, user_kwargs = self._unpack_java_params(args)
         result = self._wrapped.eval(df, *user_args, **user_kwargs)
         if isinstance(result, pd.DataFrame):
+            if len(result) != input_rows:
+                raise ValueError(
+                    f"UDTF output row count ({len(result)}) must equal "
+                    f"input row count ({input_rows})."
+                )
             return self._dataframe_to_list(result, original_types, has_key)
         return result
 

@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 public class AdaptiveScheduler {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AdaptiveScheduler.class);
+  private static final String METRIC_LOG_PREFIX = "UDF_ADAPTIVE_METRICS";
 
   private static final double EWMA_ALPHA = 0.3;
   private static final double ACTIVE_RATIO_EXPAND_THRESHOLD = 0.8;
@@ -120,19 +121,31 @@ public class AdaptiveScheduler {
   }
 
   private void doAdjust() {
+    long wallTimeMs = System.currentTimeMillis();
     double rawCpu = metrics.getRecentCpuUsage();
     int rawQueueSize = pool.getQueue().size();
     int activeCount = pool.getActiveCount();
     int currentSize = pool.getCorePoolSize();
+    double activeRatio = currentSize > 0 ? (double) activeCount / currentSize : 0;
 
     ewmaCpuUsage = EWMA_ALPHA * rawCpu + (1 - EWMA_ALPHA) * ewmaCpuUsage;
     ewmaQueueSize = EWMA_ALPHA * rawQueueSize + (1 - EWMA_ALPHA) * ewmaQueueSize;
 
+    String decision = "hold";
+    String reason = "stable";
+
     if (inCooldown()) {
+      logMetrics(
+          wallTimeMs,
+          pool.getCorePoolSize(),
+          activeCount,
+          rawQueueSize,
+          rawCpu,
+          activeRatio,
+          decision,
+          "cooldown");
       return;
     }
-
-    double activeRatio = currentSize > 0 ? (double) activeCount / currentSize : 0;
 
     if (shouldExpand(ewmaQueueSize, ewmaCpuUsage, activeRatio, currentSize)) {
       int newSize = Math.min(currentSize * 2, pool.getMaxPoolSize());
@@ -141,6 +154,8 @@ public class AdaptiveScheduler {
         markAdjusted();
         consecutiveIdleCycles = 0;
         currentIntervalMs = Math.max(baseIntervalMs / 2, 500);
+        decision = "expand";
+        reason = "queue_backlog";
         LOGGER.debug(
             "EXPAND: cpu={}, queue={}, active={}/{}, newSize={}",
             String.format("%.2f", ewmaCpuUsage),
@@ -158,6 +173,8 @@ public class AdaptiveScheduler {
           pool.resizePool(newSize);
           markAdjusted();
           consecutiveIdleCycles = 0;
+          decision = "shrink";
+          reason = "sustained_idle";
           LOGGER.debug(
               "SHRINK: cpu={}, queue={}, active={}/{}, newSize={}",
               String.format("%.2f", ewmaCpuUsage),
@@ -166,12 +183,25 @@ public class AdaptiveScheduler {
               currentSize,
               newSize);
         }
+      } else {
+        reason = "await_idle_confirmation";
       }
       currentIntervalMs = Math.min(baseIntervalMs * 2, 10_000);
     } else {
       consecutiveIdleCycles = 0;
       currentIntervalMs = baseIntervalMs;
+      reason = determineHoldReason(rawQueueSize, rawCpu, activeRatio, currentSize);
     }
+
+    logMetrics(
+        wallTimeMs,
+        pool.getCorePoolSize(),
+        activeCount,
+        rawQueueSize,
+        rawCpu,
+        activeRatio,
+        decision,
+        reason);
   }
 
   private boolean shouldExpand(
@@ -196,6 +226,55 @@ public class AdaptiveScheduler {
 
   private void markAdjusted() {
     lastAdjustTime = System.currentTimeMillis();
+  }
+
+  private String determineHoldReason(
+      int rawQueueSize, double rawCpu, double activeRatio, int currentSize) {
+    if (rawQueueSize > expandThreshold && rawCpu >= cpuHighThreshold) {
+      return "cpu_high_block_expand";
+    }
+    if (rawQueueSize > expandThreshold && activeRatio < ACTIVE_RATIO_EXPAND_THRESHOLD) {
+      return "active_ratio_block_expand";
+    }
+    if (rawQueueSize <= shrinkThreshold && rawCpu >= cpuLowThreshold) {
+      return "cpu_not_low_enough";
+    }
+    if (rawQueueSize <= shrinkThreshold && activeRatio >= 0.3) {
+      return "active_ratio_block_shrink";
+    }
+    if (currentSize <= pool.getMinPoolSize()) {
+      return "at_min_pool";
+    }
+    if (currentSize >= pool.getMaxPoolSize()) {
+      return "at_max_pool";
+    }
+    return "stable";
+  }
+
+  private void logMetrics(
+      long wallTimeMs,
+      int poolSize,
+      int activeCount,
+      int rawQueueSize,
+      double rawCpu,
+      double activeRatio,
+      String decision,
+      String reason) {
+    LOGGER.info(
+        "{} wallTimeMs={} poolSize={} activeThreads={} queueLength={} cpuUsage={} queueEwma={} cpuEwma={} activeRatio={} decision={} reason={} intervalMs={} idleCycles={}",
+        METRIC_LOG_PREFIX,
+        wallTimeMs,
+        poolSize,
+        activeCount,
+        rawQueueSize,
+        String.format("%.4f", rawCpu),
+        String.format("%.4f", ewmaQueueSize),
+        String.format("%.4f", ewmaCpuUsage),
+        String.format("%.4f", activeRatio),
+        decision,
+        reason,
+        currentIntervalMs,
+        consecutiveIdleCycles);
   }
 
   // Visible for testing

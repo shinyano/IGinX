@@ -182,6 +182,8 @@ public class Config {
   // Adaptive UDF thread pool configuration
   private boolean udfPoolEnabled = true;
 
+  private boolean pythonUdfLegacyExecutionEnabled = false;
+
   private int udfPoolMinThreads = 2;
 
   private int udfPoolMaxThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -851,6 +853,14 @@ public class Config {
 
   public void setUdfPoolEnabled(boolean udfPoolEnabled) {
     this.udfPoolEnabled = udfPoolEnabled;
+  }
+
+  public boolean isPythonUdfLegacyExecutionEnabled() {
+    return pythonUdfLegacyExecutionEnabled;
+  }
+
+  public void setPythonUdfLegacyExecutionEnabled(boolean pythonUdfLegacyExecutionEnabled) {
+    this.pythonUdfLegacyExecutionEnabled = pythonUdfLegacyExecutionEnabled;
   }
 
   public int getUdfPoolMinThreads() {

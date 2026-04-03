@@ -24,6 +24,9 @@ from .udf_base import UDFWrapper
 
 
 class UDSFWrapper(UDFWrapper):
+    def get_udf_type(self) -> str:
+        return "udsf"
+
     def transform(self, data, *args, **kwargs):
         df, original_types, has_key = self._list_to_dataframe(data)
         user_args, user_kwargs = self._unpack_java_params(args)

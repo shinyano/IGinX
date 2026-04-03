@@ -18,8 +18,7 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-import sys
-
+import numpy as np
 import pandas as pd
 from iginx_udf import UDSFWrapper
 
@@ -39,30 +38,13 @@ def _value_columns(data):
 
 
 @UDSFWrapper
-class ArchitectureBenchmarkMetadata:
-    def eval(self, data, *args, **kwargs):
-        version = sys.version_info
-        gil_enabled = int(getattr(sys, "_is_gil_enabled", lambda: True)())
-        return pd.DataFrame(
-            {
-                "gil_enabled": [gil_enabled],
-                "py_major": [version.major],
-                "py_minor": [version.minor],
-                "py_micro": [version.micro],
-            }
-        )
-
-
-@UDSFWrapper
 class ArchitectureComputeIntensiveBenchmark:
     def eval(self, data, loops=20, *args, **kwargs):
         loops = _normalize_loops(loops)
         columns = _value_columns(data)
-        values = data[columns]
+        values = np.ascontiguousarray(data[columns].to_numpy(dtype=np.float64, copy=False))
         total = 0.0
         for _ in range(loops):
-            for row in values.itertuples(index=False, name=None):
-                for value in row:
-                    fv = float(value)
-                    total += fv * fv
+            squared = np.square(values)
+            total += float(np.add.reduce(squared, axis=None))
         return pd.DataFrame({"result": [total]})

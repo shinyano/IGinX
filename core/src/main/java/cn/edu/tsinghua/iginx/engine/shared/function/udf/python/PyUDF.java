@@ -28,6 +28,7 @@ import cn.edu.tsinghua.iginx.engine.shared.function.Function;
 import cn.edu.tsinghua.iginx.engine.shared.function.manager.ThreadInterpreterManager;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pemja.core.PythonInterpreter;
@@ -35,6 +36,9 @@ import pemja.core.PythonInterpreter;
 public abstract class PyUDF implements Function {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PyUDF.class);
+  private static final String LEGACY_UDF_OBJECT = "t";
+
+  protected final BlockingQueue<PythonInterpreter> interpreters;
 
   protected final String moduleName;
 
@@ -43,11 +47,33 @@ public abstract class PyUDF implements Function {
   private static final Config config = ConfigDescriptor.getInstance().getConfig();
 
   public PyUDF(String moduleName, String className) {
+    this(null, moduleName, className);
+  }
+
+  public PyUDF(BlockingQueue<PythonInterpreter> interpreters, String moduleName, String className) {
+    this.interpreters = interpreters;
     this.moduleName = moduleName;
     this.className = className;
   }
 
   public void close(String funcName, PythonInterpreter interpreter) {
+    if (interpreters != null) {
+      while (!interpreters.isEmpty()) {
+        PythonInterpreter queuedInterpreter = interpreters.poll();
+        if (queuedInterpreter == null) {
+          continue;
+        }
+        try {
+          queuedInterpreter.exec(
+              String.format("import sys; sys.modules.pop('%s', None)", moduleName));
+        } catch (Exception e) {
+          LOGGER.error("Remove module for legacy udf {} failed:", funcName, e);
+        } finally {
+          queuedInterpreter.close();
+        }
+      }
+      return;
+    }
     try {
       interpreter.exec(String.format("import sys; sys.modules.pop('%s', None)", moduleName));
     } catch (NullPointerException e) {
@@ -70,6 +96,25 @@ public abstract class PyUDF implements Function {
 
   protected List<List<Object>> invokePyUDF(
       List<List<Object>> data, List<Object> args, Map<String, Object> kvargs) {
+    if (interpreters != null) {
+      PythonInterpreter interpreter = null;
+      try {
+        interpreter = interpreters.take();
+        return (List<List<Object>>)
+            interpreter.invokeMethod(LEGACY_UDF_OBJECT, UDF_FUNC, data, args, kvargs);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException(
+            "Interrupted while waiting for legacy Python UDF interpreter", e);
+      } catch (Exception e) {
+        throw new RuntimeException("Failed to execute legacy Python UDF: " + moduleName, e);
+      } finally {
+        if (interpreter != null) {
+          interpreters.offer(interpreter);
+        }
+      }
+    }
+
     try {
       return AdaptiveUDFExecutor.getInstance()
           .submitAndGet(
