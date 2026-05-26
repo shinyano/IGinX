@@ -19,9 +19,17 @@
  */
 package cn.edu.tsinghua.iginx.engine.shared.function.udf.schema;
 
+import static cn.edu.tsinghua.iginx.engine.shared.Constants.KEY;
+
+import cn.edu.tsinghua.iginx.engine.shared.function.manager.ThreadInterpreterManager;
 import cn.edu.tsinghua.iginx.thrift.DataType;
 import cn.edu.tsinghua.iginx.utils.DataTypeUtils;
+import cn.edu.tsinghua.iginx.utils.TypeConverter;
 import java.util.*;
+import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.VectorSchemaRoot;
+import org.apache.arrow.vector.types.pojo.ArrowType;
+import org.apache.arrow.vector.types.pojo.Field;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,6 +131,68 @@ public class SchemaGuard {
     return result;
   }
 
+  public static VectorSchemaRoot ensureArrowSchema(
+      SchemaRegistry registry, String callSiteId, VectorSchemaRoot rawResult, Policy policy)
+      throws SchemaViolationException {
+    if (rawResult == null || rawResult.getRowCount() == 0) {
+      return rawResult;
+    }
+
+    ArrowOutputSchema current = ArrowSchemaExtractor.extract(rawResult);
+    ArrowOutputSchema existing = registry.getArrowSchemaRegistry().putIfAbsent(callSiteId, current);
+    if (existing == null) {
+      LOGGER.debug("Schema snapshot locked for call site [{}]: {}", callSiteId, current);
+      return rawResult;
+    }
+
+    ArrowOutputSchema snapshot = existing;
+
+    if (policy == Policy.STRICT) {
+      if (current.strictEquals(snapshot)) {
+        return rawResult;
+      }
+      throw new SchemaViolationException(
+          callSiteId, snapshot, current, "strict mode requires exact schema match");
+    }
+
+    if (current.isHasKey() != snapshot.isHasKey()) {
+      throw new SchemaViolationException(callSiteId, snapshot, current, "key semantics mismatch");
+    }
+
+    if (current.getColumnNames().isEmpty()) {
+      throw new SchemaViolationException(callSiteId, snapshot, current, "empty output not allowed");
+    }
+
+    Set<String> snapCols = snapshot.getColumnNameSet();
+    Set<String> currCols = current.getColumnNameSet();
+    Set<String> extraCols = new LinkedHashSet<>(currCols);
+    extraCols.removeAll(snapCols);
+    if (!extraCols.isEmpty()) {
+      throw new SchemaViolationException(
+          callSiteId, snapshot, current, "new columns not allowed: " + extraCols);
+    }
+
+    for (String col : currCols) {
+      ArrowType srcType = current.getType(col);
+      ArrowType targetType = snapshot.getType(col);
+      if (srcType != null
+          && targetType != null
+          && !ArrowTypeUpcastMatrix.isAssignable(srcType, targetType)) {
+        throw new SchemaViolationException(
+            callSiteId,
+            snapshot,
+            current,
+            String.format(
+                "type upcast not allowed for column [%s]: %s -> %s", col, srcType, targetType));
+      }
+    }
+
+    if (current.strictEquals(snapshot)) {
+      return rawResult;
+    }
+    return reorderToSnapshot(rawResult, current, snapshot);
+  }
+
   /** 从 UDF 原始返回中解析输出模式。 */
   static OutputSchema parseSchema(List<List<Object>> rawResult) {
     List<Object> rawNames = rawResult.get(0);
@@ -192,6 +262,46 @@ public class SchemaGuard {
     return result;
   }
 
+  static VectorSchemaRoot reorderToSnapshot(
+      VectorSchemaRoot rawResult, ArrowOutputSchema current, ArrowOutputSchema snapshot) {
+    List<FieldVector> vectors = new ArrayList<>();
+    int rowCount = rawResult.getRowCount();
+    try {
+      if (snapshot.isHasKey()) {
+        vectors.add(copyVector(rawResult.getVector(KEY), rowCount));
+      }
+
+      for (String columnName : snapshot.getColumnNames()) {
+        Field snapshotField = snapshot.getField(columnName);
+        ArrowType targetType = snapshotField.getType();
+        FieldVector vector =
+            ArrowVectorBuilder.createVector(snapshotField, ThreadInterpreterManager.getAllocator());
+        ArrowVectorBuilder.allocateVector(vector, rowCount);
+        FieldVector rawVector = rawResult.getVector(columnName);
+        ArrowType sourceType = current.getType(columnName);
+        for (int i = 0; i < rowCount; i++) {
+          Object value =
+              rawVector == null ? null : ArrowVectorBuilder.readValue(rawVector, i, sourceType);
+          Object converted =
+              value == null ? null : ArrowValueConverter.convert(value, sourceType, targetType);
+          ArrowVectorBuilder.writeValue(vector, i, targetType, converted);
+        }
+        vector.setValueCount(rowCount);
+        vectors.add(vector);
+      }
+
+      VectorSchemaRoot result = new VectorSchemaRoot(vectors);
+      result.setRowCount(rowCount);
+      return result;
+    } catch (RuntimeException e) {
+      closeVectors(vectors);
+      throw e;
+    } catch (Exception e) {
+      closeVectors(vectors);
+      throw new RuntimeException("Failed to normalize Arrow schema result", e);
+    }
+  }
+
   /** 算法 3: FillMissingColumnsWithNull — 缺失列补空值。 */
   static List<List<Object>> fillMissingColumnsWithNull(
       List<List<Object>> result, OutputSchema snapshot) {
@@ -227,34 +337,30 @@ public class SchemaGuard {
   }
 
   private static Object castValue(Object value, DataType targetType) {
-    if (value == null) return null;
-    try {
-      switch (targetType) {
-        case LONG:
-          if (value instanceof Integer) return ((Integer) value).longValue();
-          if (value instanceof Long) return value;
-          return ((Number) value).longValue();
-        case DOUBLE:
-          if (value instanceof Float) return ((Float) value).doubleValue();
-          if (value instanceof Double) return value;
-          return ((Number) value).doubleValue();
-        case INTEGER:
-          if (value instanceof Integer) return value;
-          return ((Number) value).intValue();
-        case FLOAT:
-          if (value instanceof Float) return value;
-          return ((Number) value).floatValue();
-        case BOOLEAN:
-          if (value instanceof Boolean) return value;
-          return Boolean.parseBoolean(value.toString());
-        case BINARY:
-          if (value instanceof byte[]) return value;
-          return value.toString().getBytes();
-        default:
-          return value;
+    return TypeConverter.convertToType(targetType, value);
+  }
+
+  private static FieldVector copyVector(FieldVector rawVector, int rowCount) {
+    FieldVector vector =
+        ArrowVectorBuilder.createVector(
+            rawVector.getField(), ThreadInterpreterManager.getAllocator());
+    ArrowVectorBuilder.allocateVector(vector, rowCount);
+    ArrowType type = rawVector.getField().getType();
+    for (int i = 0; i < rowCount; i++) {
+      Object value = ArrowVectorBuilder.readValue(rawVector, i, type);
+      ArrowVectorBuilder.writeValue(vector, i, type, value);
+    }
+    vector.setValueCount(rowCount);
+    return vector;
+  }
+
+  private static void closeVectors(List<FieldVector> vectors) {
+    for (FieldVector vector : vectors) {
+      try {
+        vector.close();
+      } catch (Exception e) {
+        LOGGER.warn("Failed to close Arrow vector during schema normalization cleanup", e);
       }
-    } catch (Exception e) {
-      return value;
     }
   }
 }

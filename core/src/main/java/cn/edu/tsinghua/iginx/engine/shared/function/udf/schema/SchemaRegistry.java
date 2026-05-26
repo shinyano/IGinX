@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SchemaRegistry {
 
   private final ConcurrentHashMap<String, OutputSchema> snapshots = new ConcurrentHashMap<>();
+  private final ArrowSchemaRegistry arrowSchemaRegistry = new ArrowSchemaRegistry();
 
   /** 获取调用点 callSiteId 对应的快照；若未注册则返回 null。 */
   public OutputSchema getSnapshot(String callSiteId) {
@@ -40,11 +41,16 @@ public class SchemaRegistry {
     return snapshots.putIfAbsent(callSiteId, schema);
   }
 
+  public ArrowSchemaRegistry getArrowSchemaRegistry() {
+    return arrowSchemaRegistry;
+  }
+
   public int size() {
     return snapshots.size();
   }
 
   public void clear() {
     snapshots.clear();
+    arrowSchemaRegistry.clear();
   }
 }

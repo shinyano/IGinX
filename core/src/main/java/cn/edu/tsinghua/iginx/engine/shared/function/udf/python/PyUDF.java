@@ -29,6 +29,7 @@ import cn.edu.tsinghua.iginx.engine.shared.function.manager.ThreadInterpreterMan
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import org.apache.arrow.vector.VectorSchemaRoot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import pemja.core.PythonInterpreter;
@@ -37,6 +38,7 @@ public abstract class PyUDF implements Function {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PyUDF.class);
   private static final String LEGACY_UDF_OBJECT = "t";
+  private static final String ARROW_UDF_FUNC = "arrow_transform";
 
   protected final BlockingQueue<PythonInterpreter> interpreters;
 
@@ -131,6 +133,36 @@ public abstract class PyUDF implements Function {
       throw e;
     } catch (Exception e) {
       throw new RuntimeException("Failed to execute Python UDF: " + moduleName, e);
+    }
+  }
+
+  protected boolean useArrowExecution() {
+    return interpreters == null && config.isPythonUdfArrowEnabled();
+  }
+
+  protected VectorSchemaRoot invokePyUDFArrow(
+      VectorSchemaRoot data, List<Object> args, Map<String, Object> kvargs) {
+    if (interpreters != null) {
+      throw new UnsupportedOperationException(
+          "Arrow execution is only supported for the non-legacy Python UDF path");
+    }
+
+    try {
+      return AdaptiveUDFExecutor.getInstance()
+          .submitAndGet(
+              () -> {
+                long timeout = config.getUDFTimeout();
+                String obj = (moduleName + className).replace(".", "a");
+                ThreadInterpreterManager.exec(
+                    String.format(
+                        "import %s; %s = %s.%s()", moduleName, obj, moduleName, className));
+                return ThreadInterpreterManager.invokeArrowMethodWithTimeout(
+                    timeout, obj, ARROW_UDF_FUNC, data, args, kvargs);
+              });
+    } catch (RuntimeException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to execute Python UDF with Arrow: " + moduleName, e);
     }
   }
 }

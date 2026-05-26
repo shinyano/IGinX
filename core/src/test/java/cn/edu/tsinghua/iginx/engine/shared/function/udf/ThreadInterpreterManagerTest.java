@@ -19,8 +19,6 @@
  */
 package cn.edu.tsinghua.iginx.engine.shared.function.udf;
 
-import cn.edu.tsinghua.iginx.conf.Config;
-import cn.edu.tsinghua.iginx.conf.ConfigDescriptor;
 import cn.edu.tsinghua.iginx.conf.Constants;
 import cn.edu.tsinghua.iginx.engine.shared.function.manager.ThreadInterpreterManager;
 import cn.edu.tsinghua.iginx.utils.EnvUtils;
@@ -38,9 +36,6 @@ import pemja.core.PythonInterpreterConfig;
 
 public class ThreadInterpreterManagerTest {
   private static final Logger LOGGER = LoggerFactory.getLogger(ThreadInterpreterManagerTest.class);
-
-  private static final Config config = ConfigDescriptor.getInstance().getConfig();
-
   private static final List<String> PATHS =
       Arrays.asList(
           Paths.get(
@@ -63,7 +58,7 @@ public class ThreadInterpreterManagerTest {
                   "utils")
               .toString());
 
-  private static final String PYTHON_CMD = config.getPythonCMD();
+  private static final String PYTHON_CMD = "python";
 
   @BeforeClass
   public static void setUp() throws Exception {

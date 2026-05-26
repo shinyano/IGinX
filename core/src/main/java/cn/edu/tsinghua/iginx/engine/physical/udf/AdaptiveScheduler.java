@@ -260,7 +260,7 @@ public class AdaptiveScheduler {
       double activeRatio,
       String decision,
       String reason) {
-    LOGGER.info(
+    LOGGER.debug(
         "{} wallTimeMs={} poolSize={} activeThreads={} queueLength={} cpuUsage={} queueEwma={} cpuEwma={} activeRatio={} decision={} reason={} intervalMs={} idleCycles={}",
         METRIC_LOG_PREFIX,
         wallTimeMs,

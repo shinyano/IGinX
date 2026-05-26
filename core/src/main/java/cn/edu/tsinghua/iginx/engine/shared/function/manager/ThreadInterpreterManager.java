@@ -30,6 +30,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.validation.constraints.NotNull;
+import org.apache.arrow.memory.BufferAllocator;
+import org.apache.arrow.memory.RootAllocator;
+import org.apache.arrow.vector.VectorSchemaRoot;
+import pemja.core.ArrowBridge;
 import pemja.core.PythonInterpreter;
 import pemja.core.PythonInterpreterConfig;
 
@@ -39,8 +43,11 @@ import pemja.core.PythonInterpreterConfig;
  * <p>不管理interpreter的生命周期，生命周期管理在AbstractTaskThreadPoolExecutor中
  */
 public class ThreadInterpreterManager {
+  private static final RootAllocator sharedArrowRootAllocator = new RootAllocator(Long.MAX_VALUE);
   private static final ThreadLocal<PythonInterpreter> interpreterThreadLocal = new ThreadLocal<>();
   private static final ThreadLocal<PythonInterpreterConfig> configThreadLocal = new ThreadLocal<>();
+  private static final ThreadLocal<BufferAllocator> allocatorThreadLocal = new ThreadLocal<>();
+  private static final ThreadLocal<ArrowBridge> ArrowBridgeThreadLocal = new ThreadLocal<>();
 
   @NotNull
   public static PythonInterpreter getInterpreter() {
@@ -54,6 +61,26 @@ public class ThreadInterpreterManager {
       interpreterThreadLocal.set(interpreter);
     }
     return interpreterThreadLocal.get();
+  }
+
+  public static BufferAllocator getAllocator() {
+    BufferAllocator allocator = allocatorThreadLocal.get();
+    if (allocator == null) {
+      allocator =
+          sharedArrowRootAllocator.newChildAllocator(
+              "iginx-arrow-" + Thread.currentThread().getId(), 0, Long.MAX_VALUE);
+      allocatorThreadLocal.set(allocator);
+    }
+    return allocatorThreadLocal.get();
+  }
+
+  public static ArrowBridge getArrowBridge() {
+    ArrowBridge arrowBridge = ArrowBridgeThreadLocal.get();
+    if (arrowBridge == null) {
+      arrowBridge = new ArrowBridge(getAllocator());
+      ArrowBridgeThreadLocal.set(arrowBridge);
+    }
+    return ArrowBridgeThreadLocal.get();
   }
 
   public static boolean isInterpreterSet() {
@@ -118,6 +145,46 @@ public class ThreadInterpreterManager {
     return (T)
         executeWithInterpreterAndReturn(
             interpreter -> interpreter.invokeMethod(obj, function, data, args, kvargs));
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> T invokeArrowMethodWithTimeout(
+      long timeout,
+      String obj,
+      String function,
+      VectorSchemaRoot data,
+      List<Object> args,
+      Map<String, Object> kvargs) {
+    if (timeout <= 0) {
+      return invokeArrowMethod(obj, function, data, args, kvargs);
+    }
+    return (T)
+        executeWithInterpreterAndReturn(
+            interpreter -> {
+              // Wrap the original object with TimeoutSafeWrapper.
+              // All function calls on the wrapped instance will be automatically
+              // managed with a timeout.
+              interpreter.exec(String.format("from %s import %s", TIMEOUT_SCRIPT, TIMEOUT_WRAPPER));
+              String safeObject = String.format("%s_safe_instance", obj);
+              interpreter.exec(
+                  String.format("%s=%s(%s, %d)", safeObject, TIMEOUT_WRAPPER, obj, timeout));
+              return getArrowBridge()
+                  .invokeArrowMethod(interpreter, safeObject, function, data, args, kvargs);
+            });
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> T invokeArrowMethod(
+      String obj,
+      String function,
+      VectorSchemaRoot data,
+      List<Object> args,
+      Map<String, Object> kvargs) {
+    return (T)
+        executeWithInterpreterAndReturn(
+            interpreter ->
+                new ArrowBridge(getAllocator())
+                    .invokeArrowMethod(interpreter, obj, function, data, args, kvargs));
   }
 
   private static void initialize(PythonInterpreter interpreter) {

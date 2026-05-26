@@ -184,6 +184,8 @@ public class Config {
 
   private boolean pythonUdfLegacyExecutionEnabled = false;
 
+  private boolean pythonUdfArrowEnabled = false;
+
   private int udfPoolMinThreads = 2;
 
   private int udfPoolMaxThreads = Runtime.getRuntime().availableProcessors() * 2;
@@ -861,6 +863,14 @@ public class Config {
 
   public void setPythonUdfLegacyExecutionEnabled(boolean pythonUdfLegacyExecutionEnabled) {
     this.pythonUdfLegacyExecutionEnabled = pythonUdfLegacyExecutionEnabled;
+  }
+
+  public boolean isPythonUdfArrowEnabled() {
+    return pythonUdfArrowEnabled;
+  }
+
+  public void setPythonUdfArrowEnabled(boolean pythonUdfArrowEnabled) {
+    this.pythonUdfArrowEnabled = pythonUdfArrowEnabled;
   }
 
   public int getUdfPoolMinThreads() {

@@ -18,21 +18,32 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-from setuptools import setup, find_packages
+import pandas as pd
+from iginx_udf import UDSFWrapper
+from PIL import Image
+import io
 
-package_name = "iginx_udf"
+# 测试arrow传输图像二进制数据
 
-setup(
-    name=package_name,                # 包名
-    version="0.1.0",
-    description="UDF tools for IGinX UDFs",
-    author='THU IGinX',
-    author_email='TSIginX@gmail.com',
-    packages=find_packages(where="src"),
-    package_dir={"": "src"},
-    python_requires=">=3.8",
-    install_requires=[
-        "pandas",
-        "pyarrow",
-    ],
-)
+@UDSFWrapper
+class UDFImgTest:
+    def __init__(self):
+        pass
+
+    def eval(self, data, *args):
+        print(data)
+        # 假设 df 的 image 列里存的是 bytes
+        img_bytes = data.loc[0, 'dir.tiny\\.png']
+
+        # 从二进制读取图片
+        img = Image.open(io.BytesIO(img_bytes))
+
+        # 打开显示
+        img.show()
+        resultdf = pd.DataFrame({'col': [1]})
+        return resultdf
+
+# select * from dir;
+# create function udsf "udf_img" from "UDFImgTest" in "E:\\IGinX_Lab\\local\\IGinX\\udsf_testimg.py";
+# select udf_img(*, 1) from dir;
+# drop function "udf_img";

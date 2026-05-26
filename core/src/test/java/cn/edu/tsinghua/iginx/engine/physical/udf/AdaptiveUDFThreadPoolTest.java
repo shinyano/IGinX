@@ -36,7 +36,7 @@ public class AdaptiveUDFThreadPoolTest {
   private AdaptiveUDFThreadPoolExecutor pool;
 
   private static PythonInterpreterConfig dummyConfig() {
-    return PythonInterpreterConfig.newBuilder().setPythonExec("python3").build();
+    return PythonInterpreterConfig.newBuilder().setPythonExec("python").build();
   }
 
   @Before

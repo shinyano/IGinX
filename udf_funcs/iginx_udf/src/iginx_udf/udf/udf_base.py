@@ -18,10 +18,14 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import List, Optional, Tuple
 
 import pandas as pd
+try:
+    import pyarrow as pa
+except ImportError:  # pragma: no cover
+    pa = None
 
 
 class UDFWrapper(ABC):
@@ -128,6 +132,30 @@ class UDFWrapper(ABC):
 
         return result
 
+    def _arrow_to_dataframe(self, data) -> Tuple[pd.DataFrame, int]:
+        """
+        将 Java 侧传入的 Arrow RecordBatch 转为 DataFrame。
+        """
+        self._require_pyarrow()
+        if not isinstance(data, pa.RecordBatch):
+            raise TypeError(
+                f"arrow_transform() expects pyarrow.RecordBatch as the first argument, "
+                f"got {type(data).__name__}."
+            )
+
+        return data.to_pandas(), data.num_rows
+
+    def _dataframe_to_arrow(self, df: pd.DataFrame):
+        """
+        将 DataFrame 转为 Arrow RecordBatch。
+        空结果统一编码为空 schema 的空 RecordBatch。
+        """
+        self._require_pyarrow()
+        if df is None or df.empty:
+            return pa.RecordBatch.from_arrays([], names=[])
+
+        return pa.RecordBatch.from_pandas(df, preserve_index=False)
+
     @staticmethod
     def _convert_value(v):
         if pd.isna(v):
@@ -137,28 +165,69 @@ class UDFWrapper(ABC):
         return v
 
     @staticmethod
-    def _unpack_java_params(args: tuple):
+    def _unpack_java_params(java_args, java_kwargs):
         """
         Java 通过 Pemja 调用 transform(data, args, kvargs) 时，
         args 和 kvargs 分别作为第二、第三个位置参数传入。
         本方法将它们展开为 Python 原生参数形式供用户 eval 使用。
         """
-        java_args = args[0] if len(args) > 0 and isinstance(args[0], (list, tuple)) else []
-        java_kwargs = args[1] if len(args) > 1 and isinstance(args[1], dict) else {}
         if java_args is None:
+            java_args = []
+        elif not isinstance(java_args, (list, tuple)):
             java_args = []
         if java_kwargs is None:
             java_kwargs = {}
+        elif not isinstance(java_kwargs, dict):
+            java_kwargs = {}
         return list(java_args), dict(java_kwargs)
+
+    @staticmethod
+    def _require_pyarrow():
+        if pa is None:
+            raise ImportError(
+                "pyarrow is required for arrow_transform(). "
+                "Please install the 'pyarrow' package in the Python UDF environment."
+            )
+
+    def _run_eval(self, df: pd.DataFrame, args=None, kwargs=None):
+        user_args, user_kwargs = self._unpack_java_params(args, kwargs)
+        return self._wrapped.eval(df, *user_args, **user_kwargs)
+
+    def _validate_result(self, result, input_rows: int):
+        pass
+
+    def _execute_list_transform(self, data, args=None, kwargs=None):
+        df, original_types, has_key = self._list_to_dataframe(data)
+        result = self._run_eval(df, args, kwargs)
+        self._validate_result(result, len(df))
+        if isinstance(result, pd.DataFrame):
+            return self._dataframe_to_list(result, original_types, has_key)
+        return result
+
+    def _execute_arrow_transform(self, data, args=None, kwargs=None):
+        df, input_rows = self._arrow_to_dataframe(data)
+        result = self._run_eval(df, args, kwargs)
+        self._validate_result(result, input_rows)
+        if isinstance(result, pd.DataFrame):
+            return self._dataframe_to_arrow(result)
+        if pa is not None and isinstance(result, pa.RecordBatch):
+            return result
+        raise TypeError(
+            "arrow_transform() only accepts pandas.DataFrame or pyarrow.RecordBatch "
+            f"as eval() return values, got {type(result).__name__}."
+        )
+
+    def transform(self, data, args=None, kwargs=None):
+        """
+        旧协议入口：接收 IGinX 二维列表并返回兼容的二维列表结果。
+        """
+        return self._execute_list_transform(data, args, kwargs)
 
     # ------------------------------------------------------------------
     # 核心抽象方法：由子类实现具体的数据处理逻辑
     # ------------------------------------------------------------------
-    @abstractmethod
-    def transform(self, data, *args, **kwargs):
+    def arrow_transform(self, data, args=None, kwargs=None):
         """
-        核心数据处理逻辑，由具体 UDF/UDTF/UDAF/UDSF 子类实现。
-        该方法将被 Java 层或调度器统一调用。
-        data 参数为 IGinX 二维列表，子类负责转为 DataFrame 后调用用户 eval。
+        Arrow 协议入口：接收 RecordBatch，调用用户 eval 后返回 RecordBatch。
         """
-        raise NotImplementedError
+        return self._execute_arrow_transform(data, args, kwargs)

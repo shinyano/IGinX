@@ -23,11 +23,21 @@ package cn.edu.tsinghua.iginx.engine.shared.function.udf.schema;
 public class SchemaViolationException extends Exception {
 
   private final String callSiteId;
-  private final OutputSchema expected;
-  private final OutputSchema actual;
+  private final Object expected;
+  private final Object actual;
 
   public SchemaViolationException(
       String callSiteId, OutputSchema expected, OutputSchema actual, String detail) {
+    this(callSiteId, (Object) expected, (Object) actual, detail);
+  }
+
+  public SchemaViolationException(
+      String callSiteId, ArrowOutputSchema expected, ArrowOutputSchema actual, String detail) {
+    this(callSiteId, (Object) expected, (Object) actual, detail);
+  }
+
+  private SchemaViolationException(
+      String callSiteId, Object expected, Object actual, String detail) {
     super(buildMessage(callSiteId, expected, actual, detail));
     this.callSiteId = callSiteId;
     this.expected = expected;
@@ -35,7 +45,7 @@ public class SchemaViolationException extends Exception {
   }
 
   private static String buildMessage(
-      String callSiteId, OutputSchema expected, OutputSchema actual, String detail) {
+      String callSiteId, Object expected, Object actual, String detail) {
     return String.format(
         "Schema violation at call site [%s]: %s. Expected: %s, Actual: %s",
         callSiteId, detail, expected, actual);
@@ -45,11 +55,11 @@ public class SchemaViolationException extends Exception {
     return callSiteId;
   }
 
-  public OutputSchema getExpected() {
+  public Object getExpected() {
     return expected;
   }
 
-  public OutputSchema getActual() {
+  public Object getActual() {
     return actual;
   }
 }

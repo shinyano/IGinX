@@ -28,11 +28,14 @@ import cn.edu.tsinghua.iginx.engine.shared.function.MappingType;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.UDSF;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.schema.SchemaGuard;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.schema.SchemaViolationException;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.ArrowDataUtils;
+import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.ArrowResultUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.CheckUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.DataUtils;
 import cn.edu.tsinghua.iginx.engine.shared.function.udf.utils.RowUtils;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
+import org.apache.arrow.vector.VectorSchemaRoot;
 import pemja.core.PythonInterpreter;
 
 public class PyUDSF extends PyUDF implements UDSF {
@@ -75,13 +78,44 @@ public class PyUDSF extends PyUDF implements UDSF {
     if (!CheckUtils.isLegal(params)) {
       throw new IllegalArgumentException("unexpected params for PyUDSF.");
     }
+    List<Object> args = params.getArgs();
+    Map<String, Object> kvargs = params.getKwargs();
+
+    if (useArrowExecution()) {
+      try (VectorSchemaRoot arrowData = ArrowDataUtils.dataFromTable(table, params.getPaths())) {
+        if (arrowData == null) {
+          return Table.EMPTY_TABLE;
+        }
+        try (VectorSchemaRoot result = invokePyUDFArrow(arrowData, args, kvargs)) {
+          if (result == null || result.getRowCount() == 0) {
+            return Table.EMPTY_TABLE;
+          }
+          if (params.getRequestContext() != null && params.getCallSiteId() != null) {
+            try {
+              VectorSchemaRoot normalized =
+                  SchemaGuard.ensureArrowSchema(
+                      params.getRequestContext().getSchemaRegistry(),
+                      params.getCallSiteId(),
+                      result,
+                      SchemaGuard.Policy.ALIGN_COMPATIBLE);
+              if (normalized != result) {
+                try (VectorSchemaRoot ignored = normalized) {
+                  return ArrowResultUtils.constructTable(normalized, funcName);
+                }
+              }
+            } catch (SchemaViolationException e) {
+              throw new Exception("UDF schema violation in " + funcName + ": " + e.getMessage(), e);
+            }
+          }
+          return ArrowResultUtils.constructTable(result, funcName);
+        }
+      }
+    }
+
     List<List<Object>> data = DataUtils.dataFromTable(table, params.getPaths());
     if (data == null) {
       return Table.EMPTY_TABLE;
     }
-
-    List<Object> args = params.getArgs();
-    Map<String, Object> kvargs = params.getKwargs();
 
     List<List<Object>> res = invokePyUDF(data, args, kvargs);
 
